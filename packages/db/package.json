@@ -12,5 +12,8 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "prisma": "^6.2.1"
+  }
 }
