@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { Providers } from "@/components/providers"
+import { Metadata } from "next"
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -12,6 +13,11 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const metaData: Metadata = {
+  title:"Doodle app",
+  description:"A collaborative drawing app that lets teams brainstorm, sketch, and share ideas in real time on an interactive canvas."
+}
 
 export default function RootLayout({
   children,
