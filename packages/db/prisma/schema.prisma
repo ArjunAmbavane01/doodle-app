@@ -8,6 +8,13 @@ datasource db {
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  username String @unique
+  id         String   @id @default(uuid())
+  name       String   @db.VarChar(191)
+  email      String   @unique @db.VarChar(191)
+  provider   String   @db.VarChar(100)
+  photo      String?
+  oauth_id   String
+  created_at DateTime @default(now())
+
+  @@map("users")
 }
