@@ -1,8 +1,13 @@
 import { Button } from "@workspace/ui/components/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
+import { getServerSession } from "next-auth"
+import { authOptions, ICustomSession } from "./api/auth/[...nextauth]/options"
 
-export default function Page() {
+const Page = async () =>  {
+  const session:ICustomSession|null = await getServerSession(authOptions)
   return (
+
+    // <Navbar user={session?.user} />
     <div className="flex items-center justify-center min-h-svh">
       <div className="flex flex-col items-center justify-center gap-4">
         <h1 className="text-2xl font-bold">Hello World</h1>
@@ -23,3 +28,5 @@ export default function Page() {
     </div>
   )
 }
+
+export default Page;
