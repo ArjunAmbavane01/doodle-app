@@ -2,13 +2,12 @@ import { verify } from "jsonwebtoken";
 import { WebSocketServer,WebSocket } from "ws";
 import {JWT_SECRET} from "@workspace/backend-common/config"
 
-const wss = new WebSocketServer({ port: 8090 });
+const wss = new WebSocketServer({ port: 8080 },()=> console.log(`Listening on port 8080`));
 const checkUser = (token:string|null) => {
     try{
         if(!token) return null;
-        const payload = verify(token,JWT_SECRET);
-        if(typeof payload === 'string') return null;
-        if (!payload || !payload.userId) return null;
+        const payload = verify(token,JWT_SECRET as string);
+        if (!payload || typeof payload === 'string') return null;
         return payload.userId;
     }catch(e){
         console.log(e)

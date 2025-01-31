@@ -8,9 +8,15 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "@workspace/ui/components/dialog"
+import { signIn } from "next-auth/react";
 import Image from "next/image";
 
-  
+  const handleLogin = () => {
+    signIn("google",{
+      callbackUrl:"/dashboard",
+      redirect:true
+    })
+  }
 const LoginModal = () => {
     return ( 
         <Dialog>
@@ -24,7 +30,7 @@ const LoginModal = () => {
             A collaborative drawing app that lets teams brainstorm, sketch, and share ideas in real time on an interactive canvas.
             </DialogDescription>
           </DialogHeader>
-          <Button variant={'outline'}>
+          <Button variant={'outline'} onClick={handleLogin}>
             <Image src={'/images/google.png'} alt="Google logo" width={25} height={25} />
             Continue with Google
           </Button>

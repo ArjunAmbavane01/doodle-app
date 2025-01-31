@@ -3,21 +3,26 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "pnpm run build && pnpm run start"
   },
   "devDependencies": {
-    "@workspace/typescript-config": "workspace:*",
-    "@workspace/backend-common": "workspace:*",
     "@types/express": "^5.0.0",
-    "@types/jsonwebtoken": "^9.0.8"
+    "@types/jsonwebtoken": "^9.0.8",
+    "@workspace/backend-common": "workspace:*",
+    "@workspace/typescript-config": "workspace:*"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "description": "",
   "dependencies": {
+    "@types/cors": "^2.8.17",
     "@workspace/db": "workspace:*",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2"
   }
