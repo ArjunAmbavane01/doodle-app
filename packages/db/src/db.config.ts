@@ -1,6 +1,6 @@
 import {PrismaClient} from '@prisma/client'
-const prisma = new PrismaClient({
-    log:["error","query"]
-})
+// use signleton practivce here 
+
+const prisma:PrismaClient = new PrismaClient()
 
 export default prisma

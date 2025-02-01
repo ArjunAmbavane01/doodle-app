@@ -24,21 +24,24 @@ export const authOptions: AuthOptions = {
   callbacks:{
     async signIn({user,account}:{user:ICustomUser,account:Account|null}){
     try{
-
-    
-      console.log("User data : " + user)
-      console.log("User Account : " + account)
+      console.log("\nUser data : " + JSON.stringify(user))
+      console.log("\n\nUser Account : " + JSON.stringify(account))
       const payload = {
         email:user.email,
         name:user.name,
-        oauth_id:account?.providerAccountId,
+        photo:user?.image,
         provider:account?.provider,
-        photo:user?.image
+        oauth_id:account?.providerAccountId,
       }
+
+      console.log("\n\nPayload : " + JSON.stringify(payload))
+      console.log("\n\nLOGIN URL : " + LOGIN_URL)
       const {data} = await axios.post(LOGIN_URL,payload);
-      user.id = data?.user?.id;
-      user.token = data?.token;
+      console.log(`\n\n logindata : ${data}`)
+      user.token = data?.user?.token;
+      user.id = data?.user?.id?.toString();
       user.provider = data?.user?.provider;
+      console.log(`\n\n user: ${user}`)
       return true
     } catch(e){
       return false

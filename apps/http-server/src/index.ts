@@ -3,7 +3,6 @@ import express,{Application, Request,Response} from "express";
 import cors from "cors";
 import Routes from './routes/index'
 
-console.log(process.env.PORT)
 const PORT = process.env.PORT || 8001;
 
 const app:Application = express();

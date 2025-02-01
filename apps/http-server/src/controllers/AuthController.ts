@@ -8,29 +8,41 @@ interface ILoginPayload {
   email: string;
   oauth_id: string;
   provider: string;
-  image?: string;
+  photo?: string;
 }
 
 class AuthController {
   static login = async (req: Request, res: Response) => {
     try {
       const body: ILoginPayload = req.body;
-      let user = await prisma.user.findUnique({ where: {   email: body.email }});
+      
+      console.log(`\nbody : ${JSON.stringify(body)}`)
+      console.log(`\nemail : ${body.email}`)
 
+      let user = await prisma.user.findUnique({ where: { email: body.email }});
+
+      console.log(`\nuser : ${user}`)
+      
       if (!user) user = await prisma.user.create({ data: body });
       
-      const JWTPayload = {
-        name: body.name,
-        email: body.email,
-        id: user.id,
-      };
+      console.log(`\nuser : ${JSON.stringify(user)}`)
+      
+      const JWTPayload = { name: body.name, email: body.email, id: user.id};
+      
+      console.log(`\njwtPayload : ${JSON.stringify(JWTPayload)}`)
+      console.log(`\n SECRET : ${JWT_SECRET}`)
+
       const token = sign(JWTPayload, JWT_SECRET as string, { expiresIn: "365d" });
+
+      console.log(`\n\n token : ${token}`);
 
       res.status(200).json({
         type: "success",
         message: "Login Successful",
-        user,
-        token,
+        user:{
+          ...user,
+          token:`Bearer ${token}`
+        }
       });
       return;
       
@@ -40,6 +52,7 @@ class AuthController {
         message: "Something went wrong",
         error: e,
       });
+      return
     }
   };
 }
