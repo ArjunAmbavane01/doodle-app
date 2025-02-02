@@ -24,8 +24,6 @@ export const authOptions: AuthOptions = {
   callbacks:{
     async signIn({user,account}:{user:ICustomUser,account:Account|null}){
     try{
-      console.log("\nUser data : " + JSON.stringify(user))
-      console.log("\n\nUser Account : " + JSON.stringify(account))
       const payload = {
         email:user.email,
         name:user.name,
@@ -34,10 +32,7 @@ export const authOptions: AuthOptions = {
         oauth_id:account?.providerAccountId,
       }
 
-      console.log("\n\nPayload : " + JSON.stringify(payload))
-      console.log("\n\nLOGIN URL : " + LOGIN_URL)
       const {data} = await axios.post(LOGIN_URL,payload);
-      console.log(`\n\n logindata : ${data}`)
       user.token = data?.user?.token;
       user.id = data?.user?.id?.toString();
       user.provider = data?.user?.provider;
