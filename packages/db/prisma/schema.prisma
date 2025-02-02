@@ -9,12 +9,36 @@ datasource db {
 
 model User {
   id         String   @id @default(uuid())
-  name       String   @db.VarChar(191)
-  email      String   @unique @db.VarChar(191)
-  provider   String   @db.VarChar(100)
+  name       String
+  email      String   @unique
+  provider   String
   photo      String?
   oauth_id   String
   created_at DateTime @default(now())
+  rooms      Room[]
+  chats      Chat[]
 
   @@map("users")
+}
+
+model Room {
+  id      Int    @id @default(autoincrement())
+  slug    String @unique
+  adminId String
+  admin   User   @relation(fields: [adminId], references: [id])
+  chats   Chat[]
+
+  @@map("rooms")
+}
+
+model Chat {
+  id         Int      @id @default(autoincrement())
+  message    String
+  created_at DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  roomId     Int
+  room       Room     @relation(fields: [roomId], references: [id])
+
+  @@map("chats")
 }
