@@ -11,7 +11,7 @@ const Navbar = async () => {
     const session: ICustomSession | null = await getServerSession(authOptions);
     return (
         <div className="fixed top-8 inset-x-0 flex justify-between items-center w-[30%] mx-auto p-3 px-5 border rounded-lg">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 font-logo font-bold text-2xl">
             <Image src={'/images/logos/doodle-logo.png'} alt="Doodle logo" width={100} height={100} className="size-5" />
             Doodle
             </div>
