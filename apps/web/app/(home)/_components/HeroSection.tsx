@@ -1,4 +1,6 @@
 import { Button } from "@workspace/ui/components/button";
+import { PencilLine } from "lucide-react";
+import Image from "next/image";
 
 const HeroSection = () => {
     return (
@@ -9,14 +11,14 @@ const HeroSection = () => {
                 Sketch, Collaborate, Innovate - All in One Place.
             </div>
             <div className="flex gap-5">
-        <Button>
+        <Button className="flex items-center gap-3 p-5">
             Start Doodling
+            <PencilLine className="size-3"/>
         </Button>
-        <Button variant={'outline'}>
+        <Button variant={'outline'} className="flex items-center p-5">
             join a room
         </Button>
             </div>
-                {/* <MainSection /> */}
         </div>
         </section>
     );
