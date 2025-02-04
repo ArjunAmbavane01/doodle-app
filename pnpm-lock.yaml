@@ -167,6 +167,9 @@ importers:
       '@types/ws':
         specifier: ^8.5.14
         version: 8.5.14
+      '@workspace/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
