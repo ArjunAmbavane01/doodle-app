@@ -41,7 +41,7 @@ class AuthController {
         message: "Login Successful",
         user:{
           ...user,
-          token:`Bearer ${token}`
+          token:token
         }
       });
       return;

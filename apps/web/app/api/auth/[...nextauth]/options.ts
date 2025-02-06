@@ -42,15 +42,15 @@ export const authOptions: AuthOptions = {
       return false
     }
     },
-    async session({ session, user, token }:{session:ICustomSession,user:ICustomUser,token:JWT}) {
-      session.user = token.user as ICustomUser
-      return session
-    },
-    async jwt({ token, user, account, profile, isNewUser }) {
+    async jwt({ token, user }) {
       if(user){
         token.user = user
       }
       return token
+    },
+    async session({ session, user, token }:{session:ICustomSession,user:ICustomUser,token:JWT}) {
+      session.user = token.user as ICustomUser
+      return session
     }
   },
   providers: [

@@ -3,10 +3,10 @@ import { NextFunction, Request, Response } from "express";
 import { verify } from "jsonwebtoken";
 
 interface ICustomRequest extends Request{
-    
+    userId?:string
 }
 
-export const auth = (req: Request, res: Response, next: NextFunction) => {
+export const auth = (req: ICustomRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers["authorization"];
     const token =

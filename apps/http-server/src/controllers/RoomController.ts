@@ -2,7 +2,7 @@ import prisma from "@workspace/db/client";
 import { Request, Response, Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-export const createRoom = async (req: Request, res: Response) => {
+export const createRoom = async (req: , res: Response) => {
   try {
     const userId = req.userId;
     const newRoom = await prisma.room.create({
