@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/av
 
 const LogoutModal = dynamic(() => import('@/components/auth/LogoutModal'))
 
-const UserDropdown = ({ user }: { user: ICustomUser }) => {
+const UserDropdown = ({ user }: { user: ICustomUser | undefined }) => {
     const [logoutOpen, setLogoutOpen] = useState(false);
     return (
         <>

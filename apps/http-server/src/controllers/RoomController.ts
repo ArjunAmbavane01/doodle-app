@@ -1,14 +1,16 @@
 import prisma from "@workspace/db/client";
 import { Request, Response, Router } from "express";
 import { v4 as uuidv4 } from "uuid";
+import { ICustomRequest } from "../auth";
 
-export const createRoom = async (req: , res: Response) => {
+export const createRoom = async (req:ICustomRequest , res: Response) => {
   try {
     const userId = req.userId;
+    console.log(userId)
     const newRoom = await prisma.room.create({
       data: {
         slug: uuidv4(),
-        adminId: userId,
+        adminId: userId as string,
       },
     });
 
@@ -38,7 +40,7 @@ export const joinRoom = async (req: Request, res: Response) => {
     if (!room) {
       res.status(400).json({
         type: "error",
-        message: "Room not found",
+        message: "Room does not exists",
       });
       return;
     }
