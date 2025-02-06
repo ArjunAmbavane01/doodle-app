@@ -30,6 +30,7 @@ export const createRoom = async (req:ICustomRequest , res: Response) => {
     });
   }
 };
+
 export const joinRoom = async (req: Request, res: Response) => {
   const body = req.body;
   try {

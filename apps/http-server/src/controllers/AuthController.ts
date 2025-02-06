@@ -11,6 +11,8 @@ interface ILoginPayload {
   photo?: string;
 }
 
+
+// Fix the problem ki jwt is still valid after next auth logout
 class AuthController {
   static login = async (req: Request, res: Response) => {
     try {
