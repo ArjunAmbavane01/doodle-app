@@ -1,9 +1,9 @@
 'use client'
-import { CREATE_ROOM_URL, JOIN_ROOM_URL } from "@/lib/apiEndPoints";
+import { CREATE_ROOM_URL } from "@/lib/apiEndPoints";
 import { Button } from "@workspace/ui/components/button";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Divide, Info, PencilLine, Users } from "lucide-react";
+import { Info, PencilLine, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 
 import { useRef, useState } from "react";
@@ -30,18 +30,6 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const joinRoom = async () => {
         const roomSlug = roomRef.current?.value.trim();
         if(!roomSlug) roomRef.current?.focus;
-        const { data } = await axios.post(JOIN_ROOM_URL, {
-            slug:roomSlug
-        }, {
-            headers: {
-                'Authorization': `Bearer ${userToken}`
-            }
-        });
-        if (data.type === 'error') {
-            console.log(data.error)
-            return
-        }
-        const roomId = data.data.roomId;
         router.push(`/canvas/${roomSlug}`);
     }
     return (

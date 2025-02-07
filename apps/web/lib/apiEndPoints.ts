@@ -7,3 +7,4 @@ export const HTTP_API_URL = BASE_HTTP_URL + "/api";
 export const LOGIN_URL = HTTP_API_URL + "/auth/login";
 export const CREATE_ROOM_URL = HTTP_API_URL + "/rooms/createRoom";
 export const JOIN_ROOM_URL = HTTP_API_URL + "/rooms/joinRoom";
+

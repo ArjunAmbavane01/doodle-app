@@ -2,11 +2,12 @@ import prisma from "@workspace/db/client";
 import { Request, Response, Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { ICustomRequest } from "../auth";
+import { WS_JWT_SECRET } from "@workspace/backend-common/config";
+import { sign } from "jsonwebtoken";
 
 export const createRoom = async (req:ICustomRequest , res: Response) => {
   try {
     const userId = req.userId;
-    console.log(userId)
     const newRoom = await prisma.room.create({
       data: {
         slug: uuidv4(),
@@ -31,10 +32,12 @@ export const createRoom = async (req:ICustomRequest , res: Response) => {
   }
 };
 
-export const joinRoom = async (req: Request, res: Response) => {
-  const body = req.body;
+
+
+export const joinRoom = async (req: ICustomRequest, res: Response) => {
+  const {slug:roomSlug} = req.body;
+  const userId = req.userId;
   try {
-    const roomSlug = body.slug;
     const room = await prisma.room.findFirst({
       where: { slug: roomSlug },
     });
@@ -45,11 +48,14 @@ export const joinRoom = async (req: Request, res: Response) => {
       });
       return;
     }
+
+    const payload = { userId, roomId:room.id}
+    const wsToken = sign(payload,WS_JWT_SECRET as string,{expiresIn: "10m" });
     res.status(200).json({
       type: "success",
       message: "Room found",
       data: {
-        roomId: room.id,
+        token:wsToken
       },
     });
     return;
