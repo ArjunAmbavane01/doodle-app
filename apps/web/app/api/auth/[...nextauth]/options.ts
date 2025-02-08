@@ -43,9 +43,7 @@ export const authOptions: AuthOptions = {
     }
     },
     async jwt({ token, user }) {
-      if(user){
-        token.user = user
-      }
+      if(user) token.user = user
       return token
     },
     async session({ session, user, token }:{session:ICustomSession,user:ICustomUser,token:JWT}) {
@@ -57,13 +55,7 @@ export const authOptions: AuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
+      authorization: { params: { prompt: "consent", access_type: "offline", response_type: "code"}, },
     }),
   ],
 };

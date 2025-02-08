@@ -15,11 +15,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const roomRef = useRef<HTMLInputElement>(null);
 
     const createRoom = async () => {
-        const { data } = await axios.post(CREATE_ROOM_URL, {}, {
-            headers: {
-                'Authorization': `Bearer ${userToken}`
-            }
-        });
+        const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
         if (data.type === 'error') {
             console.log(data.error)
             return

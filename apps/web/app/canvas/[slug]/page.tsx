@@ -8,9 +8,7 @@ const CanvasRoom = async ({ params }: { params: Promise<{ slug: string }> }) => 
     const session: ICustomSession | null = await getServerSession(authOptions);
     const { slug } = await params;
     const { data } = await axios.post(JOIN_ROOM_URL, {slug}, {headers: {Authorization: `Bearer ${session?.user?.token}`}})
-    if(data.type === 'error'){
-        alert('Room does not exists');
-    }
+    if(data.type === 'error') alert('Room does not exists');
     const wsToken = data?.data?.token;
 
     return (

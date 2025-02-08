@@ -16,18 +16,14 @@ const Canvas = ({ wsToken }: { wsToken: string }) => {
         const ws = new WebSocket(`${BASE_WS_URL}?token=${wsToken}`);
         ws.onopen = () => {
             setSocket(ws);
-            const data = JSON.stringify({
-                type: 'join_room'
-            })
+            const data = JSON.stringify({ type: 'join_room' })
             console.log(data);
             ws.send(data);
         }
         ws.onmessage = (event) => {
             try {
                 const receivedData = JSON.parse(event.data);
-                if (receivedData.type === "chat") {
-                    setMessages((prev) => [...prev, receivedData.message]);
-                }
+                if (receivedData.type === "chat") setMessages((prev) => [...prev, receivedData.message]);
             } catch (error) {
                 console.error("Error parsing message:", error);
             }
@@ -43,9 +39,7 @@ const Canvas = ({ wsToken }: { wsToken: string }) => {
     return (
         <div>
            <button onClick={()=>socket.send(JSON.stringify({type:"chat",message:"Hey there"}))}>send message</button>
-           {messages.map((msg,idx)=>{
-            return <div key={idx}>{msg}</div>
-           })}
+           {messages.map((msg,idx)=> <div key={idx}>{msg}</div>)}
         </div>
     );
 }
