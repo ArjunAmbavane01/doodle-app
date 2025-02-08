@@ -8,27 +8,11 @@ import { sign } from "jsonwebtoken";
 export const createRoom = async (req:ICustomRequest , res: Response) => {
   try {
     const userId = req.userId;
-    const newRoom = await prisma.room.create({
-      data: {
-        slug: uuidv4(),
-        adminId: userId as string,
-      },
-    });
-
-    res.status(200).json({
-      type: "success",
-      message: "New Room created successfully",
-      data: {
-        slug: newRoom.slug,
-      },
-    });
+    const newRoom = await prisma.room.create({data: { slug: uuidv4(), adminId: userId as string}});
+    res.status(200).json({ type: "success", message: "New Room created successfully", data: { slug: newRoom.slug }});
     return;
   } catch (e) {
-    res.status(500).json({
-      type: "error",
-      message: "Internal server error",
-      error: e,
-    });
+    res.status(500).json({type: "error",message: "Internal server error",error: e });
   }
 };
 
@@ -38,32 +22,17 @@ export const joinRoom = async (req: ICustomRequest, res: Response) => {
   const {slug:roomSlug} = req.body;
   const userId = req.userId;
   try {
-    const room = await prisma.room.findFirst({
-      where: { slug: roomSlug },
-    });
+    const room = await prisma.room.findFirst({ where: { slug: roomSlug }});
     if (!room) {
-      res.status(400).json({
-        type: "error",
-        message: "Room does not exists",
-      });
+      res.status(400).json({ type: "error", message: "Room does not exists" });
       return;
     }
 
     const payload = { userId, roomId:room.id}
     const wsToken = sign(payload,WS_JWT_SECRET as string,{expiresIn: "10m" });
-    res.status(200).json({
-      type: "success",
-      message: "Room found",
-      data: {
-        token:wsToken
-      },
-    });
+    res.status(200).json({ type: "success", message: "Room found", data: { token:wsToken }});
     return;
   } catch (e) {
-    res.status(500).json({
-      type: "error",
-      message: "Internal server error",
-      error: e,
-    });
+    res.status(500).json({ type: "error", message: "Internal server error", error: e });
   }
 };
