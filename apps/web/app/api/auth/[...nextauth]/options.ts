@@ -36,7 +36,6 @@ export const authOptions: AuthOptions = {
       user.token = data?.user?.token;
       user.id = data?.user?.id?.toString();
       user.provider = data?.user?.provider;
-      console.log(`\n\n user: ${user}`)
       return true
     } catch(e){
       return false

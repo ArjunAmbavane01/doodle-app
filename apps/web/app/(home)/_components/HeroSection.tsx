@@ -9,10 +9,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useRef, useState } from "react";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
-    console.log(userToken)
     const router = useRouter();
     const [modalOpen, setModalopen] = useState(false);
-    const roomRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const createRoom = async () => {
         const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
@@ -23,14 +22,16 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
         const roomSlug = data.data.slug;
         router.push(`/canvas/${roomSlug}`);
     }
+
     const joinRoom = async () => {
-        const roomSlug = roomRef.current?.value.trim();
-        if(!roomSlug) roomRef.current?.focus;
+        const roomSlug = inputRef.current?.value.trim();
+        if(!roomSlug) inputRef.current?.focus;
         router.push(`/canvas/${roomSlug}`);
     }
+
     return (
         <section className="flex w-full">
-            <div className="flex flex-col gap-10 justify-center items-center max-w-screen-8xl w-full h-[90svh] mx-auto">
+            <div className="flex flex-col justify-center items-center max-w-screen-8xl w-full h-[90svh] gap-10 mx-auto">
                 <div className="flex flex-col gap-5 text-xl font-heading font-semibold">
                     <span className="font-logo text-7xl font-bold text-center">Doodle</span>
                     Sketch, Collaborate, Innovate - All in One Place.
@@ -54,7 +55,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                                         <div className="p-2">
                                             <Users />
                                         </div>
-                                        <input ref={roomRef} type="text" name="roomCode" id="" placeholder="Enter Room Code" className="pl-2  w-full h-10 outline-none" />
+                                        <input ref={inputRef} type="text" name="roomCode" id="" placeholder="Enter Room Code" className="pl-2  w-full h-10 outline-none" />
 
                                     </div>
                                     <Button className="flex items-center gap-3 p-5" onClick={joinRoom}>

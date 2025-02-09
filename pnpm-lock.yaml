@@ -143,6 +143,9 @@ importers:
       '@types/react-dom':
         specifier: 18.3.1
         version: 18.3.1
+      '@workspace/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@workspace/eslint-config':
         specifier: workspace:^
         version: link:../../packages/eslint-config
@@ -192,6 +195,12 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
+    devDependencies:
+      '@workspace/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+
+  packages/common:
     devDependencies:
       '@workspace/typescript-config':
         specifier: workspace:*

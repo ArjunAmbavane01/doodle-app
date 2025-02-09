@@ -9,7 +9,6 @@ const StartButton = ({userId}:{userId:string}) => {
         const { data } = await axios.post('http://localhost:8000/api/canvas/rooms', {
             userId
         });
-        console.log(data.data.slug)
         if (data.type === 'success') {
             router.push(`/canvas/${data.data.slug}`)
         }

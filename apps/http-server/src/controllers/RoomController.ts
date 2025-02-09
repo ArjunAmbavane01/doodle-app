@@ -30,7 +30,14 @@ export const joinRoom = async (req: ICustomRequest, res: Response) => {
 
     const payload = { userId, roomId:room.id}
     const wsToken = sign(payload,WS_JWT_SECRET as string,{expiresIn: "10m" });
-    res.status(200).json({ type: "success", message: "Room found", data: { token:wsToken }});
+
+    // get room messages
+    const roomMessages = await prisma.chat.findMany({
+      where:{ roomId:room.id },
+      orderBy:{id:"desc"},
+      take:1000
+    });
+    res.status(200).json({ type: "success", message: "Room found", data: { token:wsToken,roomMessages }});
     return;
   } catch (e) {
     res.status(500).json({ type: "error", message: "Internal server error", error: e });

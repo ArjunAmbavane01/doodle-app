@@ -70,5 +70,4 @@ wss.on("connection", (ws: WebSocket, req) => {
       });
     }
   });
-  ws.send("welcome");
 });
