@@ -51,13 +51,13 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                             <DialogHeader>
                                 <DialogTitle>Join Room</DialogTitle>
                                 <DialogDescription className="flex flex-col gap-8 pt-10 text-md">
-                                    <div className="flex rounded bg-gray-100 border">
-                                        <div className="p-2">
+                                    <span className="flex rounded bg-gray-100 border">
+                                        <span className="p-2">
                                             <Users />
-                                        </div>
+                                        </span>
                                         <input ref={inputRef} type="text" name="roomCode" id="" placeholder="Enter Room Code" className="pl-2  w-full h-10 outline-none" />
 
-                                    </div>
+                                    </span>
                                     <Button className="flex items-center gap-3 p-5" onClick={joinRoom}>
                                        join Room
                                     </Button>
