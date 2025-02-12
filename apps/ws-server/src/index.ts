@@ -38,7 +38,6 @@ wss.on("connection", (ws: WebSocket, req) => {
     let parsedData;
     if (typeof data !== "string") parsedData = JSON.parse(data.toString());
     else parsedData = JSON.parse(data);
-  
 
     if (parsedData.type === "join_room") {
       const user = users.find((x) => x.ws == ws);
@@ -51,20 +50,12 @@ wss.on("connection", (ws: WebSocket, req) => {
     } else if (parsedData.type === "chat") {
       const message = parsedData.message;
       await prisma.chat.create({
-        data: {
-          message,
-          roomId,
-          userId,
-        },
+        data: { message, roomId, userId},
       });
       users.forEach((user) => {
         if (user.userId != userId && user.rooms.includes(roomId)) {
           user.ws.send(
-            JSON.stringify({
-              type: "chat",
-              message,
-              roomId,
-            })
+            JSON.stringify({ type: "chat", message, roomId})
           );
         }
       });

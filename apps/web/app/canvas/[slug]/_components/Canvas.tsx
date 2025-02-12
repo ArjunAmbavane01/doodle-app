@@ -18,18 +18,13 @@ const Canvas = ({ sendMessage, messages }: { sendMessage: (message: string) => v
             let startX = 0;
             let startY = 0;
 
-
             canvas.addEventListener('mousedown', (e) => {
                 clicked = true
                 startX = e.clientX
                 startY = e.clientY
-                console.log(e.clientX)
-                console.log(e.clientY)
             })
             canvas.addEventListener('mouseup', (e) => {
                 clicked = false
-                console.log(e.clientX)
-                console.log(e.clientY)
             })
             canvas.addEventListener('mousemove', (e) => {
                 if (clicked) {
