@@ -30,7 +30,7 @@ wss.on("connection", (ws: WebSocket, req) => {
   const params = new URLSearchParams(reqURL.split("?")[1]);
   const token = params.get("token");
   const payload = checkToken(token);
-  if (!payload?.userId || !payload.roomId) return;
+  if (!payload || !payload.userId || !payload.roomId ) return;
   const {userId,roomId} = payload;
   users.push({ userId, rooms:[], ws } as IUser)
   

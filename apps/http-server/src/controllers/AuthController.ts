@@ -11,6 +11,7 @@ interface ILoginPayload {
   photo?: string;
 }
 
+// also use zod 
 // Fix the problem ki jwt is still valid after next auth logout
 class AuthController {
   static login = async (req: Request, res: Response) => {
@@ -25,11 +26,8 @@ class AuthController {
       const token = sign(JWTPayload, JWT_SECRET as string, { expiresIn: "365d" });
 
       res.status(200).json({ type: "success", message: "Login Successful", user:{ ...user, token:token }});
-      return;
-      
     } catch (e) {
-      res.status(500).json({type: "error", message: "Something went wrong", error: e});
-      return
+      res.status(500).json({type: "error", message: "Internal Server Error", error: e});
     }
   };
 }

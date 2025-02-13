@@ -1,12 +1,12 @@
 'use client'
 import { BASE_WS_URL } from "@/lib/apiEndPoints";
 import { useEffect, useState } from "react";
-import {IChat} from "@workspace/common/interfaces";
+import {IChatMessage} from "@workspace/common/interfaces";
 import Canvas from './Canvas';
 
-const CanvasRoom = ({ wsToken,roomMessages }: { wsToken: string, roomMessages:IChat[] }) => {
+const CanvasRoom = ({ wsToken,roomMessages }: { wsToken: string, roomMessages:IChatMessage[] }) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
-    const [messages,setMessages] = useState<IChat[]>(roomMessages);
+    const [messages,setMessages] = useState<IChatMessage[]>(roomMessages);
 
     const sendMessage = (message:string) => {
         if(socket) socket.send(JSON.stringify({ type: "chat", message }));

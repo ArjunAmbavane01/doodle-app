@@ -1,8 +1,8 @@
 'use client'
-import { IChat } from "@workspace/common/interfaces";
+import { IChatMessage } from "@workspace/common/interfaces";
 import { useEffect, useRef, useState } from "react";
 
-const Canvas = ({ sendMessage, messages }: { sendMessage: (message: string) => void, messages: IChat[] }) => {
+const Canvas = ({ sendMessage, messages }: { sendMessage: (message: string) => void, messages: IChatMessage[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawingRef = useRef(false);
 

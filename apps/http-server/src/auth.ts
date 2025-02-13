@@ -1,15 +1,13 @@
 import { JWT_SECRET } from "@workspace/backend-common/config";
 import { NextFunction, Request, Response } from "express";
-import { verify } from "jsonwebtoken";
+import { JwtPayload, verify } from "jsonwebtoken";
 
-export interface ICustomRequest extends Request{
-    userId?:string
-}
+export interface ICustomRequest extends Request{ userId?:string }
 
 export const auth = (req: ICustomRequest, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers["authorization"];
-    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split("Bearer ")[1] : null;
+    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
     if (!token) {
       res.status(401).json({ type: "error", message: "JWT token not present"});
       return;
@@ -18,6 +16,10 @@ export const auth = (req: ICustomRequest, res: Response, next: NextFunction) => 
       const payload = verify(token, JWT_SECRET as string);
       if(typeof payload === 'string'){
         res.status(401).json({ type: "error", message: "Invalid JWT token"});
+        return;
+      }
+      if (!payload || !payload.id) {
+        res.status(401).json({ type: "error", message: "Invalid JWT token" });
         return;
       }
       req.userId = payload.id;
