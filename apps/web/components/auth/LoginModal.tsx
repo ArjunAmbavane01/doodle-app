@@ -28,8 +28,6 @@ const LoginModal = () => {
         </Button>
       </DialogContent>
     </Dialog>
-
-
   );
 }
 

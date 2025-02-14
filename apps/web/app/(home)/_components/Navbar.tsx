@@ -1,14 +1,7 @@
-import { getServerSession } from "next-auth";
 import Image from "next/image";
 import Link from "next/link";
-import LoginModal from "@/components/auth/LoginModal";
-import { authOptions, ICustomSession, ICustomUser } from "@/app/api/auth/[...nextauth]/options";
-import UserDropdown from "@/components/navbar/UserDropdown";
-
-
 
 const Navbar = async ({ children }: { children: React.ReactNode }) => {
-    // const session: ICustomSession | null = await getServerSession(authOptions);
     return (
         <div className="fixed top-8 inset-x-0 flex justify-between items-center w-[40%] mx-auto p-3 px-10 border backdrop-blur-sm shadow-md rounded-full z-50">
             <div className="flex items-center gap-3 font-logo font-bold text-2xl">

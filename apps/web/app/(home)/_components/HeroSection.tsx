@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Info, PencilLine, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
-
 import { useRef, useState } from "react";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
@@ -56,12 +55,10 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                                             <Users />
                                         </span>
                                         <input ref={inputRef} type="text" name="roomCode" id="" placeholder="Enter Room Code" className="pl-2  w-full h-10 outline-none" />
-
                                     </span>
                                     <Button className="flex items-center gap-3 p-5" onClick={joinRoom}>
                                        join Room
                                     </Button>
-
                                 </DialogDescription>
                             </DialogHeader>
                             <DialogFooter className="flex gap-3 text-sm p-2 rounded bg-gray-200  text-black">

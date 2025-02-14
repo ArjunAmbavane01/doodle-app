@@ -3,10 +3,12 @@ import { BASE_WS_URL } from "@/lib/apiEndPoints";
 import { useEffect, useState } from "react";
 import {IChatMessage} from "@workspace/common/interfaces";
 import Canvas from './Canvas';
+import { getShapesFromMessages, Shape } from "@/lib/draw";
+
 
 const CanvasRoom = ({ wsToken,roomMessages }: { wsToken: string, roomMessages:IChatMessage[] }) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
-    const [messages,setMessages] = useState<IChatMessage[]>(roomMessages);
+    const [roomShapes,setRoomShapes] = useState<Shape[]>(getShapesFromMessages(roomMessages));
 
     const sendMessage = (message:string) => {
         if(socket) socket.send(JSON.stringify({ type: "chat", message }));
@@ -20,7 +22,9 @@ const CanvasRoom = ({ wsToken,roomMessages }: { wsToken: string, roomMessages:IC
         ws.onmessage = (event) => {
             try {
                 const receivedData = JSON.parse(event.data);
-                if (receivedData.type === "chat") setMessages((prev) => [...prev, receivedData]);
+                if (receivedData.type === "chat") {
+                    setRoomShapes([...roomShapes,receivedData.message])
+                }
             } catch (error) {
                 console.error("Error parsing message:", error);
             }
@@ -33,7 +37,7 @@ const CanvasRoom = ({ wsToken,roomMessages }: { wsToken: string, roomMessages:IC
     if(!socket){
         return <div className="flex justify-center items-center h-screen w-screen">Connecting to server</div>
     }
-    return <Canvas sendMessage={sendMessage} messages={messages} />
+    return <Canvas sendMessage={sendMessage} roomShapes={roomShapes} />
 }
 
 export default CanvasRoom;
