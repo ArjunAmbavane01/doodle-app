@@ -1,33 +1,35 @@
-import { selectedShape } from "@/app/canvas/[slug]/_components/Canvas";
+import { selectedTool } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
 export type Shape =
-  | {
-      type: "rectangle";
-      startX: number;
-      startY: number;
-      width: number;
-      height: number;
-    }
+  | {type: "rectangle";startX: number;startY: number;width: number;height: number;}
   | { type: "circle"; centerX: number; centerY: number; radius: number };
 
 export const initDraw = (
   canvas: HTMLCanvasElement,
   socket: WebSocket,
   initialMessages: IChatMessage[],
-  currentShape: selectedShape
+  currentTool: selectedTool
 ) => {
   const roomShapes = getShapesFromMessages(initialMessages);
   const ctx = canvas.getContext("2d");
-  if (!ctx) return;
+  if (!ctx) return () => {};
 
   let isDrawing = false;
   let startX = 0;
   let startY = 0;
+  let selectedTool = currentTool;
 
   // Debounced render function to prevent unnecessary redraws
   const render = () => {
     clearCanvas(roomShapes, canvas, ctx);
+  };
+
+  const handleToolChange = (event: Event) => {
+    const customEvent = event as CustomEvent<selectedTool>;
+    if (customEvent.detail) {
+      selectedTool = customEvent.detail;
+    }
   };
 
   const handleMessage = (event: MessageEvent) => {
@@ -44,6 +46,7 @@ export const initDraw = (
   };
 
   const handleMouseDown = (e: MouseEvent) => {
+    console.log(currentTool);
     const rect = canvas.getBoundingClientRect();
     startX = e.clientX - rect.left;
     startY = e.clientY - rect.top;
@@ -63,7 +66,7 @@ export const initDraw = (
     // Clear and redraw all shapes
     clearCanvas(roomShapes, canvas, ctx);
     ctx.strokeStyle = "rgba(255,255,255)";
-    if (currentShape === "circle") {
+    if (selectedTool === "circle") {
       const centerX = startX + width / 2;
       const centerY = startY + height / 2;
       const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
@@ -73,12 +76,13 @@ export const initDraw = (
       ctx.stroke();
       ctx.closePath();
     }
-    if (currentShape === "rectangle") ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+    if (selectedTool === "rectangle")
+      ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
   };
 
   const handleMouseUp = (e: MouseEvent) => {
     if (!isDrawing) return;
-    console.log(currentShape);
+    console.log(selectedTool);
 
     const rect = canvas.getBoundingClientRect();
     const endX = e.clientX - rect.left;
@@ -88,10 +92,10 @@ export const initDraw = (
     const height = endY - startY;
 
     let newShape: Shape | null = null;
-    
-    if (currentShape === "rectangle") {
-        newShape = { type: "rectangle", startX, startY, width, height};
-    } else if (currentShape === "circle") {
+
+    if (selectedTool === "rectangle") {
+      newShape = { type: "rectangle", startX, startY, width, height };
+    } else if (selectedTool === "circle") {
       const centerX = startX + width / 2;
       const centerY = startY + height / 2;
       const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
@@ -100,11 +104,11 @@ export const initDraw = (
 
     roomShapes.push(newShape);
     socket.send(
-        JSON.stringify({ type: "chat", message: JSON.stringify(newShape) })
+      JSON.stringify({ type: "chat", message: JSON.stringify(newShape) })
     );
     isDrawing = false;
     render();
-};
+  };
 
   const handleMouseLeave = () => {
     if (isDrawing) {
@@ -113,22 +117,21 @@ export const initDraw = (
     }
   };
 
-  // Initial render
   render();
 
-  // Clean up old listeners
   canvas.removeEventListener("mousedown", handleMouseDown);
   canvas.removeEventListener("mousemove", handleMouseMove);
   canvas.removeEventListener("mouseup", handleMouseUp);
   canvas.removeEventListener("mouseleave", handleMouseLeave);
   socket.removeEventListener("message", handleMessage);
+  window.removeEventListener("toolChange", handleToolChange);
 
-  // Add new listeners
   canvas.addEventListener("mousedown", handleMouseDown);
   canvas.addEventListener("mousemove", handleMouseMove);
   canvas.addEventListener("mouseup", handleMouseUp);
   canvas.addEventListener("mouseleave", handleMouseLeave);
   socket.addEventListener("message", handleMessage);
+  window.addEventListener("toolChange", handleToolChange);
 
   // Return cleanup function
   return () => {
@@ -137,6 +140,7 @@ export const initDraw = (
     canvas.removeEventListener("mouseup", handleMouseUp);
     canvas.removeEventListener("mouseleave", handleMouseLeave);
     socket.removeEventListener("message", handleMessage);
+    window.removeEventListener("toolChange", handleToolChange);
   };
 };
 
@@ -150,7 +154,7 @@ export const clearCanvas = (
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   roomShapes.forEach((shape: Shape) => {
-    if(!shape) return
+    if (!shape) return;
     if (shape.type === "rectangle") {
       ctx.strokeStyle = "rgba(255,255,255)";
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
