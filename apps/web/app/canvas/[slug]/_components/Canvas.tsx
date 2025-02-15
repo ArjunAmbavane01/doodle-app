@@ -3,14 +3,15 @@ import { initDraw, Shape } from "@/lib/draw";
 import { IChatMessage } from "@workspace/common/interfaces";
 import { useEffect, useRef } from "react";
 
-const Canvas = ({ socket, roomMessages }: { socket:WebSocket , roomMessages: IChatMessage[] }) => {
+const Canvas = ({ socket, roomMessages }: { socket:WebSocket|null , roomMessages: IChatMessage[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
-        if (canvasRef.current) {
-            initDraw(canvasRef.current,socket,roomMessages);
+        if (canvasRef.current && socket) {
+            const cleanup = initDraw(canvasRef.current, socket, roomMessages);
+            return cleanup;
         }
-    }, [canvasRef.current, roomMessages,])
+    }, [socket,roomMessages])
 
     return (
         <div className="w-screen h-screen relative overflow-hidden">
