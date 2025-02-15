@@ -6,6 +6,7 @@ import { authOptions, ICustomSession } from "../api/auth/[...nextauth]/options";
 import { getServerSession } from "next-auth";
 import UserDropdown from "@/components/navbar/UserDropdown";
 import LoginModal from "@/components/auth/LoginModal";
+import ShortcutsSection from "./_components/Shortcuts";
 
 const Page = async () => {
   const session: ICustomSession | null = await getServerSession(authOptions);
@@ -18,6 +19,7 @@ const Page = async () => {
       <HeroSection userToken={session?.user?.token} />
       <AppDemo />
       <Collab />
+      <ShortcutsSection />
     </>
   )
 }
