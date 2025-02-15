@@ -1,16 +1,16 @@
 'use client'
 import { initDraw, Shape } from "@/lib/draw";
+import { IChatMessage } from "@workspace/common/interfaces";
 import { useEffect, useRef } from "react";
 
-const Canvas = ({ sendMessage, roomShapes }: { sendMessage: (message: string) => void, roomShapes: Shape[] }) => {
+const Canvas = ({ socket, roomMessages }: { socket:WebSocket , roomMessages: IChatMessage[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const isDrawingRef = useRef(false);
 
     useEffect(() => {
         if (canvasRef.current) {
-            initDraw(canvasRef.current,roomShapes,sendMessage);
+            initDraw(canvasRef.current,socket,roomMessages);
         }
-    }, [canvasRef])
+    }, [canvasRef.current, roomMessages,])
 
     return (
         <div className="w-screen h-screen relative overflow-hidden">
