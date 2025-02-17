@@ -4,7 +4,7 @@ import { IChatMessage } from "@workspace/common/interfaces";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "./Toolbar";
 
-export type selectedTool = 'rectangle' | 'circle' | 'pen';
+export type selectedTool = 'rectangle' | 'circle' | 'pen' | 'line' | 'arrow' | 'triangle';
 
 const Canvas = ({ socket, roomMessages }: { socket: WebSocket | null, roomMessages: IChatMessage[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);

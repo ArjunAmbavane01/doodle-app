@@ -19,7 +19,7 @@ const checkToken = (token: string | null) => {
   if (!token) return null;
   const payload = verify(token, WS_JWT_SECRET as string);
   if (!payload || typeof payload === "string") return;
-  return {userId:payload.userId, roomId:payload.roomId};
+  return { userId: payload.userId, roomId: payload.roomId };
 };
 
 const users: IUser[] = [];
@@ -30,10 +30,10 @@ wss.on("connection", (ws: WebSocket, req) => {
   const params = new URLSearchParams(reqURL.split("?")[1]);
   const token = params.get("token");
   const payload = checkToken(token);
-  if (!payload || !payload.userId || !payload.roomId ) return;
-  const {userId,roomId} = payload;
-  users.push({ userId, rooms:[], ws } as IUser)
-  
+  if (!payload || !payload.userId || !payload.roomId) return;
+  const { userId, roomId } = payload;
+  users.push({ userId, rooms: [], ws } as IUser);
+
   ws.on("message", async (data) => {
     let parsedData;
     if (typeof data !== "string") parsedData = JSON.parse(data.toString());
@@ -49,16 +49,15 @@ wss.on("connection", (ws: WebSocket, req) => {
       user?.rooms.filter((x) => x != roomId);
     } else if (parsedData.type === "chat") {
       const message = parsedData.message;
-      await prisma.chat.create({
-        data: { message, roomId, userId},
-      });
-      users.forEach((user) => {
-        if (user.userId != userId && user.rooms.includes(roomId)) {
-          user.ws.send(
-            JSON.stringify({ type: "chat", message, roomId})
-          );
-        }
-      });
+      try {
+        await prisma.chat.create({data: { message, roomId, userId },});
+        users.forEach((user) => {
+          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, roomId }));
+        });
+      } catch (e) {
+        console.error("Database error:", e);
+        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later." }));
+      }
     }
   });
 });
