@@ -4,18 +4,18 @@ import { IChatMessage } from "@workspace/common/interfaces";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "./Toolbar";
 
-export type selectedTool = 'rectangle'| 'circle';
+export type selectedTool = 'rectangle' | 'circle' | 'pen';
 
-const Canvas = ({ socket, roomMessages }: { socket:WebSocket|null , roomMessages: IChatMessage[] }) => {
+const Canvas = ({ socket, roomMessages }: { socket: WebSocket | null, roomMessages: IChatMessage[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const selectedToolRef = useRef<selectedTool>('rectangle');
 
     useEffect(() => {
         if (canvasRef.current && socket) {
             const cleanup = initDraw(canvasRef.current, socket, roomMessages, selectedToolRef.current);
-            return  cleanup 
+            return cleanup
         }
-    }, [socket,roomMessages])
+    }, [socket, roomMessages])
 
     return (
         <div className="w-screen h-screen relative overflow-hidden">
