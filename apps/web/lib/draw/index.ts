@@ -2,15 +2,15 @@ import { selectedTool } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
 export type Shape =
-  | { type: "rectangle"; startX: number; startY: number; width: number; height: number;}
+  | { type: "rectangle"; startX: number; startY: number; width: number; height: number }
   | { type: "circle"; centerX: number; centerY: number; radius: number }
-  | { type: 'pen'; path:string};
+  | { type: "pen"; path: string };
 
-export interface IPoint { x:number, y:number}
+export interface IPoint { x: number; y: number;}
 
-export const initDraw = (canvas: HTMLCanvasElement,socket: WebSocket,initialMessages: IChatMessage[],selectedTool: selectedTool) => {
+export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[]) => {
   const roomShapes = getShapesFromMessages(initialMessages);
-  const ctx = canvas.getContext("2d", { willReadFrequently:true});
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return () => {};
 
   setupContext(ctx);
@@ -18,34 +18,30 @@ export const initDraw = (canvas: HTMLCanvasElement,socket: WebSocket,initialMess
   let isDrawing = false;
   let startX = 0;
   let startY = 0;
-  let strokePoints:IPoint[] = [];
   let currentShape: Shape | null = null;
+  let strokePoints: IPoint[] = [];
+  let selectedTool = "pen";
+  let hasMovedSinceMouseDown = false;
 
-  // Create an offscreen canvas for the persistent shapes
-  const offscreenCanvas = document.createElement('canvas');
+  // Create background canvas for existing shapes
+  const offscreenCanvas = document.createElement("canvas");
   offscreenCanvas.width = canvas.width;
   offscreenCanvas.height = canvas.height;
-  const offscreenCtx = offscreenCanvas.getContext('2d');
+  const offscreenCtx = offscreenCanvas.getContext("2d");
   if (!offscreenCtx) return () => {};
   setupContext(offscreenCtx);
 
-  const renderPersistentShapes = () => {
-    clearCanvas(roomShapes, offscreenCanvas, offscreenCtx);
-  };
+  const renderPersistentShapes = () => clearCanvas(roomShapes, offscreenCanvas, offscreenCtx);
 
-  // Render both persistent shapes and current shape
+  // Render both existing and current shape
   const render = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw persistent shapes from offscreen canvas
+
+    // copy all shapes from bg canvas to main canvas
     ctx.drawImage(offscreenCanvas, 0, 0);
-    
-    // Draw current shape if exists
-    if (currentShape) {
-      drawShape(currentShape, ctx);
-    }
+    if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
   };
 
   const handleToolChange = (event: Event) => {
@@ -72,8 +68,11 @@ export const initDraw = (canvas: HTMLCanvasElement,socket: WebSocket,initialMess
     startX = e.clientX - rect.left;
     startY = e.clientY - rect.top;
     isDrawing = true;
-    strokePoints.push({ x: startX, y: startY })
-    currentShape = null;
+    hasMovedSinceMouseDown = false;
+    if (selectedTool === "pen") {
+      strokePoints.push({ x: startX, y: startY });
+      currentShape = { type: "pen", path: `M ${startX} ${startY}` };
+    }
   };
 
   const handleMouseMove = (e: MouseEvent) => {
@@ -85,15 +84,17 @@ export const initDraw = (canvas: HTMLCanvasElement,socket: WebSocket,initialMess
     const width = currentX - startX;
     const height = currentY - startY;
 
+    if (Math.abs(currentX - startX) > 2 || Math.abs(currentY - startY) > 2) hasMovedSinceMouseDown = true;
+    if (!hasMovedSinceMouseDown) return;
     if (selectedTool === "pen") {
-      const currentPoint: IPoint = {x: currentX, y: currentY};
-      // Only add points if there's enough distance
+      const currentPoint: IPoint = { x: currentX, y: currentY };
+      // add points only if there is enough distance
       const lastPoint = strokePoints[strokePoints.length - 1];
       if (lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
         strokePoints.push(currentPoint);
         currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
       }
-    }
+    } 
     else if (selectedTool === "rectangle") currentShape = { type: "rectangle", startX, startY, width, height };
     else if (selectedTool === "circle") {
       const centerX = startX + width / 2;
@@ -101,16 +102,32 @@ export const initDraw = (canvas: HTMLCanvasElement,socket: WebSocket,initialMess
       const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
       currentShape = { type: "circle", centerX, centerY, radius };
     }
-
     render();
   };
 
   const handleMouseUp = (e: MouseEvent) => {
-    if (!isDrawing || !currentShape) return;
-    roomShapes.push(currentShape);
-    // send ws message  
-    socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape) }));
+    if (!isDrawing) return;
+
+    if (!hasMovedSinceMouseDown && selectedTool === 'pen') {
+      // if (selectedTool === "pen") {
+        const rect = canvas.getBoundingClientRect();
+        const currentX = e.clientX - rect.left;
+        const currentY = e.clientY - rect.top;
+
+        strokePoints = [{ x: currentX, y: currentY },{ x: currentX + 1, y: currentY + 1 }];
+        currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
+        roomShapes.push(currentShape);
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape)}));
+      // }
+    } else {
+      if (currentShape) {
+        roomShapes.push(currentShape);
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape),}));
+      }
+    }
+
     isDrawing = false;
+    hasMovedSinceMouseDown = false;
     currentShape = null;
     strokePoints = [];
     renderPersistentShapes();
@@ -143,7 +160,6 @@ export const initDraw = (canvas: HTMLCanvasElement,socket: WebSocket,initialMess
   socket.addEventListener("message", handleMessage);
   window.addEventListener("toolChange", handleToolChange);
 
-  // Return cleanup function
   return () => {
     canvas.removeEventListener("mousedown", handleMouseDown);
     canvas.removeEventListener("mousemove", handleMouseMove);
@@ -155,13 +171,11 @@ export const initDraw = (canvas: HTMLCanvasElement,socket: WebSocket,initialMess
 };
 
 const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
-  if (shape.type === 'pen' && shape.path) {
+  if (shape.type === "pen" && shape.path) {
     const path = new Path2D(shape.path);
     ctx.stroke(path);
-  }
-  else if (shape.type === "rectangle") {
-    ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
-  }
+  } 
+  else if (shape.type === "rectangle") ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
   else if (shape.type === "circle") {
     ctx.beginPath();
     ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
@@ -170,7 +184,7 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
   }
 };
 
-export const clearCanvas = (roomShapes: Shape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+export const clearCanvas = ( roomShapes: Shape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "rgba(0,0,0)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -182,13 +196,14 @@ export const clearCanvas = (roomShapes: Shape[], canvas: HTMLCanvasElement, ctx:
   });
 };
 
-export const getShapesFromMessages = (messages: IChatMessage[]) => messages.map((msg: { message: string }) => JSON.parse(msg.message));
+export const getShapesFromMessages = (messages: IChatMessage[]) =>
+  messages.map((msg: { message: string }) => JSON.parse(msg.message));
 
 export const strokeToSVG = (points: IPoint[]): string => {
   const strokeLength = points.length;
   if (!strokeLength) return "";
 
-  let path = points[0] ? `M ${points[0].x} ${points[0].y}` : '';
+  let path = points[0] ? `M ${points[0].x} ${points[0].y}` : "";
 
   if (strokeLength > 2) {
     for (let i = 1; i < strokeLength - 1; i++) {
@@ -202,21 +217,16 @@ export const strokeToSVG = (points: IPoint[]): string => {
     const last = strokeLength - 1;
     const lastPoint = points[last];
     const secondLastPoint = points[last - 1];
-    
-    if (lastPoint && secondLastPoint) {
-      path += ` Q ${secondLastPoint.x} ${secondLastPoint.y}, ${lastPoint.x} ${lastPoint.y}`;
-    }
+
+    if (lastPoint && secondLastPoint) path += ` Q ${secondLastPoint.x} ${secondLastPoint.y}, ${lastPoint.x} ${lastPoint.y}`;
   } else if (strokeLength === 2) {
     const firstPoint = points[0];
     const secondPoint = points[1];
 
-    if (firstPoint && secondPoint) {
-      path += ` L ${secondPoint.x} ${secondPoint.y}`;
-    }
+    if (firstPoint && secondPoint) path += ` L ${secondPoint.x} ${secondPoint.y}`;
   }
   return path;
 };
-
 
 export const setupContext = (ctx: CanvasRenderingContext2D) => {
   ctx.imageSmoothingEnabled = true;

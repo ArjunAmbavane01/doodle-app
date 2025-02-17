@@ -8,11 +8,10 @@ export type selectedTool = 'rectangle' | 'circle' | 'pen';
 
 const Canvas = ({ socket, roomMessages }: { socket: WebSocket | null, roomMessages: IChatMessage[] }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const selectedToolRef = useRef<selectedTool>('rectangle');
 
     useEffect(() => {
         if (canvasRef.current && socket) {
-            const cleanup = initDraw(canvasRef.current, socket, roomMessages, selectedToolRef.current);
+            const cleanup = initDraw(canvasRef.current, socket, roomMessages);
             return cleanup
         }
     }, [socket, roomMessages])
