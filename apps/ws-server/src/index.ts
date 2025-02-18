@@ -50,13 +50,38 @@ wss.on("connection", (ws: WebSocket, req) => {
     } else if (parsedData.type === "chat") {
       const message = parsedData.message;
       try {
-        await prisma.chat.create({data: { message, roomId, userId },});
+        await prisma.chat.create({ data: { message, roomId, userId } });
         users.forEach((user) => {
-          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, roomId }));
+          if (user.userId != userId && user.rooms.includes(roomId))
+            user.ws.send(JSON.stringify({ type: "chat", message, roomId, userId }));
         });
       } catch (e) {
         console.error("Database error:", e);
-        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later." }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "Database error, please try again later.",
+          })
+        );
+      }
+    } else if (parsedData.type === "undo") {
+      try {
+        const lastChat = await prisma.chat.findFirst({
+          where: { userId ,roomId },
+          orderBy: { id: "desc",},
+        });
+        if(lastChat){
+          await prisma.chat.delete({ where: {id: lastChat.id}})
+          users.forEach((user) => {
+            if (user.userId != userId && user.rooms.includes(roomId))
+              user.ws.send(JSON.stringify({ type: "remove_shape", message: lastChat.message, userId }));
+          });
+        }
+      } catch (e) {
+        console.error("Database error:", e);
+        ws.send(
+          JSON.stringify({ type: "error", message: "Database error, please try again later.",})
+        );
       }
     }
   });

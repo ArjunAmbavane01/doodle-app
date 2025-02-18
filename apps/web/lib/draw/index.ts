@@ -3,16 +3,22 @@ import { IChatMessage } from '@workspace/common/interfaces';
 
 export type Shape =
   | { type: 'pen'; path: string }
+  | { type: 'text'; startX: number; startY: number; text: string }
   | { type: 'line'; startX: number; startY: number; endX: number; endY: number }
   | { type: 'arrow'; startX: number; startY: number; endX: number; endY: number }
   | { type: 'rectangle'; startX: number; startY: number; width: number; height: number }
   | { type: 'triangle'; startX: number; startY: number; width: number; height: number }
   | { type: 'circle'; centerX: number; centerY: number; radius: number };
 
+export interface IRoomShape {
+  userId:string,
+  shape:Shape
+};
+
 export interface IPoint { x: number; y: number;}
 
-export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[],) => {
-  const roomShapes = getShapesFromMessages(initialMessages);
+export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[], userId:string) => {
+  const roomShapes:IRoomShape[] = getShapesFromMessages(initialMessages);
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return () => {};
 
@@ -26,6 +32,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let selectedTool = 'pen';
   let hasMovedSinceMouseDown = false;
 
+  const undoStack:IRoomShape[] = [];
+  const redoStack:IRoomShape[] = [];
+
   // Create background canvas for existing shapes
   const offscreenCanvas = document.createElement('canvas');
   offscreenCanvas.width = canvas.width;
@@ -36,7 +45,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const renderPersistentShapes = () => clearCanvas(roomShapes, offscreenCanvas, offscreenCtx);
 
-  // Render both existing and current shape
+  // this will render both existing and current shape
   const render = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'rgba(0,0,0)';
@@ -57,9 +66,21 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const receivedData = JSON.parse(event.data);
       if (receivedData.type === 'chat') {
         const newShape: Shape = JSON.parse(receivedData.message);
-        roomShapes.push(newShape);
+        const shapeWithUser = {userId:receivedData.userId,shape:newShape};
+        roomShapes.push(shapeWithUser);
+        if(receivedData.userId === userId && !undoStack.some(s => JSON.stringify(s.shape) === JSON.stringify(newShape))) undoStack.push(shapeWithUser);
         renderPersistentShapes();
         render();
+      }
+      else if (receivedData.type === 'remove_shape') {
+        const shape: Shape = JSON.parse(receivedData.message);
+        const shapeWithUser = {userId:receivedData.userId,shape}
+        const index = roomShapes.findIndex((roomShape:IRoomShape)=> JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
+        if (index !== -1) {
+          roomShapes.splice(index, 1);
+          renderPersistentShapes();
+          render();
+        }
       }
     } catch (error) {
       console.error('Error parsing message:', error);
@@ -126,11 +147,15 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
       strokePoints = [{ x: currentX, y: currentY },{ x: currentX + 1, y: currentY + 1 },];
       currentShape = { type: 'pen', path: strokeToSVG(strokePoints) };
-      roomShapes.push(currentShape);
+      const shapeWithUser = {userId,shape:currentShape}
+      roomShapes.push(shapeWithUser);
+      undoStack.push(shapeWithUser);
       socket.send(JSON.stringify({ type: 'chat', message: JSON.stringify(currentShape) }));
     } else {
       if (currentShape) {
-        roomShapes.push(currentShape);
+        const shapeWithUser = {userId,shape:currentShape}
+        roomShapes.push(shapeWithUser);
+        undoStack.push(shapeWithUser);
         socket.send(JSON.stringify({type: 'chat',message: JSON.stringify(currentShape),}),);
       }
     }
@@ -152,15 +177,47 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     }
   };
 
+  const handleUndo = () => {
+    if(undoStack.length === 0) return;
+    try{
+      const lastRoomShape = undoStack.pop();
+      if(!lastRoomShape) return;
+      redoStack.push(lastRoomShape);
+
+      const index = roomShapes.findIndex((roomShape:IRoomShape)=> JSON.stringify(roomShape) === JSON.stringify(lastRoomShape));
+      if (index !== -1) roomShapes.splice(index, 1);
+      socket.send(JSON.stringify({type:'undo',}))
+      renderPersistentShapes();
+      render();
+    } catch(e){
+      console.log('Some error occurred : ' + e);
+    }
+  }
+
+  const handleRedo = () => {
+    if(redoStack.length === 0) return;
+    try{
+      const newRoomShape = redoStack.pop();
+      if(!newRoomShape) return;
+
+      roomShapes.push(newRoomShape);
+      undoStack.push(newRoomShape);
+      
+      socket.send(JSON.stringify({type:'chat',message: JSON.stringify(newRoomShape.shape)}))
+
+      renderPersistentShapes();
+      render();
+      isDrawing = false;
+      hasMovedSinceMouseDown = false;
+      currentShape = null;
+      strokePoints = [];
+    } catch(e){
+      console.log('Some error occurred : ' + e);
+    }
+  }
+
   renderPersistentShapes();
   render();
-
-  canvas.removeEventListener('mousedown', handleMouseDown);
-  canvas.removeEventListener('mousemove', handleMouseMove);
-  canvas.removeEventListener('mouseup', handleMouseUp);
-  canvas.removeEventListener('mouseleave', handleMouseLeave);
-  socket.removeEventListener('message', handleMessage);
-  window.removeEventListener('toolChange', handleToolChange);
 
   canvas.addEventListener('mousedown', handleMouseDown);
   canvas.addEventListener('mousemove', handleMouseMove);
@@ -168,6 +225,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   canvas.addEventListener('mouseleave', handleMouseLeave);
   socket.addEventListener('message', handleMessage);
   window.addEventListener('toolChange', handleToolChange);
+  window.addEventListener('redo', handleRedo);
+  window.addEventListener('undo', handleUndo);
 
   return () => {
     canvas.removeEventListener('mousedown', handleMouseDown);
@@ -176,6 +235,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     canvas.removeEventListener('mouseleave', handleMouseLeave);
     socket.removeEventListener('message', handleMessage);
     window.removeEventListener('toolChange', handleToolChange);
+    window.removeEventListener('redo', handleRedo);
+    window.removeEventListener('undo', handleUndo);
   };
 };
 
@@ -191,7 +252,7 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
     ctx.closePath();
   } 
   else if (shape.type === 'arrow') {
-    const headlen = 10; // headlen in  pixels
+    const headlen = 12; // headlen in  pixels
     const dx = shape.endX - shape.startX;
     const dy = shape.endY - shape.startY;
     const angle = Math.atan2(dy, dx);
@@ -222,19 +283,21 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
   }
 };
 
-export const clearCanvas = ( roomShapes: Shape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D,) => {
+export const clearCanvas = ( roomShapes: IRoomShape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = 'rgba(0,0,0)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   setupContext(ctx);
 
-  roomShapes.forEach((shape: Shape) => {
-    if (!shape) return;
-    drawShape(shape, ctx);
+  roomShapes.forEach((roomShape: IRoomShape) => {
+    if (!roomShape.shape) return;
+    drawShape(roomShape.shape,ctx);
   });
 };
 
-export const getShapesFromMessages = (messages: IChatMessage[]) => messages.map((msg: { message: string }) => JSON.parse(msg.message));
+export const getShapesFromMessages = (messages: IChatMessage[]) => (
+  messages.map((msg: { userId:string, message: string }) => { return {userId:msg.userId, shape:JSON.parse(msg.message)}})
+);
 
 export const strokeToSVG = (points: IPoint[]): string => {
   const strokeLength = points.length;
@@ -270,5 +333,6 @@ export const setupContext = (ctx: CanvasRenderingContext2D) => {
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  ctx.font = "20px serif";
   ctx.strokeStyle = 'rgba(255,255,255)';
 };

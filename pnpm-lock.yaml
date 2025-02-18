@@ -109,12 +109,21 @@ importers:
       '@radix-ui/react-slot':
         specifier: ^1.1.1
         version: 1.1.1(@types/react@18.3.0)(react@19.0.0)
+      '@types/jsonwebtoken':
+        specifier: ^9.0.8
+        version: 9.0.8
+      '@workspace/backend-common':
+        specifier: workspace:^
+        version: link:../../packages/backend-common
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       axios:
         specifier: ^1.7.9
         version: 1.7.9
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
       lucide-react:
         specifier: 0.456.0
         version: 0.456.0(react@19.0.0)
