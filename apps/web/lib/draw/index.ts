@@ -56,9 +56,14 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
   };
 
+  
+
   const handleToolChange = (event: Event) => {
     const customEvent = event as CustomEvent<selectedTool>;
-    if (customEvent.detail) selectedTool = customEvent.detail;
+    if (customEvent.detail) {
+      selectedTool = customEvent.detail
+      cleanupTextArea();
+    };
   };
 
   const handleMessage = (event: MessageEvent) => {
@@ -96,6 +101,40 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     if (selectedTool === 'pen') {
       strokePoints.push({ x: startX, y: startY });
       currentShape = { type: 'pen', path: `M ${startX} ${startY}` };
+    }
+    else if (selectedTool === 'text') {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const existingTextArea = document.querySelector('.canvas-text');
+      if(existingTextArea) return;
+      const textAreaElem = document.createElement('textarea');
+      textAreaElem.className = 'canvas-text-input'
+      textAreaElem.style.position = 'absolute';
+      textAreaElem.style.left = `${e.clientX}px`; 
+      textAreaElem.style.top = `${e.clientY}px`;  
+      textAreaElem.style.minWidth = '100px';
+      textAreaElem.style.minHeight = '30px';
+      textAreaElem.style.padding = '4px';
+      textAreaElem.style.font = '20px serif';
+      textAreaElem.style.background = 'transparent'; 
+      textAreaElem.style.color = 'white'; 
+      textAreaElem.style.border = '1px solid white';
+      textAreaElem.style.resize = 'both';
+      textAreaElem.style.zIndex = '1000';
+
+      document.body.appendChild(textAreaElem);
+      textAreaElem.focus();
+      textAreaElem.addEventListener('blur', () => handleBlur(textAreaElem), { once: true });
+      textAreaElem.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          textAreaElem.blur();
+        }
+      });
+      textAreaElem.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+      });
     }
   };
 
@@ -177,6 +216,23 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     }
   };
 
+  const handleBlur = (textAreaElem:HTMLTextAreaElement) => {
+    setTimeout(() => {
+      const text = textAreaElem.value.trim();
+      if(text){
+      const newShape:Shape = {type:'text',startX,startY,text};
+      const shapeWithUser:IRoomShape = {userId,shape:newShape};
+      roomShapes.push(shapeWithUser);
+      undoStack.push(shapeWithUser);
+      socket.send(JSON.stringify({type: 'chat', message: JSON.stringify(newShape)}));
+
+      renderPersistentShapes();
+      render();
+    }
+    document.body.removeChild(textAreaElem);
+    }, 100);
+  }
+
   const handleUndo = () => {
     if(undoStack.length === 0) return;
     try{
@@ -244,7 +300,16 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
   if (shape.type === 'pen' && shape.path) {
     const path = new Path2D(shape.path);
     ctx.stroke(path);
-  } else if (shape.type === 'line') {
+  } 
+  else if (shape.type === 'text') {
+    ctx.save(); // Save current context state
+    ctx.font = "20px serif";  
+    ctx.fillStyle = "white"; 
+    ctx.textBaseline = "top"; // This helps with positioning
+    ctx.fillText(shape.text, shape.startX, shape.startY);
+    ctx.restore();
+  } 
+  else if (shape.type === 'line') {
     ctx.beginPath();
     ctx.moveTo(shape.startX, shape.startY);
     ctx.lineTo(shape.endX, shape.endY);
@@ -335,4 +400,11 @@ export const setupContext = (ctx: CanvasRenderingContext2D) => {
   ctx.lineJoin = 'round';
   ctx.font = "20px serif";
   ctx.strokeStyle = 'rgba(255,255,255)';
+};
+
+const cleanupTextArea = () => {
+  const existingTextarea = document.querySelector('.canvas-text-input');
+  if (existingTextarea) {
+    existingTextarea.remove();
+  }
 };
