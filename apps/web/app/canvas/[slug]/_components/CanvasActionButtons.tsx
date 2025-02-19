@@ -5,10 +5,10 @@ const CanvasActionButtons = () => {
     return ( 
         <div className="flex rounded-lg bg-white text-dark absolute bottom-8 left-8">
             <button onClick={() => dispatchEvent("undo")} className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-lg">
-                <Undo2 className="size-5" />
+                <Undo2 className="size-4" />
             </button>
             <button onClick={() => dispatchEvent("redo")} className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-lg">
-                <Redo2 className="size-5" />
+                <Redo2 className="size-4" />
             </button>
         </div>
      );

@@ -10,17 +10,34 @@ export type selectedTool = 'pan' | 'selection' | 'rectangle' | 'circle' | 'trian
 
 const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IChatMessage[], userId:string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (canvasRef.current && socket) {
-            const cleanup = initDraw(canvasRef.current, socket, roomMessages, userId);
-            return cleanup
+            const container = containerRef.current;
+            if(container){
+                canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
+                canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
+
+                const handleResize = () => {
+                    if(canvasRef.current && containerRef){
+                        canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
+                        canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
+                    }
+                }
+                window.addEventListener('resize',handleResize)
+                const cleanup = initDraw(canvasRef.current, socket, roomMessages, userId);
+                return () => {
+                    cleanup();
+                    window.removeEventListener('resize',handleResize);
+                };
+            }
         }
-    }, [socket, roomMessages])
+    }, [socket, roomMessages, userId])
 
     return (
-        <div className="w-screen h-screen relative overflow-hidden">
-            <canvas ref={canvasRef} width={5000} height={5000} className="absolute inset-0" />
+        <div ref={containerRef} className="w-screen h-screen relative overflow-hidden">
+            <canvas ref={canvasRef} className="absolute inset-0" />
             <ActionButtons />
             <Toolbar />
         </div>

@@ -5,7 +5,7 @@ import { selectedTool } from "./Canvas";
 const Toolbar = () => {
     const chooseTool = (shape: selectedTool) => window.dispatchEvent(new CustomEvent<selectedTool>("toolChange", { detail: shape }));
     return (
-        <div className="flex justify-center items-center gap-5 fixed inset-x-0 bottom-8 mx-auto bg-white rounded-lg w-[50%]">
+        <div className="flex justify-center items-center gap-5 fixed inset-x-0 top-8 mx-auto bg-white rounded-lg w-[50%]">
             <button className="p-3 rounded hover:bg-gray-300" onClick={() => chooseTool('pan')}>
                 <Hand className="size-5" />
             </button>
