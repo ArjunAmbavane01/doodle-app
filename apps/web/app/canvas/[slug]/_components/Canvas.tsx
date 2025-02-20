@@ -6,7 +6,7 @@ import Toolbar from "./Toolbar";
 import ActionButtons from "./CanvasActionButtons";
 
 // add highlighter option
-export type selectedTool = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text';
+export type selectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text';
 
 const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IChatMessage[], userId:string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -14,30 +14,30 @@ const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, ro
 
     useEffect(() => {
         if (canvasRef.current && socket) {
-            const container = containerRef.current;
-            if(container){
-                canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
-                canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
+            // const container = containerRef.current;
+            // if(container){
+            //     canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
+            //     canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
 
-                const handleResize = () => {
-                    if(canvasRef.current && containerRef){
-                        canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
-                        canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
-                    }
-                }
-                window.addEventListener('resize',handleResize)
+            //     const handleResize = () => {
+            //         if(canvasRef.current && containerRef){
+            //             canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
+            //             canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
+            //         }
+            //     }
+            //     window.addEventListener('resize',handleResize)
                 const cleanup = initDraw(canvasRef.current, socket, roomMessages, userId);
                 return () => {
                     cleanup();
-                    window.removeEventListener('resize',handleResize);
+                    // window.removeEventListener('resize',handleResize);
                 };
-            }
+            // }
         }
     }, [socket, roomMessages, userId])
 
     return (
         <div ref={containerRef} className="w-screen h-screen relative overflow-hidden">
-            <canvas ref={canvasRef} className="absolute inset-0" />
+            <canvas ref={canvasRef} width={5000} height={5000} className="absolute inset-0" />
             <ActionButtons />
             <Toolbar />
         </div>

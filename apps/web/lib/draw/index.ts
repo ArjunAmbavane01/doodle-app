@@ -1,4 +1,4 @@
-import { selectedTool } from "@/app/canvas/[slug]/_components/Canvas";
+import { selectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
 export type Shape =
@@ -10,22 +10,11 @@ export type Shape =
   | { type: "triangle"; startX: number; startY: number; width: number; height: number;}
   | { type: "circle"; centerX: number; centerY: number; radius: number };
 
-export interface IRoomShape {
-  userId: string;
-  shape: Shape;
-}
+export interface IRoomShape { userId: string; shape: Shape;}
 
-export interface IPoint {
-  x: number;
-  y: number;
-}
+export interface IPoint { x: number; y: number;}
 
-export const initDraw = (
-  canvas: HTMLCanvasElement,
-  socket: WebSocket,
-  initialMessages: IChatMessage[],
-  userId: string
-) => {
+export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[], userId: string) => {
   const roomShapes: IRoomShape[] = getShapesFromMessages(initialMessages);
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return () => {};
@@ -39,15 +28,12 @@ export const initDraw = (
   let isPanning = false;
   let hasMovedSinceMouseDown = false;
 
-  let panX = 0;
-  let panY = 0;
   let startX = 0;
   let startY = 0;
   let lastMouseX = 0;
   let lastMouseY = 0;
-  
-  
-  const DAMPING_FACTOR = 0.5;
+  let panOffsetX = 0;
+  let panOffsetY = 0;
   
   let strokePoints: IPoint[] = [];
   const undoStack: IRoomShape[] = [];
@@ -65,35 +51,31 @@ export const initDraw = (
 
   // this will render both existing and current shape
   const render = () => {
-    ctx.resetTransform();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.translate(panX,panY);
     ctx.fillStyle = "rgba(0,0,0)";
-    ctx.fillRect(-panX, -panY, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    ctx.save();
+    ctx.translate(panOffsetX,panOffsetY);
     // copy all shapes from bg canvas to main canvas
     ctx.drawImage(offscreenCanvas, 0, 0);
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
+    ctx.restore();
   };
 
-  const getCanvasPoint = (clientX: number, clientY: number) => {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY
-    };
+  const getCanvasPoint = (x: number,y: number) => {
+    return {x: x-panOffsetX, y: y-panOffsetY};
   }
-  const getAdjustedPoint = (canvasX: number, canvasY: number) => {
-    return {
-      x: canvasX - panX,
-      y: canvasY - panY
-    };
+
+  const handleCanvasScroll = (e:WheelEvent) => {
+    panOffsetX -= e.deltaX;
+    panOffsetY -= e.deltaY;
+    renderPersistentShapes();
+    render();
   }
 
   const handleToolChange = (event: Event) => {
-    const customEvent = event as CustomEvent<selectedTool>;
+    const customEvent = event as CustomEvent<selectedToolType>;
     if (customEvent.detail) {
       selectedTool = customEvent.detail;
       cleanupTextArea();
@@ -108,22 +90,13 @@ export const initDraw = (
         const newShape: Shape = JSON.parse(receivedData.message);
         const shapeWithUser = { userId: receivedData.userId, shape: newShape };
         roomShapes.push(shapeWithUser);
-        if (
-          receivedData.userId === userId &&
-          !undoStack.some(
-            (s) => JSON.stringify(s.shape) === JSON.stringify(newShape)
-          )
-        )
-          undoStack.push(shapeWithUser);
+        if (receivedData.userId === userId && !undoStack.some((s) => JSON.stringify(s.shape) === JSON.stringify(newShape))) undoStack.push(shapeWithUser);
         renderPersistentShapes();
         render();
       } else if (receivedData.type === "remove_shape") {
         const shape: Shape = JSON.parse(receivedData.message);
         const shapeWithUser = { userId: receivedData.userId, shape };
-        const index = roomShapes.findIndex(
-          (roomShape: IRoomShape) =>
-            JSON.stringify(roomShape) === JSON.stringify(shapeWithUser)
-        );
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
         if (index !== -1) {
           roomShapes.splice(index, 1);
           renderPersistentShapes();
@@ -136,16 +109,16 @@ export const initDraw = (
   };
 
   const handleMouseDown = (e: MouseEvent) => {
-    const canvasPoint = getCanvasPoint(e.clientX, e.clientY);
+    const {x,y} = getCanvasPoint(e.clientX,e.clientY);
     if (selectedTool === "pan") {
       isPanning = true;
-      lastMouseX = canvasPoint.x;
-      lastMouseY = canvasPoint.y;
+      lastMouseX = x;
+      lastMouseY = y;
       canvas.style.cursor = 'grabbing';
+      return;
     } else {
-      const adjustedPoint = getAdjustedPoint(canvasPoint.x,canvasPoint.y);
-      startX = adjustedPoint.x;
-      startY = adjustedPoint.y;
+      startX = x;
+      startY = y;
       isDrawing = true;
       hasMovedSinceMouseDown = false;
 
@@ -180,67 +153,53 @@ export const initDraw = (
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    const canvasPoint = getCanvasPoint(e.clientX, e.clientY);
-    if (isPanning) {
-      const dx = canvasPoint.x - lastMouseX;
-      const dy = canvasPoint.y - lastMouseY;
-      panX += dx;
-      panY += dy;
-      lastMouseX = canvasPoint.x;
-      lastMouseY = canvasPoint.y;
+    const {x,y} = getCanvasPoint(e.clientX,e.clientY);
+    if(isPanning){
+      panOffsetX += x - lastMouseX;
+      panOffsetY += y - lastMouseY;
+      lastMouseX = x;
+      lastMouseY = y;
+      renderPersistentShapes();
       render();
       return;
-    } 
+    }
     if (!isDrawing) return;
-    const adjustedPoint = getAdjustedPoint(canvasPoint.x, canvasPoint.y);
-    const currentX = adjustedPoint.x;
-    const currentY = adjustedPoint.y;
+    const currentX = x;
+    const currentY = y;
 
-      const width = currentX - startX;
-      const height = currentY - startY;
+    const width = currentX - startX;
+    const height = currentY - startY;
 
-      if ( !hasMovedSinceMouseDown && (Math.abs(currentX - startX) > 2 || Math.abs(currentY - startY) > 2)) hasMovedSinceMouseDown = true;
-      if (!hasMovedSinceMouseDown) return;
-      switch (selectedTool) {
-      case "pen":
-        if (strokePoints.length > 0) {
-          const lastPoint = strokePoints[strokePoints.length - 1];
-          if (lastPoint && (Math.abs(currentX - lastPoint.x) > 2 ||  Math.abs(currentY - lastPoint.y) > 2)) {
-            strokePoints.push({ x: currentX, y: currentY });
-            currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
-          }
+    if ( !hasMovedSinceMouseDown && (Math.abs(currentX - startX) > 2 || Math.abs(currentY - startY) > 2)) hasMovedSinceMouseDown = true;
+    if (!hasMovedSinceMouseDown) return;
+    switch (selectedTool) {
+    case "pen":
+      if (strokePoints.length > 0) {
+        const lastPoint = strokePoints[strokePoints.length - 1];
+        if (lastPoint && (Math.abs(currentX - lastPoint.x) > 2 ||  Math.abs(currentY - lastPoint.y) > 2)) {
+          strokePoints.push({ x: currentX, y: currentY });
+          currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
         }
-        break;
-      case "line":
-        currentShape = {
-          type: "line",
-          startX,
-          startY,
-          endX: currentX,
-          endY: currentY,
-        };
-        break;
-      case "arrow":
-        currentShape = {
-          type: "arrow",
-          startX,
-          startY,
-          endX: currentX,
-          endY: currentY,
-        };
-        break;
-      case "rectangle":
-        currentShape = { type: "rectangle", startX, startY, width, height };
-        break;
-      case "triangle":
-        currentShape = { type: "triangle", startX, startY, width, height };
-        break;
-      case "circle":
-        const centerX = startX + width / 2;
-        const centerY = startY + height / 2;
-        const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
-        currentShape = { type: "circle", centerX, centerY, radius };
-        break;
+      }
+      break;
+    case "line":
+      currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY,};
+      break;
+    case "arrow":
+      currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY,};
+      break;
+    case "rectangle":
+      currentShape = { type: "rectangle", startX, startY, width, height };
+      break;
+    case "triangle":
+      currentShape = { type: "triangle", startX, startY, width, height };
+      break;
+    case "circle":
+      const centerX = startX + width / 2;
+      const centerY = startY + height / 2;
+      const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
+      currentShape = { type: "circle", centerX, centerY, radius };
+      break;
     }
     render();
   };
@@ -248,53 +207,49 @@ export const initDraw = (
   const handleMouseUp = (e: MouseEvent) => {
     if (isPanning){
       isPanning = false;
-      canvas.style.cursor = selectedTool === "pan" ? "grab" : "default";
-    } else if(isDrawing){
-      if (!hasMovedSinceMouseDown && selectedTool === "pen") {
-        const rect = canvas.getBoundingClientRect();
-        const currentX = e.clientX - rect.left;
-        const currentY = e.clientY - rect.top;
-  
-        strokePoints = [
-          { x: currentX, y: currentY },
-          { x: currentX + 1, y: currentY + 1 },
-        ];
-        currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
+      canvas.style.cursor = 'grab';
+      renderPersistentShapes();
+      render();
+      return;
+    }
+    if (!isDrawing) return;
+    if (!hasMovedSinceMouseDown && selectedTool === "pen") {
+      const rect = canvas.getBoundingClientRect();
+      const {x,y} = getCanvasPoint(e.clientX,e.clientY);
+      const currentX = x - rect.left;
+      const currentY = y - rect.top;
+
+      strokePoints = [{ x: currentX, y: currentY },{ x: currentX + 1, y: currentY + 1 }];
+      currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
+      const shapeWithUser = { userId, shape: currentShape };
+      roomShapes.push(shapeWithUser);
+      undoStack.push(shapeWithUser);
+      socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape) }));
+    } else {
+      if (currentShape) {
         const shapeWithUser = { userId, shape: currentShape };
         roomShapes.push(shapeWithUser);
         undoStack.push(shapeWithUser);
-        socket.send(
-          JSON.stringify({ type: "chat", message: JSON.stringify(currentShape) })
-        );
-      } else {
-        if (currentShape) {
-          const shapeWithUser = { userId, shape: currentShape };
-          roomShapes.push(shapeWithUser);
-          undoStack.push(shapeWithUser);
-          socket.send(
-            JSON.stringify({
-              type: "chat",
-              message: JSON.stringify(currentShape),
-            })
-          );
-        }
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape),}));
       }
-      isDrawing = false;
-      hasMovedSinceMouseDown = false;
-      currentShape = null;
-      strokePoints = [];
     }
+    isDrawing = false;
+    hasMovedSinceMouseDown = false;
+    currentShape = null;
+    strokePoints = [];
     renderPersistentShapes();
     render();
-  };
+  }
 
   const handleMouseLeave = () => {
     if (isDrawing) {
-      isDrawing = false;
       currentShape = null;
       strokePoints = [];
+      renderPersistentShapes();
       render();
     }
+    isDrawing = false;
+    isPanning = false;
   };
 
   const handleBlur = (textAreaElem: HTMLTextAreaElement) => {
@@ -303,12 +258,7 @@ export const initDraw = (
       const canvasX = parseFloat(textAreaElem.dataset.canvasX || "0");
       const canvasY = parseFloat(textAreaElem.dataset.canvasY || "0");
 
-      const newShape: Shape = {
-        type: "text",
-        startX: canvasX,
-        startY: canvasY,
-        text,
-      };
+      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text,};
       const shapeWithUser: IRoomShape = { userId, shape: newShape };
       roomShapes.push(shapeWithUser);
       undoStack.push(shapeWithUser);
@@ -329,10 +279,7 @@ export const initDraw = (
       if (!lastRoomShape) return;
       redoStack.push(lastRoomShape);
 
-      const index = roomShapes.findIndex(
-        (roomShape: IRoomShape) =>
-          JSON.stringify(roomShape) === JSON.stringify(lastRoomShape)
-      );
+      const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastRoomShape));
       if (index !== -1) roomShapes.splice(index, 1);
       socket.send(JSON.stringify({ type: "undo" }));
       renderPersistentShapes();
@@ -351,12 +298,7 @@ export const initDraw = (
       roomShapes.push(newRoomShape);
       undoStack.push(newRoomShape);
 
-      socket.send(
-        JSON.stringify({
-          type: "chat",
-          message: JSON.stringify(newRoomShape.shape),
-        })
-      );
+      socket.send(JSON.stringify({type: "chat",message: JSON.stringify(newRoomShape.shape),}));
 
       renderPersistentShapes();
       render();
@@ -376,16 +318,18 @@ export const initDraw = (
   canvas.addEventListener("mousemove", handleMouseMove);
   canvas.addEventListener("mouseup", handleMouseUp);
   canvas.addEventListener("mouseleave", handleMouseLeave);
+  canvas.addEventListener("wheel", handleCanvasScroll);
   socket.addEventListener("message", handleMessage);
   window.addEventListener("toolChange", handleToolChange);
   window.addEventListener("redo", handleRedo);
   window.addEventListener("undo", handleUndo);
-
+  
   return () => {
     canvas.removeEventListener("mousedown", handleMouseDown);
     canvas.removeEventListener("mousemove", handleMouseMove);
     canvas.removeEventListener("mouseup", handleMouseUp);
     canvas.removeEventListener("mouseleave", handleMouseLeave);
+    canvas.removeEventListener("wheel", handleCanvasScroll);
     socket.removeEventListener("message", handleMessage);
     window.removeEventListener("toolChange", handleToolChange);
     window.removeEventListener("redo", handleRedo);
@@ -450,15 +394,10 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
   }
 };
 
-export const clearCanvas = (
-  roomShapes: IRoomShape[],
-  canvas: HTMLCanvasElement,
-  ctx: CanvasRenderingContext2D
-) => {
+export const clearCanvas = ( roomShapes: IRoomShape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "rgba(0,0,0)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  setupContext(ctx);
 
   roomShapes.forEach((roomShape: IRoomShape) => {
     if (!roomShape.shape) return;
@@ -466,10 +405,9 @@ export const clearCanvas = (
   });
 };
 
-export const getShapesFromMessages = (messages: IChatMessage[]) =>
-  messages.map((msg: { userId: string; message: string }) => {
+export const getShapesFromMessages = (messages: IChatMessage[]) => messages.map((msg: { userId: string; message: string }) => {
     return { userId: msg.userId, shape: JSON.parse(msg.message) };
-  });
+});
 
 export const strokeToSVG = (points: IPoint[]): string => {
   const strokeLength = points.length;
@@ -490,13 +428,11 @@ export const strokeToSVG = (points: IPoint[]): string => {
     const lastPoint = points[last];
     const secondLastPoint = points[last - 1];
 
-    if (lastPoint && secondLastPoint)
-      path += ` Q ${secondLastPoint.x} ${secondLastPoint.y}, ${lastPoint.x} ${lastPoint.y}`;
+    if (lastPoint && secondLastPoint) path += ` Q ${secondLastPoint.x} ${secondLastPoint.y}, ${lastPoint.x} ${lastPoint.y}`;
   } else if (strokeLength === 2) {
     const firstPoint = points[0];
     const secondPoint = points[1];
-    if (firstPoint && secondPoint)
-      path += ` L ${secondPoint.x} ${secondPoint.y}`;
+    if (firstPoint && secondPoint) path += ` L ${secondPoint.x} ${secondPoint.y}`;
   }
   return path;
 };
@@ -548,3 +484,4 @@ const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number) => {
   adjustHeight();
   return textAreaElem;
 };
+
