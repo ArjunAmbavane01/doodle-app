@@ -32,8 +32,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let startY = 0;
   let lastMouseX = 0;
   let lastMouseY = 0;
-  let panOffsetX = 0;
-  let panOffsetY = 0;
+  let panOffsetX = -2500;
+  let panOffsetY = -2500;
   
   let strokePoints: IPoint[] = [];
   const undoStack: IRoomShape[] = [];
@@ -51,6 +51,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   // this will render both existing and current shape
   const render = () => {
+    requestAnimationFrame(() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -61,6 +62,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     ctx.drawImage(offscreenCanvas, 0, 0);
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
     ctx.restore();
+    });
   };
 
   const getCanvasPoint = (x: number,y: number) => {
@@ -70,7 +72,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const handleCanvasScroll = (e:WheelEvent) => {
     panOffsetX -= e.deltaX;
     panOffsetY -= e.deltaY;
-    renderPersistentShapes();
     render();
   }
 
@@ -112,8 +113,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     const {x,y} = getCanvasPoint(e.clientX,e.clientY);
     if (selectedTool === "pan") {
       isPanning = true;
-      lastMouseX = x;
-      lastMouseY = y;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+      console.log('x : ',x,' y : ',y)
       canvas.style.cursor = 'grabbing';
       return;
     } else {
@@ -155,11 +157,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const handleMouseMove = (e: MouseEvent) => {
     const {x,y} = getCanvasPoint(e.clientX,e.clientY);
     if(isPanning){
-      panOffsetX += x - lastMouseX;
-      panOffsetY += y - lastMouseY;
-      lastMouseX = x;
-      lastMouseY = y;
-      renderPersistentShapes();
+      const deltaX = e.clientX - lastMouseX;
+      const deltaY = e.clientY - lastMouseY;
+      panOffsetX += deltaX;
+      panOffsetY += deltaY;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
       render();
       return;
     }
@@ -208,8 +211,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     if (isPanning){
       isPanning = false;
       canvas.style.cursor = 'grab';
-      renderPersistentShapes();
-      render();
       return;
     }
     if (!isDrawing) return;
@@ -311,6 +312,19 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     }
   };
 
+  const handleResize = () => {
+    const { width, height } = canvas.getBoundingClientRect();
+    canvas.width = width * window.devicePixelRatio;
+    canvas.height = height * window.devicePixelRatio;
+    offscreenCanvas.width = canvas.width;
+    offscreenCanvas.height = canvas.height;
+    
+    setupContext(ctx);
+    setupContext(offscreenCtx);
+    renderPersistentShapes();
+    render();
+  };
+
   renderPersistentShapes();
   render();
 
@@ -323,6 +337,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("toolChange", handleToolChange);
   window.addEventListener("redo", handleRedo);
   window.addEventListener("undo", handleUndo);
+  window.addEventListener("resize", handleResize);
   
   return () => {
     canvas.removeEventListener("mousedown", handleMouseDown);
@@ -334,6 +349,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     window.removeEventListener("toolChange", handleToolChange);
     window.removeEventListener("redo", handleRedo);
     window.removeEventListener("undo", handleUndo);
+    window.removeEventListener("resize", handleResize);
   };
 };
 

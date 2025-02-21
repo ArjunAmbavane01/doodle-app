@@ -1,5 +1,5 @@
 'use client'
-import { initDraw, Shape } from "@/lib/draw";
+import { initDraw } from "@/lib/draw";
 import { IChatMessage } from "@workspace/common/interfaces";
 import { useEffect, useRef } from "react";
 import Toolbar from "./Toolbar";
@@ -37,7 +37,7 @@ const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, ro
 
     return (
         <div ref={containerRef} className="w-screen h-screen relative overflow-hidden">
-            <canvas ref={canvasRef} width={5000} height={5000} className="absolute inset-0" />
+            <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000] absolute inset-0" />
             <ActionButtons />
             <Toolbar />
         </div>
