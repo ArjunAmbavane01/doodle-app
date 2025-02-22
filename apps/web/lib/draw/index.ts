@@ -1,4 +1,4 @@
-import { selectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
+import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
 export type Shape =
@@ -77,7 +77,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   }
 
   const handleToolChange = (event: Event) => {
-    const customEvent = event as CustomEvent<selectedToolType>;
+    const customEvent = event as CustomEvent<SelectedToolType>;
     if (customEvent.detail) {
       selectedTool = customEvent.detail;
       cleanupTextArea();
@@ -347,6 +347,42 @@ const handleKeyDown = (e:KeyboardEvent) =>{
     if(selectedShapes.length === 0) return;
     const shapeToDelete = selectedShapes.pop();
     // delete shapeToDelete
+  }
+  else if (e.key === 'h'){ 
+    selectedTool = "pan"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pan" }));
+  }
+  else if (e.key === 's'){ 
+    selectedTool = "selection"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "selection" }));
+  }
+  else if (e.key === 'r'){ 
+    selectedTool = "rectangle"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" }));
+  }
+  else if (e.key === 'c'){ 
+    selectedTool = "circle"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "circle" }));
+  }
+  else if (e.key === 't'){ 
+    selectedTool = "triangle"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" }));
+  }
+  else if (e.key === 'p'){ 
+    selectedTool = "pen"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pen" }));
+  }
+  else if (e.key === 'l'){ 
+    selectedTool = "line"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "line" }));
+  }
+  else if (e.key === 'a'){ 
+    selectedTool = "arrow"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" }));
+  }
+  else if (e.key === 'w'){ 
+    selectedTool = "text"
+    window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "text" }));
   }
 } 
 

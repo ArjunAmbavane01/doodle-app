@@ -6,7 +6,7 @@ import Toolbar from "./Toolbar";
 import ActionButtons from "./CanvasActionButtons";
 
 // add highlighter option
-export type selectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text';
+export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text';
 
 const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IChatMessage[], userId:string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
