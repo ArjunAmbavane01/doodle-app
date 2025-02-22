@@ -26,6 +26,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   let isDrawing = false;
   let isPanning = false;
+  let isDragging = false;
   let hasMovedSinceMouseDown = false;
 
   let startX = 0;
@@ -34,10 +35,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let lastMouseY = 0;
   let panOffsetX = -2500;
   let panOffsetY = -2500;
+  let dragStartX = 0;
+  let dragStartY = 0;
   
   let strokePoints: IPoint[] = [];
   const undoStack: IRoomShape[] = [];
   const redoStack: IRoomShape[] = [];
+  const selectedShapes: IRoomShape[] = [];
 
   // Create background canvas for existing shapes
   const offscreenCanvas = document.createElement("canvas");
@@ -47,11 +51,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   if (!offscreenCtx) return () => {};
   setupContext(offscreenCtx);
 
-  const renderPersistentShapes = () => clearCanvas(roomShapes, offscreenCanvas, offscreenCtx);
+  const renderPersistentShapes = () => clearCanvas(roomShapes, selectedShapes, offscreenCanvas, offscreenCtx);
 
   // this will render both existing and current shape
   const render = () => {
-    requestAnimationFrame(() => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "rgba(0,0,0)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -62,12 +65,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     ctx.drawImage(offscreenCanvas, 0, 0);
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
     ctx.restore();
-    });
   };
 
-  const getCanvasPoint = (x: number,y: number) => {
-    return {x: x-panOffsetX, y: y-panOffsetY};
-  }
+  const getCanvasPoint = (x: number,y: number) => { return {x: x-panOffsetX, y: y-panOffsetY}; }
 
   const handleCanvasScroll = (e:WheelEvent) => {
     panOffsetX -= e.deltaX;
@@ -111,6 +111,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleMouseDown = (e: MouseEvent) => {
     const {x,y} = getCanvasPoint(e.clientX,e.clientY);
+    if(selectedShapes.length !== 0) selectedShapes.pop();
     if (selectedTool === "pan") {
       isPanning = true;
       lastMouseX = e.clientX;
@@ -118,7 +119,22 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       console.log('x : ',x,' y : ',y)
       canvas.style.cursor = 'grabbing';
       return;
-    } else {
+    } 
+    else if (selectedTool === "selection") {
+      const selectedShape = getBoundingShape(x,y,roomShapes,ctx);
+      console.log(selectedShape);
+      if(!selectedShape) {
+        renderPersistentShapes();
+        render();
+        return;
+      };
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      selectedShapes.push(selectedShape)
+      renderPersistentShapes();
+      render();
+    }
+    else {
       startX = x;
       startY = y;
       isDrawing = true;
@@ -156,6 +172,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleMouseMove = (e: MouseEvent) => {
     const {x,y} = getCanvasPoint(e.clientX,e.clientY);
+    if(isDragging){
+      const currentX = e.clientX;
+      const currentY = e.clientY;
+      // const dragX = 
+    }
     if(isPanning){
       const deltaX = e.clientX - lastMouseX;
       const deltaY = e.clientY - lastMouseY;
@@ -312,18 +333,22 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     }
   };
 
-  const handleResize = () => {
-    const { width, height } = canvas.getBoundingClientRect();
-    canvas.width = width * window.devicePixelRatio;
-    canvas.height = height * window.devicePixelRatio;
-    offscreenCanvas.width = canvas.width;
-    offscreenCanvas.height = canvas.height;
-    
-    setupContext(ctx);
-    setupContext(offscreenCtx);
-    renderPersistentShapes();
-    render();
-  };
+  
+const handleKeyDown = (e:KeyboardEvent) =>{
+  if((e.ctrlKey || e.metaKey) && e.key === 'z'){
+    e.preventDefault();
+    handleUndo()
+  } 
+  else if((e.ctrlKey || e.metaKey) && e.key === 'y'){
+    e.preventDefault();
+    handleRedo()
+  } 
+  else if (e.key === 'Delete'){
+    if(selectedShapes.length === 0) return;
+    const shapeToDelete = selectedShapes.pop();
+    // delete shapeToDelete
+  }
+} 
 
   renderPersistentShapes();
   render();
@@ -337,7 +362,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("toolChange", handleToolChange);
   window.addEventListener("redo", handleRedo);
   window.addEventListener("undo", handleUndo);
-  window.addEventListener("resize", handleResize);
+  window.addEventListener("keydown", handleKeyDown);
+  // window.addEventListener("resize", handleResize);
   
   return () => {
     canvas.removeEventListener("mousedown", handleMouseDown);
@@ -349,11 +375,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     window.removeEventListener("toolChange", handleToolChange);
     window.removeEventListener("redo", handleRedo);
     window.removeEventListener("undo", handleUndo);
-    window.removeEventListener("resize", handleResize);
+    window.removeEventListener("keydown", handleKeyDown);
+    // window.removeEventListener("resize", handleResize);
   };
 };
 
-const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
+const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary:boolean=false) => {
   if (shape.type === "pen" && shape.path) {
     const path = new Path2D(shape.path);
     ctx.stroke(path);
@@ -367,12 +394,34 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
     ctx.imageSmoothingEnabled = false;
     ctx.fillText(shape.text, shape.startX, shape.startY);
     ctx.restore();
+    if(drawBoundary){
+      ctx.save();
+      ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
+      ctx.letterSpacing = "1px";
+      const padding = 10;
+      const metrics = ctx.measureText(shape.text);
+      const textWidth = metrics.width;
+      const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+      ctx.setLineDash([5,5]);
+      ctx.strokeRect(shape.startX - 3,shape.startY - 3,textWidth + padding,textHeight + padding);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
   } else if (shape.type === "line") {
-    ctx.beginPath();
-    ctx.moveTo(shape.startX, shape.startY);
-    ctx.lineTo(shape.endX, shape.endY);
-    ctx.stroke();
-    ctx.closePath();
+    if(drawBoundary){
+      ctx.setLineDash([5,5]);
+      ctx.moveTo(shape.startX, shape.startY);
+      ctx.lineTo(shape.endX, shape.endY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    } else{
+      ctx.beginPath();
+      ctx.moveTo(shape.startX, shape.startY);
+      ctx.lineTo(shape.endX, shape.endY);
+      ctx.stroke();
+      ctx.closePath();
+    }
   } else if (shape.type === "arrow") {
     const headlen = 12; // headlen in  pixels
     const dx = shape.endX - shape.startX;
@@ -392,8 +441,14 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
     );
     ctx.stroke();
     ctx.closePath();
-  } else if (shape.type === "rectangle")
+  } else if (shape.type === "rectangle"){
     ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
+    if(drawBoundary){
+      ctx.setLineDash([5,5]);
+      ctx.strokeRect(shape.startX - 6, shape.startY - 6, shape.width + 12, shape.height + 12);
+      ctx.setLineDash([]);
+    }
+  }
   else if (shape.type === "triangle") {
     ctx.beginPath();
     ctx.moveTo(shape.startX + shape.width / 2, shape.startY);
@@ -402,22 +457,40 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D) => {
     ctx.lineTo(shape.startX + shape.width / 2, shape.startY);
     ctx.stroke();
     ctx.closePath();
+    if(drawBoundary){
+      ctx.setLineDash([5,5]);
+      ctx.beginPath();
+      ctx.moveTo(shape.startX + shape.width / 2, shape.startY - 10);
+      ctx.lineTo(shape.startX - 10, shape.startY + shape.height + 6);
+      ctx.lineTo(shape.startX + shape.width + 10, shape.startY + shape.height + 6);
+      ctx.lineTo(shape.startX + shape.width / 2, shape.startY - 10);
+      ctx.stroke();
+      ctx.closePath();
+      ctx.setLineDash([]);
+    }
   } else if (shape.type === "circle") {
     ctx.beginPath();
     ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
     ctx.stroke();
     ctx.closePath();
+    if(drawBoundary){
+      ctx.setLineDash([5,5]);
+      ctx.beginPath();
+    ctx.arc(shape.centerX, shape.centerY, shape.radius + 6, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.closePath();
+      ctx.setLineDash([]);
+    }
   }
 };
 
-export const clearCanvas = ( roomShapes: IRoomShape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+export const clearCanvas = ( roomShapes: IRoomShape[], selectedShapes: IRoomShape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "rgba(0,0,0)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   roomShapes.forEach((roomShape: IRoomShape) => {
     if (!roomShape.shape) return;
-    drawShape(roomShape.shape, ctx);
+    drawShape(roomShape.shape, ctx, selectedShapes.includes(roomShape));
   });
 };
 
@@ -501,3 +574,131 @@ const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number) => {
   return textAreaElem;
 };
 
+const getBoundingShape = (clickedX:number,clickedY:number,roomShapes:IRoomShape[],ctx:CanvasRenderingContext2D) => {
+  for(let i=0;i<roomShapes.length;i++){
+    const roomShape = roomShapes[i]?.shape;
+    if(!roomShape) continue;
+    // if (roomShape.type === "pen" && roomShape.path) {
+    //   const path = new Path2D(roomShape.path);
+    //   ctx.beginPath();
+    //   ctx.lineWidth = 10;
+    //   ctx.fill(path);
+    //   const value = ctx.isPointInPath(clickedX,clickedY);
+    //   console.log(value); 
+    //   ctx.lineWidth = 2;
+    //   ctx.closePath();
+    //   if(value) return roomShapes[i];
+    // } 
+    if (roomShape.type === "text") {
+      ctx.save();
+      ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
+      ctx.letterSpacing = "1px";
+      const metrics = ctx.measureText(roomShape.text);
+      const textWidth = metrics.width;
+      const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+      const padding = 5;
+      console.log('clickX '+clickedX+' clickY '+clickedY);
+      console.log('width '+textWidth+' height'+textHeight);
+      console.log('startX '+roomShape.startX+' startY '+roomShape.startY);
+      if (clickedX >= roomShape.startX - padding && clickedX <= roomShape.startX + textWidth + padding && clickedY >= roomShape.startY - padding && clickedY <= roomShape.startY + textHeight + padding) {
+        ctx.restore();
+        return roomShapes[i]; 
+      }
+      ctx.restore();
+    } 
+    else if (roomShape.type === "line") {
+      ctx.save();
+      ctx.beginPath();
+      ctx.lineWidth = 10;
+      ctx.moveTo(roomShape.startX, roomShape.startY);
+      ctx.lineTo(roomShape.endX, roomShape.endY);
+      ctx.stroke();
+      const value = ctx.isPointInStroke(clickedX,clickedY);
+      console.log(value);
+      ctx.closePath();
+      ctx.restore();
+      if(value) return roomShapes[i];
+    }
+    else if (roomShape.type === "arrow") {
+      const headlen = 12; // headlen in  pixels
+      ctx.lineWidth = 10;
+      const dx = roomShape.endX - roomShape.startX;
+      const dy = roomShape.endY - roomShape.startY;
+      const angle = Math.atan2(dy, dx);
+      ctx.beginPath();
+      ctx.moveTo(roomShape.startX, roomShape.startY);
+      ctx.lineTo(roomShape.endX, roomShape.endY);
+      ctx.lineTo(
+        roomShape.endX - headlen * Math.cos(angle - Math.PI / 6),
+        roomShape.endY - headlen * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.moveTo(roomShape.endX, roomShape.endY);
+      ctx.lineTo(
+        roomShape.endX - headlen * Math.cos(angle + Math.PI / 6),
+        roomShape.endY - headlen * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.stroke();
+      const value = ctx.isPointInStroke(clickedX,clickedY);
+      console.log(value);
+      ctx.lineWidth = 2;
+      ctx.closePath();
+      if(value) return roomShapes[i];
+    }
+    else if (roomShape.type === "rectangle"){
+      ctx.beginPath();
+      ctx.rect(roomShape.startX, roomShape.startY, roomShape.width, roomShape.height);
+      ctx.fill();
+      const value = ctx.isPointInPath(clickedX,clickedY);
+      console.log(value);
+      ctx.closePath();
+      if(value) return roomShapes[i];
+    }
+    else if (roomShape.type === "triangle"){
+      ctx.beginPath();
+      ctx.moveTo(roomShape.startX + roomShape.width / 2, roomShape.startY);
+      ctx.lineTo(roomShape.startX, roomShape.startY + roomShape.height);
+      ctx.lineTo(roomShape.startX + roomShape.width, roomShape.startY + roomShape.height);
+      ctx.lineTo(roomShape.startX + roomShape.width / 2, roomShape.startY);
+      ctx.fill();
+      const value = ctx.isPointInPath(clickedX,clickedY);
+      console.log(value);
+      ctx.closePath();
+      if(value) return roomShapes[i];
+    }
+    else if (roomShape.type === "circle"){
+      ctx.beginPath();
+      ctx.arc(roomShape.centerX, roomShape.centerY, roomShape.radius, 0, Math.PI * 2);
+      ctx.fill();
+      const value = ctx.isPointInPath(clickedX,clickedY);
+      console.log(value);
+      ctx.closePath();
+      if(value) return roomShapes[i];
+    }
+    // if (roomShape.type === "pen" && roomShape.path) {
+    //   const path = new Path2D(roomShape.path);
+    //   ctx.stroke(path);
+    // } 
+   
+    // else if (roomShape.type === "arrow") {
+    //   const headlen = 12; // headlen in  pixels
+    //   const dx = roomShape.endX - roomShape.startX;
+    //   const dy = roomShape.endY - roomShape.startY;
+    //   const angle = Math.atan2(dy, dx);
+    //   ctx.beginPath();
+    //   ctx.moveTo(roomShape.startX, roomShape.startY);
+    //   ctx.lineTo(roomShape.endX, roomShape.endY);
+    //   ctx.lineTo(
+    //     roomShape.endX - headlen * Math.cos(angle - Math.PI / 6),
+    //     roomShape.endY - headlen * Math.sin(angle - Math.PI / 6)
+    //   );
+    //   ctx.moveTo(roomShape.endX, roomShape.endY);
+    //   ctx.lineTo(
+    //     roomShape.endX - headlen * Math.cos(angle + Math.PI / 6),
+    //     roomShape.endY - headlen * Math.sin(angle + Math.PI / 6)
+    //   );
+    //   ctx.stroke();
+    //   ctx.closePath();
+    // } 
+  }
+  return null;
+}
