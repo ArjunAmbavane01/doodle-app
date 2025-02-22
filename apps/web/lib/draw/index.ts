@@ -41,6 +41,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let strokePoints: IPoint[] = [];
   const undoStack: IRoomShape[] = [];
   const redoStack: IRoomShape[] = [];
+  //Make this single value
   const selectedShapes: IRoomShape[] = [];
 
   // Create background canvas for existing shapes
@@ -116,13 +117,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       isPanning = true;
       lastMouseX = e.clientX;
       lastMouseY = e.clientY;
-      console.log('x : ',x,' y : ',y)
       canvas.style.cursor = 'grabbing';
       return;
     } 
     else if (selectedTool === "selection") {
       const selectedShape = getBoundingShape(x,y,roomShapes,ctx);
-      console.log(selectedShape);
+      console.log(selectedShape)
       if(!selectedShape) {
         renderPersistentShapes();
         render();
@@ -380,10 +380,18 @@ const handleKeyDown = (e:KeyboardEvent) =>{
   };
 };
 
+// here isDragging shuld come as param
 const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary:boolean=false) => {
   if (shape.type === "pen" && shape.path) {
-    const path = new Path2D(shape.path);
-    ctx.stroke(path);
+    if(drawBoundary){
+      ctx.setLineDash([5,5]);
+      const path = new Path2D(shape.path);
+      ctx.stroke(path);
+      ctx.setLineDash([]);
+    } else{
+      const path = new Path2D(shape.path);
+      ctx.stroke(path);
+    }
   } else if (shape.type === "text") {
     ctx.save();
     ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
@@ -423,24 +431,52 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary:boo
       ctx.closePath();
     }
   } else if (shape.type === "arrow") {
-    const headlen = 12; // headlen in  pixels
-    const dx = shape.endX - shape.startX;
-    const dy = shape.endY - shape.startY;
-    const angle = Math.atan2(dy, dx);
-    ctx.beginPath();
-    ctx.moveTo(shape.startX, shape.startY);
-    ctx.lineTo(shape.endX, shape.endY);
-    ctx.lineTo(
+    if(drawBoundary){
+      ctx.setLineDash([5,5]);
+      const headlen = 12; // headlen in  pixels
+      const dx = shape.endX - shape.startX;
+      const dy = shape.endY - shape.startY;
+      const angle = Math.atan2(dy, dx);
+      ctx.beginPath();
+      ctx.moveTo(shape.startX, shape.startY);
+      ctx.lineTo(shape.endX, shape.endY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.closePath();
+      ctx.beginPath();
+      ctx.moveTo(shape.endX,shape.endY);
+      ctx.lineTo(
       shape.endX - headlen * Math.cos(angle - Math.PI / 6),
       shape.endY - headlen * Math.sin(angle - Math.PI / 6)
-    );
-    ctx.moveTo(shape.endX, shape.endY);
-    ctx.lineTo(
-      shape.endX - headlen * Math.cos(angle + Math.PI / 6),
-      shape.endY - headlen * Math.sin(angle + Math.PI / 6)
-    );
-    ctx.stroke();
-    ctx.closePath();
+      );
+      ctx.moveTo(shape.endX, shape.endY);
+      ctx.lineTo(
+        shape.endX - headlen * Math.cos(angle + Math.PI / 6),
+        shape.endY - headlen * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.stroke();
+      ctx.closePath();
+    }
+    else {
+      const headlen = 12; // headlen in  pixels
+      const dx = shape.endX - shape.startX;
+      const dy = shape.endY - shape.startY;
+      const angle = Math.atan2(dy, dx);
+      ctx.beginPath();
+      ctx.moveTo(shape.startX, shape.startY);
+      ctx.lineTo(shape.endX, shape.endY);
+      ctx.lineTo(
+      shape.endX - headlen * Math.cos(angle - Math.PI / 6),
+      shape.endY - headlen * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.moveTo(shape.endX, shape.endY);
+      ctx.lineTo(
+        shape.endX - headlen * Math.cos(angle + Math.PI / 6),
+        shape.endY - headlen * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.stroke();
+      ctx.closePath();
+    }
   } else if (shape.type === "rectangle"){
     ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     if(drawBoundary){
@@ -575,21 +611,20 @@ const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number) => {
 };
 
 const getBoundingShape = (clickedX:number,clickedY:number,roomShapes:IRoomShape[],ctx:CanvasRenderingContext2D) => {
+
   for(let i=0;i<roomShapes.length;i++){
     const roomShape = roomShapes[i]?.shape;
     if(!roomShape) continue;
-    // if (roomShape.type === "pen" && roomShape.path) {
-    //   const path = new Path2D(roomShape.path);
-    //   ctx.beginPath();
-    //   ctx.lineWidth = 10;
-    //   ctx.fill(path);
-    //   const value = ctx.isPointInPath(clickedX,clickedY);
-    //   console.log(value); 
-    //   ctx.lineWidth = 2;
-    //   ctx.closePath();
-    //   if(value) return roomShapes[i];
-    // } 
-    if (roomShape.type === "text") {
+    if (roomShape.type === "pen" && roomShape.path) {
+      ctx.save();
+      const path = new Path2D(roomShape.path);
+      ctx.lineWidth = 10;
+      ctx.stroke(path);
+      const value = ctx.isPointInStroke(path,clickedX,clickedY);
+      ctx.restore();
+      if(value) return roomShapes[i];
+    } 
+    else if (roomShape.type === "text") {
       ctx.save();
       ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
       ctx.letterSpacing = "1px";
@@ -597,31 +632,26 @@ const getBoundingShape = (clickedX:number,clickedY:number,roomShapes:IRoomShape[
       const textWidth = metrics.width;
       const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
       const padding = 5;
-      console.log('clickX '+clickedX+' clickY '+clickedY);
-      console.log('width '+textWidth+' height'+textHeight);
-      console.log('startX '+roomShape.startX+' startY '+roomShape.startY);
-      if (clickedX >= roomShape.startX - padding && clickedX <= roomShape.startX + textWidth + padding && clickedY >= roomShape.startY - padding && clickedY <= roomShape.startY + textHeight + padding) {
-        ctx.restore();
-        return roomShapes[i]; 
-      }
+      const value = (clickedX >= roomShape.startX - padding && clickedX <= roomShape.startX + textWidth + padding && clickedY >= roomShape.startY - padding && clickedY <= roomShape.startY + textHeight + padding);
       ctx.restore();
+      if(value) return roomShapes[i]; 
     } 
     else if (roomShape.type === "line") {
       ctx.save();
       ctx.beginPath();
-      ctx.lineWidth = 10;
+      ctx.lineWidth = 14;
       ctx.moveTo(roomShape.startX, roomShape.startY);
       ctx.lineTo(roomShape.endX, roomShape.endY);
-      ctx.stroke();
       const value = ctx.isPointInStroke(clickedX,clickedY);
-      console.log(value);
+      ctx.stroke();
       ctx.closePath();
       ctx.restore();
       if(value) return roomShapes[i];
     }
     else if (roomShape.type === "arrow") {
+      ctx.save();
       const headlen = 12; // headlen in  pixels
-      ctx.lineWidth = 10;
+      ctx.lineWidth = 14;
       const dx = roomShape.endX - roomShape.startX;
       const dy = roomShape.endY - roomShape.startY;
       const angle = Math.atan2(dy, dx);
@@ -637,11 +667,10 @@ const getBoundingShape = (clickedX:number,clickedY:number,roomShapes:IRoomShape[
         roomShape.endX - headlen * Math.cos(angle + Math.PI / 6),
         roomShape.endY - headlen * Math.sin(angle + Math.PI / 6)
       );
-      ctx.stroke();
       const value = ctx.isPointInStroke(clickedX,clickedY);
-      console.log(value);
-      ctx.lineWidth = 2;
+      ctx.stroke();
       ctx.closePath();
+      ctx.restore();
       if(value) return roomShapes[i];
     }
     else if (roomShape.type === "rectangle"){
@@ -649,7 +678,6 @@ const getBoundingShape = (clickedX:number,clickedY:number,roomShapes:IRoomShape[
       ctx.rect(roomShape.startX, roomShape.startY, roomShape.width, roomShape.height);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX,clickedY);
-      console.log(value);
       ctx.closePath();
       if(value) return roomShapes[i];
     }
@@ -661,7 +689,6 @@ const getBoundingShape = (clickedX:number,clickedY:number,roomShapes:IRoomShape[
       ctx.lineTo(roomShape.startX + roomShape.width / 2, roomShape.startY);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX,clickedY);
-      console.log(value);
       ctx.closePath();
       if(value) return roomShapes[i];
     }
@@ -670,35 +697,9 @@ const getBoundingShape = (clickedX:number,clickedY:number,roomShapes:IRoomShape[
       ctx.arc(roomShape.centerX, roomShape.centerY, roomShape.radius, 0, Math.PI * 2);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX,clickedY);
-      console.log(value);
       ctx.closePath();
       if(value) return roomShapes[i];
     }
-    // if (roomShape.type === "pen" && roomShape.path) {
-    //   const path = new Path2D(roomShape.path);
-    //   ctx.stroke(path);
-    // } 
-   
-    // else if (roomShape.type === "arrow") {
-    //   const headlen = 12; // headlen in  pixels
-    //   const dx = roomShape.endX - roomShape.startX;
-    //   const dy = roomShape.endY - roomShape.startY;
-    //   const angle = Math.atan2(dy, dx);
-    //   ctx.beginPath();
-    //   ctx.moveTo(roomShape.startX, roomShape.startY);
-    //   ctx.lineTo(roomShape.endX, roomShape.endY);
-    //   ctx.lineTo(
-    //     roomShape.endX - headlen * Math.cos(angle - Math.PI / 6),
-    //     roomShape.endY - headlen * Math.sin(angle - Math.PI / 6)
-    //   );
-    //   ctx.moveTo(roomShape.endX, roomShape.endY);
-    //   ctx.lineTo(
-    //     roomShape.endX - headlen * Math.cos(angle + Math.PI / 6),
-    //     roomShape.endY - headlen * Math.sin(angle + Math.PI / 6)
-    //   );
-    //   ctx.stroke();
-    //   ctx.closePath();
-    // } 
   }
   return null;
 }
