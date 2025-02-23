@@ -12,9 +12,9 @@ const ShortcutsSection = () => {
   ]
 
   return (
-    <section className="w-full py-24 bg-gray-50">
+    <section className="w-full py-24 bg-black">
       <div className="flex flex-col gap-16 w-full max-w-screen-8xl mx-auto px-16">
-        <div className="flex flex-col gap-5 items-center text-center">
+        <div className="flex flex-col gap-5 items-center text-center text-white">
           <Command className="size-12 " />
           <h2 className="font-heading text-4xl font-bold">Work Faster with Shortcuts</h2>
           <p className="font-body text-gray-600">Master these shortcuts to enhance your workflow</p>
@@ -23,7 +23,7 @@ const ShortcutsSection = () => {
           {shortcuts.map((shortcut, index) => (
             <div
               key={index}
-              className="flex flex-col gap-5 bg-white rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow group"
+              className="flex flex-col gap-5 bg-gray-100 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow group"
             >
               <div className="flex items-center justify-center gap-3">
                 {shortcut.keys.map((key, keyIndex) => (

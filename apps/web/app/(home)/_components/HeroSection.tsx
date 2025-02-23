@@ -3,17 +3,15 @@ import { CREATE_ROOM_URL } from "@/lib/apiEndPoints";
 import { Button } from "@workspace/ui/components/button";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Info, PencilLine, Users } from "lucide-react";
+import { ArrowRight, Info, PencilLine, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { useRef, useState } from "react";
-import { useScreenSize } from "./use-screen-size";
 import Image from "next/image";
 import { FloatingShapes } from "./floatingShapes";
 import { Mockup, MockupFrame } from "./mockup";
 import { Glow } from "./glow";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
-    const screenSize = useScreenSize();
     const router = useRouter();
     const [modalOpen, setModalopen] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -35,23 +33,25 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     }
 
     return (
-        <section className="flex w-full min-h-[100vh] bg-black">
-            <FloatingShapes />
-            <div className="flex flex-col max-w-screen-8xl w-full mx-auto ">
-                <div className="flex flex-col justify-center items-center z-10 p-20">
-                    <div className="flex flex-col gap-5 text-xl font-heading font-semibold text-white">
-                        <span className="font-logo text-7xl font-bold text-center">Doodle</span>
+        <section className="flex w-full min-h-screen bg-black">
+            <div className="flex flex-col justify-center items-center gap-8 relative max-w-screen-8xl w-full mx-auto">
+
+                    <FloatingShapes />
+                    <div className="flex flex-col justify-center items-center gap-8 bg-black z-20 rounded-full">
+
+                    <div className="flex flex-col gap-8 text-xl font-heading font-semibold text-white z-20 ">
+                        <span className="font-logo text-8xl font-bold text-center bg-gradient-to-r from-blue-300 to-pink-300 text-transparent bg-clip-text">Doodle</span>
                         Sketch, Collaborate, Innovate - All in One Place.
                     </div>
-                    <div className="flex gap-5">
-                        <Button className="flex items-center gap-3 p-5" onClick={createRoom}>
+                    <div className="flex gap-8 z-20">
+                        <Button className="flex items-center gap-3 p-6 bg-gray-100 text-black hover:bg-[#CCCCCC] group" onClick={createRoom}>
                             Start Doodling
                             <PencilLine className="size-3" />
                         </Button>
                         <Dialog>
                             <DialogTrigger asChild>
-                                <Button variant={'outline'} className="flex items-center p-5" onClick={() => setModalopen((s) => !s)}>
-                                    join a room
+                                <Button className="flex items-center p-6 w-32 bg-black text-white border border-white" onClick={() => setModalopen((s) => !s)}>
+                                    Join Room
                                 </Button>
                             </DialogTrigger>
                             <DialogContent>
@@ -75,26 +75,26 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                             </DialogContent>
                         </Dialog>
                     </div>
+                    </div>
+
                 </div>
 
-                {/* <div className="relative pt-12 bg-white">
-                    <MockupFrame className="animate-appear opacity-0 delay-700" size="small">
+                {/* <div className="relative max-w-screen-xl w-full mx-auto overflow">
+                    <Glow variant="top" className="!opacity-100 overflow-x-hidden" />
+                    <MockupFrame className="animate-appear opacity-100 delay-700" size="large">
                         <Mockup type="responsive">
-                            <Image
-                                src={'/images/appDemo.png'}
-                                alt={'test'}
-                                width={600}
-                                height={600}
-                                priority
-                            />
+                            <div className="w-full aspect-[16/9] relative">
+                                <Image
+                                    src="/images/appDemo.png"
+                                    alt="Doodle App Demo"
+                                    fill
+                                    className="object-cover"
+                                    priority
+                                />
+                            </div>
                         </Mockup>
                     </MockupFrame>
-                    <Glow
-                        variant="top"
-                        className="animate-appear-zoom opacity-0 delay-1000"
-                    />
                 </div> */}
-            </div>
         </section>
     );
 }

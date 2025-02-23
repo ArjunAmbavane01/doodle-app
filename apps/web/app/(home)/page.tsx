@@ -7,6 +7,7 @@ import UserDropdown from "@/components/navbar/UserDropdown";
 import LoginModal from "@/components/auth/LoginModal";
 import ShortcutsSection from "./_components/Shortcuts";
 import Footer from "./_components/Footer";
+import TechStack from "./_components/TechStack";
 
 
 // ADD BUILT USING THESE TOOLS SECTION
@@ -22,6 +23,7 @@ const Page = async () => {
       <HeroSection userToken={session?.user?.token} />
       <Collab />
       <ShortcutsSection />
+      <TechStack />
       <Footer />
     </>
   )
