@@ -3,13 +3,10 @@ import { CREATE_ROOM_URL } from "@/lib/apiEndPoints";
 import { Button } from "@workspace/ui/components/button";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { ArrowRight, Info, PencilLine, Users } from "lucide-react";
+import { Info, PencilLine, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { useRef, useState } from "react";
-import Image from "next/image";
-import { FloatingShapes } from "./floatingShapes";
-import { Mockup, MockupFrame } from "./mockup";
-import { Glow } from "./glow";
+import { FloatingShapes } from "./FloatingShapes";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
     const router = useRouter();
@@ -33,7 +30,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     }
 
     return (
-        <section className="flex w-full min-h-screen bg-black">
+        <section className="flex w-full min-h-[100vh] bg-black">
             <div className="flex flex-col justify-center items-center gap-8 relative max-w-screen-8xl w-full mx-auto">
 
                     <FloatingShapes />
