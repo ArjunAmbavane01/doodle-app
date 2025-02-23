@@ -5,10 +5,8 @@ import ThemeToggle from "./ThemeToggle"
 
 export default function Footer() {
   return (
-    <footer className="mt-auto">
-      <div className="container px-4 py-12">
-          
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-8 pt-8 border-t">
+    <footer className="flex w-full py-24">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-5 max-w-screen-8xl w-full mx-auto p-5 border-t">  
           <p className="text-sm text-muted-foreground">© Copyright 2020 - 2024. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
@@ -20,7 +18,6 @@ export default function Footer() {
             <ThemeToggle />
           </div>
         </div>
-      </div>
     </footer>
   )
 }
