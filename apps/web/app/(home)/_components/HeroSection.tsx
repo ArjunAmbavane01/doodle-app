@@ -34,7 +34,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
             <div className="flex flex-col justify-center items-center gap-8 relative max-w-screen-8xl w-full mx-auto">
 
                     <FloatingShapes />
-                    <div className="flex flex-col justify-center items-center gap-8 bg-black z-20 rounded-full">
+                    <div className="flex flex-col justify-center items-center gap-8 bg-black z-20 rounded-xl">
 
                     <div className="flex flex-col gap-8 text-xl font-heading font-semibold text-white z-20 ">
                         <span className="font-logo text-8xl font-bold text-center bg-gradient-to-r from-blue-300 to-pink-300 text-transparent bg-clip-text">Doodle</span>
