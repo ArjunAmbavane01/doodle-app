@@ -35,6 +35,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let lastMouseY = 0;
   let panOffsetX = -2500;
   let panOffsetY = -2500;
+  let zoomScale = 1;
+  let zoomOffsetX = 0;
+  let zoomOffsetY = 0;
+  let lastZoomScale = 1;
   let dragStartX = 0;
   let dragStartY = 0;
   
@@ -57,18 +61,63 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   // this will render both existing and current shape
   const render = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "rgba(0,0,0)";
+    ctx.fillStyle = "#0C0C0C";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    const scaledWidth = canvas.width * zoomScale;
+    const scaledHeight = canvas.height * zoomScale;
+    zoomOffsetX = (scaledWidth - canvas.width)/2;
+    zoomOffsetY = (scaledHeight - canvas.height)/2;
     ctx.save();
-    ctx.translate(panOffsetX,panOffsetY);
+
+    // Apply zoom transformation from center of canvas
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // Translate to center, scale, then translate back
+    ctx.translate(centerX, centerY);
+    ctx.scale(zoomScale, zoomScale);
+    ctx.translate(-centerX, -centerY);
+    
+    // // Apply panning after zoom
+    // ctx.translate(panOffsetX, panOffsetY);
+
+    // console.log(`zoomx ${zoomOffsetX}`)
+    // console.log(`zoomy ${zoomOffsetY}`)
+    // console.log(`panx ${panOffsetX}`)
+    // console.log(`pany ${panOffsetY}`)
+    // ctx.translate(zoomCenter.x, zoomCenter.y);
+    // ctx.scale(zoomScale, zoomScale);
+    // ctx.translate(-zoomCenter.x + panOffsetX, -zoomCenter.y + panOffsetY);
+
+    // ctx.scale(zoomScale,zoomScale);
+    // ctx.translate(panOffsetX*zoomScale + zoomOffsetX,panOffsetY*zoomScale + zoomOffsetY);
+
     // copy all shapes from bg canvas to main canvas
     ctx.drawImage(offscreenCanvas, 0, 0);
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
     ctx.restore();
   };
 
-  const getCanvasPoint = (x: number,y: number) => { return {x: x-panOffsetX, y: y-panOffsetY}; }
+  const getCanvasPoint = (clientX: number,clientY: number) => { 
+    const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  
+  // Get position relative to canvas
+  const canvasX = (clientX - rect.left) * scaleX;
+  const canvasY = (clientY - rect.top) * scaleY;
+  
+  // Account for zoom and pan transformations
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  
+  // Apply inverse transformations
+  const x = (canvasX - centerX) / zoomScale + centerX - panOffsetX;
+  const y = (canvasY - centerY) / zoomScale + centerY - panOffsetY;
+  
+  return { x, y };
+   }
 
   const handleCanvasScroll = (e:WheelEvent) => {
     panOffsetX -= e.deltaX;
@@ -112,6 +161,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleMouseDown = (e: MouseEvent) => {
     const {x,y} = getCanvasPoint(e.clientX,e.clientY);
+    console.log(`zoomX : ${zoomOffsetX}`)
+    console.log(`zoomY : ${zoomOffsetY}`)
+    console.log(`x ${x} y ${y}`)
+    console.log(`panx ${panOffsetX} pany ${panOffsetY}`)
     if(selectedShapes.length !== 0) selectedShapes.pop();
     if (selectedTool === "pan") {
       isPanning = true;
@@ -335,7 +388,17 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   
 const handleKeyDown = (e:KeyboardEvent) =>{
-  if((e.ctrlKey || e.metaKey) && e.key === 'z'){
+  if((e.ctrlKey || e.metaKey) && e.key === '+'){
+    // e.preventDefault();
+    // zoomScale = 1.1;
+    // render();
+  } 
+  else if((e.ctrlKey || e.metaKey) && e.key === '-'){
+    // e.preventDefault();
+    // zoomScale = 1.1;
+    // render();
+  } 
+  else if((e.ctrlKey || e.metaKey) && e.key === 'z'){
     e.preventDefault();
     handleUndo()
   } 
@@ -349,42 +412,53 @@ const handleKeyDown = (e:KeyboardEvent) =>{
     // delete shapeToDelete
   }
   else if (e.key === 'h'){ 
-    selectedTool = "pan"
+    selectedTool = "pan";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pan" }));
   }
   else if (e.key === 's'){ 
-    selectedTool = "selection"
+    selectedTool = "selection";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "selection" }));
   }
   else if (e.key === 'r'){ 
-    selectedTool = "rectangle"
+    selectedTool = "rectangle";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" }));
   }
   else if (e.key === 'c'){ 
-    selectedTool = "circle"
+    selectedTool = "circle";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "circle" }));
   }
   else if (e.key === 't'){ 
-    selectedTool = "triangle"
+    selectedTool = "triangle";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" }));
   }
   else if (e.key === 'p'){ 
-    selectedTool = "pen"
+    selectedTool = "pen";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pen" }));
   }
   else if (e.key === 'l'){ 
-    selectedTool = "line"
+    selectedTool = "line";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "line" }));
   }
   else if (e.key === 'a'){ 
-    selectedTool = "arrow"
+    selectedTool = "arrow";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" }));
   }
   else if (e.key === 'w'){ 
-    selectedTool = "text"
+    selectedTool = "text";
     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "text" }));
   }
+  canvas.style.cursor = selectedTool === "pan" ? "grab" : "default"
 } 
+
+const handleZoomIn = () => {
+  zoomScale = Math.min(zoomScale * 1.2, 10);
+  render();
+};
+
+const handleZoomOut = () => {
+  zoomScale = Math.max(zoomScale / 1.2, 0.1);
+  render();
+};
 
   renderPersistentShapes();
   render();
@@ -396,9 +470,11 @@ const handleKeyDown = (e:KeyboardEvent) =>{
   canvas.addEventListener("wheel", handleCanvasScroll);
   socket.addEventListener("message", handleMessage);
   window.addEventListener("toolChange", handleToolChange);
+  window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("redo", handleRedo);
   window.addEventListener("undo", handleUndo);
-  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("zoomIn", ()=>{handleZoomIn()});
+  window.addEventListener("zoomOut", ()=>{handleZoomOut()});
   // window.addEventListener("resize", handleResize);
   
   return () => {
@@ -412,6 +488,8 @@ const handleKeyDown = (e:KeyboardEvent) =>{
     window.removeEventListener("redo", handleRedo);
     window.removeEventListener("undo", handleUndo);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("zoomIn", ()=>{handleZoomIn()});
+    window.removeEventListener("zoomOut", ()=>{handleZoomOut()});
     // window.removeEventListener("resize", handleResize);
   };
 };
@@ -558,7 +636,7 @@ const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary:boo
 
 export const clearCanvas = ( roomShapes: IRoomShape[], selectedShapes: IRoomShape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "rgba(0,0,0)";
+  ctx.fillStyle = "#0C0C0C";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   roomShapes.forEach((roomShape: IRoomShape) => {
     if (!roomShape.shape) return;
