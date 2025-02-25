@@ -1,5 +1,6 @@
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
+import { X } from "lucide-react";
 
 export type Shape =
   | { type: "pen"; path: string }
@@ -11,6 +12,8 @@ export type Shape =
   | { type: "circle"; centerX: number; centerY: number; radius: number };
 
 export interface IRoomShape { userId: string; shape: Shape; wasDeleted?:boolean}
+
+export interface IRoomUserPos { posX:number, posY:number, displayName?: string};
 
 export interface IPoint { x: number; y: number;}
 
@@ -42,9 +45,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let dragStartY = 0;
 
   let strokePoints: IPoint[] = [];
+  let selectedShape: IRoomShape | null = null;
   const undoStack: IRoomShape[] = [];
   const redoStack: IRoomShape[] = [];
-  let selectedShape: IRoomShape | null = null;
+  const roomUsers = new Map<string,{ posX:number, posY:number}>();
 
   // Create background canvas for existing shapes
   const offscreenCanvas = document.createElement("canvas");
@@ -78,6 +82,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
     // copy all shapes from bg canvas to main canvas
     ctx.drawImage(offscreenCanvas, 0, 0);
+    roomUsers.forEach((roomUser,roomUserId)=> drawUserCursor(roomUser,roomUserId,ctx))
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
 
     ctx.restore();
@@ -118,7 +123,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const handleMessage = (event: MessageEvent) => {
     try {
       const receivedData = JSON.parse(event.data);
-      if (receivedData.type === "chat") {
+      if (receivedData.type === "room_user_pos") {
+        const userId = receivedData.userId;
+        const posX = receivedData.posX;
+        const posY = receivedData.posY;
+        roomUsers.set(userId,{posX,posY});
+        render();
+      } else if (receivedData.type === "chat") {
         const newShape: Shape = JSON.parse(receivedData.message);
         const shapeWithUser = { userId: receivedData.userId, shape: newShape };
         roomShapes.push(shapeWithUser);
@@ -191,6 +202,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleMouseMove = (e: MouseEvent) => {
     const { x, y } = getCanvasPoint(e.clientX, e.clientY);
+    socket.send(JSON.stringify({type:'user_pos',clientX:x,clientY:y}));
     if (isDragging) {
     }
     if (isPanning) {
@@ -309,9 +321,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const shapeWithUser: IRoomShape = { userId, shape: newShape };
       roomShapes.push(shapeWithUser);
       undoStack.push(shapeWithUser);
-      socket.send(
-        JSON.stringify({ type: "chat", message: JSON.stringify(newShape) })
-      );
+      socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newShape) }));
 
       renderPersistentShapes();
       render();
@@ -653,6 +663,67 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     }
   }
 };
+
+const drawUserCursor = (roomUser:IRoomUserPos,roomUserId:string, ctx: CanvasRenderingContext2D) => {
+  if(!ctx || !roomUser) return;
+  
+  const colour = getUserColour(roomUserId);
+  const displayName = getUserDisplayName(roomUserId) || "user";
+
+  ctx.font = '12px sans-serif';
+  const textMetrics = ctx.measureText(displayName);
+  const textWidth = textMetrics.width;
+
+  const tagWidth = textWidth + 30;
+  const tagHeight = 24;
+  const tagX = roomUser.posX;
+  const tagY = roomUser.posY - tagHeight -5;
+
+  ctx.save();
+  ctx.fillStyle = colour;
+  ctx.beginPath();
+  ctx.roundRect(tagX, tagY, tagWidth, tagHeight, 12);
+  ctx.fill();
+
+  ctx.fillStyle = 'white';
+  ctx.font = '12px sans-serif';
+  ctx.fillText(displayName, tagX + 24, tagY + tagHeight/2 + 4);
+  
+  ctx.fillStyle = colour;
+  ctx.moveTo(roomUser.posX , roomUser.posY + tagHeight); 
+  ctx.beginPath();
+  ctx.lineTo(roomUser.posX - 6, roomUser.posY + 10); 
+  ctx.lineTo(roomUser.posX + 6, roomUser.posY + 10); 
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+  
+}
+
+const getUserColour = (userId: string) => {
+    let hash = 0;
+    for (let i = 0; i < userId.length; i++) {
+      hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    let color = '#';
+    for (let i = 0; i < 3; i++) {
+      const value = (hash >> (i * 8)) & 0xFF;
+      color += ('00' + value.toString(16)).substr(-2);
+    }
+    return color;
+}
+
+const getUserDisplayName = (userId:string) => {
+  const names = ['Stunning Hamster', 'Clever Fox', 'Happy Dolphin', 'Quick Turtle', 'Witty Panda'];
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  const nameIndex = Math.abs(hash) % names.length;
+  return names[nameIndex];
+}
 
 export const clearCanvas = ( roomShapes: IRoomShape[], selectedShape: IRoomShape | null, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
