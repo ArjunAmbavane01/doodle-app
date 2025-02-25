@@ -52,36 +52,27 @@ wss.on("connection", (ws: WebSocket, req) => {
       try {
         await prisma.chat.create({ data: { message, roomId, userId } });
         users.forEach((user) => {
-          if (user.userId != userId && user.rooms.includes(roomId))
-            user.ws.send(JSON.stringify({ type: "chat", message, roomId, userId }));
+          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, roomId, userId }));
         });
       } catch (e) {
         console.error("Database error:", e);
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            message: "Database error, please try again later.",
-          })
-        );
+        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
       }
-    } else if (parsedData.type === "undo") {
+    } else if (parsedData.type === "delete_shape") {
       try {
-        const lastChat = await prisma.chat.findFirst({
-          where: { userId ,roomId },
-          orderBy: { id: "desc",},
-        });
-        if(lastChat){
-          await prisma.chat.delete({ where: {id: lastChat.id}})
+        const shapeToDelete = await prisma.chat.findFirst({ where: { userId ,roomId, message:parsedData.message }, orderBy: { id: "desc",},});
+        if(shapeToDelete){
+          await prisma.chat.delete({ where: {id: shapeToDelete.id}})
           users.forEach((user) => {
-            if (user.userId != userId && user.rooms.includes(roomId))
-              user.ws.send(JSON.stringify({ type: "remove_shape", message: lastChat.message, userId }));
+            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "remove_shape", message: shapeToDelete.message, userId }));
           });
+        }
+        else{
+          ws.send(JSON.stringify({ type: "error", message: "Shape not found, please try again later.",}));
         }
       } catch (e) {
         console.error("Database error:", e);
-        ws.send(
-          JSON.stringify({ type: "error", message: "Database error, please try again later.",})
-        );
+        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
       }
     }
   });

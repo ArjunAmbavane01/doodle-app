@@ -5,45 +5,16 @@ export type Shape =
   | { type: "pen"; path: string }
   | { type: "text"; startX: number; startY: number; text: string }
   | { type: "line"; startX: number; startY: number; endX: number; endY: number }
-  | {
-      type: "arrow";
-      startX: number;
-      startY: number;
-      endX: number;
-      endY: number;
-    }
-  | {
-      type: "rectangle";
-      startX: number;
-      startY: number;
-      width: number;
-      height: number;
-    }
-  | {
-      type: "triangle";
-      startX: number;
-      startY: number;
-      width: number;
-      height: number;
-    }
+  | { type: "arrow"; startX: number; startY: number; endX: number; endY: number;}
+  | { type: "rectangle"; startX: number; startY: number; width: number; height: number;}
+  | { type: "triangle"; startX: number; startY: number; width: number; height: number;}
   | { type: "circle"; centerX: number; centerY: number; radius: number };
 
-export interface IRoomShape {
-  userId: string;
-  shape: Shape;
-}
+export interface IRoomShape { userId: string; shape: Shape; wasDeleted?:boolean}
 
-export interface IPoint {
-  x: number;
-  y: number;
-}
+export interface IPoint { x: number; y: number;}
 
-export const initDraw = (
-  canvas: HTMLCanvasElement,
-  socket: WebSocket,
-  initialMessages: IChatMessage[],
-  userId: string
-) => {
+export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[], userId: string) => {
   const roomShapes: IRoomShape[] = getShapesFromMessages(initialMessages);
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return () => {};
@@ -73,8 +44,7 @@ export const initDraw = (
   let strokePoints: IPoint[] = [];
   const undoStack: IRoomShape[] = [];
   const redoStack: IRoomShape[] = [];
-  //Make this single value
-  const selectedShapes: IRoomShape[] = [];
+  let selectedShape: IRoomShape | null = null;
 
   // Create background canvas for existing shapes
   const offscreenCanvas = document.createElement("canvas");
@@ -84,8 +54,7 @@ export const initDraw = (
   if (!offscreenCtx) return () => {};
   setupContext(offscreenCtx);
 
-  const renderPersistentShapes = () =>
-    clearCanvas(roomShapes, selectedShapes, offscreenCanvas, offscreenCtx);
+  const renderPersistentShapes = () => clearCanvas(roomShapes, selectedShape, offscreenCanvas, offscreenCtx);
 
   // this will render both existing and current shape
   const render = () => {
@@ -97,10 +66,10 @@ export const initDraw = (
     const scaledHeight = canvas.height * zoomScale;
     zoomOffsetX = (scaledWidth - canvas.width) / 2;
     zoomOffsetY = (scaledHeight - canvas.height) / 2;
-    ctx.save();
-
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
+
+    ctx.save();
 
     ctx.translate(centerX, centerY);
     ctx.scale(zoomScale, zoomScale);
@@ -110,6 +79,7 @@ export const initDraw = (
     // copy all shapes from bg canvas to main canvas
     ctx.drawImage(offscreenCanvas, 0, 0);
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
+
     ctx.restore();
   };
 
@@ -152,31 +122,20 @@ export const initDraw = (
         const newShape: Shape = JSON.parse(receivedData.message);
         const shapeWithUser = { userId: receivedData.userId, shape: newShape };
         roomShapes.push(shapeWithUser);
-        if (
-          receivedData.userId === userId &&
-          !undoStack.some(
-            (s) => JSON.stringify(s.shape) === JSON.stringify(newShape)
-          )
-        )
-          undoStack.push(shapeWithUser);
+        if ( receivedData.userId === userId && !undoStack.some(s => JSON.stringify(s.shape) === JSON.stringify(newShape))) undoStack.push(shapeWithUser);
         renderPersistentShapes();
         render();
       } else if (receivedData.type === "remove_shape") {
         const shape: Shape = JSON.parse(receivedData.message);
         const shapeWithUser = { userId: receivedData.userId, shape };
-        const index = roomShapes.findIndex(
-          (roomShape: IRoomShape) =>
-            JSON.stringify(roomShape) === JSON.stringify(shapeWithUser)
-        );
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
         if (index !== -1) {
           roomShapes.splice(index, 1);
           renderPersistentShapes();
           render();
         }
       }
-    } catch (error) {
-      console.error("Error parsing message:", error);
-    }
+    } catch (error) { console.error("Error parsing message:", error);}
   };
 
   const handleMouseDown = (e: MouseEvent) => {
@@ -185,7 +144,7 @@ export const initDraw = (
     console.log(`zoomY : ${zoomOffsetY}`);
     console.log(`x ${x} y ${y}`);
     console.log(`panx ${panOffsetX} pany ${panOffsetY}`);
-    if (selectedShapes.length !== 0) selectedShapes.pop();
+    if (selectedShape != null) selectedShape = null;
     if (selectedTool === "pan") {
       isPanning = true;
       lastMouseX = e.clientX;
@@ -193,16 +152,9 @@ export const initDraw = (
       canvas.style.cursor = "grabbing";
       return;
     } else if (selectedTool === "selection") {
-      const selectedShape = getBoundingShape(x, y, roomShapes, ctx);
-      console.log(selectedShape);
-      if (!selectedShape) {
-        renderPersistentShapes();
-        render();
-        return;
-      }
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
-      selectedShapes.push(selectedShape);
+      const boundingShape = getBoundingShape(x, y, roomShapes, ctx);
+      if (!boundingShape) return
+      selectedShape = boundingShape;
       renderPersistentShapes();
       render();
     } else {
@@ -210,13 +162,11 @@ export const initDraw = (
       startY = y;
       isDrawing = true;
       hasMovedSinceMouseDown = false;
-
       const existingTextArea = document.querySelector(".canvas-text");
       if (existingTextArea) {
         handleBlur(existingTextArea as HTMLTextAreaElement);
         return;
       }
-
       if (selectedTool === "pen") {
         strokePoints.push({ x: startX, y: startY });
         currentShape = { type: "pen", path: `M ${startX} ${startY}` };
@@ -227,9 +177,7 @@ export const initDraw = (
         const textAreaElem = createTextArea(e, startX, startY);
         document.body.appendChild(textAreaElem);
         textAreaElem.focus();
-        textAreaElem.addEventListener("blur", () => handleBlur(textAreaElem), {
-          once: true,
-        });
+        textAreaElem.addEventListener("blur", () => handleBlur(textAreaElem), {once: true,});
         textAreaElem.addEventListener("keydown", (e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -244,9 +192,6 @@ export const initDraw = (
   const handleMouseMove = (e: MouseEvent) => {
     const { x, y } = getCanvasPoint(e.clientX, e.clientY);
     if (isDragging) {
-      const currentX = e.clientX;
-      const currentY = e.clientY;
-      // const dragX =
     }
     if (isPanning) {
       const deltaX = e.clientX - lastMouseX;
@@ -275,33 +220,17 @@ export const initDraw = (
       case "pen":
         if (strokePoints.length > 0) {
           const lastPoint = strokePoints[strokePoints.length - 1];
-          if (
-            lastPoint &&
-            (Math.abs(currentX - lastPoint.x) > 2 ||
-              Math.abs(currentY - lastPoint.y) > 2)
-          ) {
+          if ( lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
             strokePoints.push({ x: currentX, y: currentY });
             currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
           }
         }
         break;
       case "line":
-        currentShape = {
-          type: "line",
-          startX,
-          startY,
-          endX: currentX,
-          endY: currentY,
-        };
+        currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY,};
         break;
       case "arrow":
-        currentShape = {
-          type: "arrow",
-          startX,
-          startY,
-          endX: currentX,
-          endY: currentY,
-        };
+        currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY,};
         break;
       case "rectangle":
         currentShape = { type: "rectangle", startX, startY, width, height };
@@ -332,28 +261,18 @@ export const initDraw = (
       const currentX = x - rect.left;
       const currentY = y - rect.top;
 
-      strokePoints = [
-        { x: currentX, y: currentY },
-        { x: currentX + 1, y: currentY + 1 },
-      ];
+      strokePoints = [{ x: currentX, y: currentY },{ x: currentX + 1, y: currentY + 1 },];
       currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
       const shapeWithUser = { userId, shape: currentShape };
       roomShapes.push(shapeWithUser);
       undoStack.push(shapeWithUser);
-      socket.send(
-        JSON.stringify({ type: "chat", message: JSON.stringify(currentShape) })
-      );
+      socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape) }));
     } else {
       if (currentShape) {
         const shapeWithUser = { userId, shape: currentShape };
         roomShapes.push(shapeWithUser);
         undoStack.push(shapeWithUser);
-        socket.send(
-          JSON.stringify({
-            type: "chat",
-            message: JSON.stringify(currentShape),
-          })
-        );
+        socket.send(JSON.stringify({type: "chat", message: JSON.stringify(currentShape),}));
       }
     }
     isDrawing = false;
@@ -405,14 +324,21 @@ export const initDraw = (
     try {
       const lastRoomShape = undoStack.pop();
       if (!lastRoomShape) return;
-      redoStack.push(lastRoomShape);
-
-      const index = roomShapes.findIndex(
-        (roomShape: IRoomShape) =>
-          JSON.stringify(roomShape) === JSON.stringify(lastRoomShape)
-      );
-      if (index !== -1) roomShapes.splice(index, 1);
-      socket.send(JSON.stringify({ type: "undo" }));
+      const restoredShape = {
+        userId: lastRoomShape.userId,
+        shape: lastRoomShape.shape
+      };
+      if(lastRoomShape?.wasDeleted){
+        roomShapes.push(restoredShape);
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(restoredShape.shape),}));
+        redoStack.push(lastRoomShape);
+      }
+      else {
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastRoomShape));
+        if (index !== -1) roomShapes.splice(index, 1);
+        socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(lastRoomShape.shape),}));
+        redoStack.push(restoredShape);
+      }
       renderPersistentShapes();
       render();
     } catch (e) {
@@ -425,23 +351,22 @@ export const initDraw = (
     try {
       const newRoomShape = redoStack.pop();
       if (!newRoomShape) return;
-
-      roomShapes.push(newRoomShape);
-      undoStack.push(newRoomShape);
-
-      socket.send(
-        JSON.stringify({
-          type: "chat",
-          message: JSON.stringify(newRoomShape.shape),
-        })
-      );
-
+      const restoredShape = {
+        userId: newRoomShape.userId,
+        shape: newRoomShape.shape
+      };
+      if(newRoomShape?.wasDeleted){
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(newRoomShape));
+        if (index !== -1) roomShapes.splice(index, 1);
+        socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(newRoomShape.shape),}));
+        undoStack.push(restoredShape)
+      } else{
+       roomShapes.push(restoredShape);
+       undoStack.push(restoredShape)
+       socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newRoomShape.shape),})); 
+      }
       renderPersistentShapes();
       render();
-      isDrawing = false;
-      hasMovedSinceMouseDown = false;
-      currentShape = null;
-      strokePoints = [];
     } catch (e) {
       console.log("Some error occurred : " + e);
     }
@@ -463,9 +388,21 @@ export const initDraw = (
       e.preventDefault();
       handleRedo();
     } else if (e.key === "Delete") {
-      if (selectedShapes.length === 0) return;
-      const shapeToDelete = selectedShapes.pop();
-      // delete shapeToDelete
+      if (selectedShape == null) return;
+      const shapeToDelete = selectedShape;
+      selectedShape = null;
+      const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeToDelete));
+      if (index !== -1) {
+        roomShapes.splice(index, 1);
+        undoStack.push({
+          userId:shapeToDelete.userId,
+          shape:shapeToDelete.shape,
+          wasDeleted : true
+        });
+      }
+      renderPersistentShapes();
+      render();
+      socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(shapeToDelete.shape),}));
     } else if (e.key === "h") {
       selectedTool = "pan";
       window.dispatchEvent(
@@ -568,11 +505,7 @@ export const initDraw = (
 };
 
 // here isDragging shuld come as param
-const drawShape = (
-  shape: Shape,
-  ctx: CanvasRenderingContext2D,
-  drawBoundary: boolean = false
-) => {
+const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false) => {
   if (shape.type === "pen" && shape.path) {
     if (drawBoundary) {
       ctx.setLineDash([5, 5]);
@@ -686,26 +619,24 @@ const drawShape = (
       ctx.setLineDash([]);
     }
   } else if (shape.type === "triangle") {
-    ctx.beginPath();
-    ctx.moveTo(shape.startX + shape.width / 2, shape.startY);
-    ctx.lineTo(shape.startX, shape.startY + shape.height);
-    ctx.lineTo(shape.startX + shape.width, shape.startY + shape.height);
-    ctx.lineTo(shape.startX + shape.width / 2, shape.startY);
-    ctx.stroke();
-    ctx.closePath();
     if (drawBoundary) {
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
-      ctx.moveTo(shape.startX + shape.width / 2, shape.startY - 10);
-      ctx.lineTo(shape.startX - 10, shape.startY + shape.height + 6);
-      ctx.lineTo(
-        shape.startX + shape.width + 10,
-        shape.startY + shape.height + 6
-      );
-      ctx.lineTo(shape.startX + shape.width / 2, shape.startY - 10);
+      ctx.moveTo(shape.startX + shape.width / 2, shape.startY);
+      ctx.lineTo(shape.startX, shape.startY + shape.height);
+      ctx.lineTo(shape.startX + shape.width, shape.startY + shape.height);
+      ctx.lineTo(shape.startX + shape.width / 2, shape.startY);
       ctx.stroke();
       ctx.closePath();
       ctx.setLineDash([]);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(shape.startX + shape.width / 2, shape.startY);
+      ctx.lineTo(shape.startX, shape.startY + shape.height);
+      ctx.lineTo(shape.startX + shape.width, shape.startY + shape.height);
+      ctx.lineTo(shape.startX + shape.width / 2, shape.startY);
+      ctx.stroke();
+      ctx.closePath();
     }
   } else if (shape.type === "circle") {
     ctx.beginPath();
@@ -723,18 +654,13 @@ const drawShape = (
   }
 };
 
-export const clearCanvas = (
-  roomShapes: IRoomShape[],
-  selectedShapes: IRoomShape[],
-  canvas: HTMLCanvasElement,
-  ctx: CanvasRenderingContext2D
-) => {
+export const clearCanvas = ( roomShapes: IRoomShape[], selectedShape: IRoomShape | null, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#0C0C0C";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   roomShapes.forEach((roomShape: IRoomShape) => {
     if (!roomShape.shape) return;
-    drawShape(roomShape.shape, ctx, selectedShapes.includes(roomShape));
+    drawShape(roomShape.shape, ctx, JSON.stringify(roomShape) === JSON.stringify(selectedShape));
   });
 };
 
