@@ -1,4 +1,4 @@
-'use client'
+"use client"
 import { CREATE_ROOM_URL } from "@/lib/apiEndPoints";
 import { Button } from "@workspace/ui/components/button";
 import { useRouter } from "next/navigation";
@@ -7,6 +7,7 @@ import { Info, PencilLine, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { useRef, useState } from "react";
 import { FloatingShapes } from "./FloatingShapes";
+
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
     const router = useRouter();
@@ -31,8 +32,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
 
     return (
         <section className="flex w-full min-h-[100vh] bg-black">
-            <div className="flex flex-col justify-center items-center gap-8 relative max-w-screen-8xl w-full mx-auto">
-
+            <div className="flex flex-col justify-center items-center gap-8 max-w-screen-8xl w-full mx-auto">
                     <FloatingShapes />
                     <div className="flex flex-col justify-center items-center gap-8 bg-black z-20 rounded-xl">
 
@@ -75,23 +75,6 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                     </div>
 
                 </div>
-
-                {/* <div className="relative max-w-screen-xl w-full mx-auto overflow">
-                    <Glow variant="top" className="!opacity-100 overflow-x-hidden" />
-                    <MockupFrame className="animate-appear opacity-100 delay-700" size="large">
-                        <Mockup type="responsive">
-                            <div className="w-full aspect-[16/9] relative">
-                                <Image
-                                    src="/images/appDemo.png"
-                                    alt="Doodle App Demo"
-                                    fill
-                                    className="object-cover"
-                                    priority
-                                />
-                            </div>
-                        </Mockup>
-                    </MockupFrame>
-                </div> */}
         </section>
     );
 }
