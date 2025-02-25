@@ -47,7 +47,19 @@ wss.on("connection", (ws: WebSocket, req) => {
       const user = users.find((x) => x.ws == ws);
       if (!user) return;
       user?.rooms.filter((x) => x != roomId);
-    } else if (parsedData.type === "chat") {
+    } else if (parsedData.type === "user_pos") {
+      try {
+        const posX = parsedData.clientX;
+        const posY = parsedData.clientY;
+        users.forEach((user) => {
+          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "room_user_pos", userId , posX, posY }));
+        });
+      } catch (e) {
+        console.error("Database error:", e);
+        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
+      }
+    } 
+    else if (parsedData.type === "chat") {
       const message = parsedData.message;
       try {
         await prisma.chat.create({ data: { message, roomId, userId } });
