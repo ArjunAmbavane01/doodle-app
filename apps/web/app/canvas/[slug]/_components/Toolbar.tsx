@@ -39,10 +39,10 @@ export default function Toolbar() {
   }, [])
 
   return (
-    <div className="flex items-end gap-5 mx-auto w-fit p-2 px-4 shadow-lg rounded-xl bg-white fixed inset-x-0 top-8">
+    <div className="flex items-end gap-5 mx-auto w-fit p-1.5 px-4 shadow-lg rounded-xl bg-white fixed inset-x-0 top-8">
         {tools.map((tool, index) => {
           return (
-            <motion.div key={tool.type} className="relative rounded hover:bg-black/10" whileHover={{ scale: 1.2 }} whileTap={{ scale: 0.95 }}>
+            <motion.div key={tool.type} className="relative rounded hover:bg-black/10 transition-colors duration-200" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
               <button onClick={() => chooseTool(tool.type)} onMouseEnter={() => setHoveredIndex(index)} onMouseLeave={() => setHoveredIndex(null)} className={`relative rounded-lg p-3 outline-none transition-colors duration-200 ${activeTool === tool.type && "bg-blue-100 text-blue-800"} `}>
                 <tool.icon className="size-5" strokeWidth={1.5} />
                 <span className={`absolute bottom-0.5 right-0.5 text-[10px] font-medium transition-colors group-hover:text-accent-foreground ${activeTool === tool.type ? 'text-accent-foreground' : 'text-muted-foreground'}`}>

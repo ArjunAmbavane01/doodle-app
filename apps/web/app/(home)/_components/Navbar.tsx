@@ -10,7 +10,7 @@ const Navbar = async ({ children }: { children: React.ReactNode }) => {
             </div>
             <div className="flex items-center gap-3">
                 <Link href={'https://github.com/ArjunAmbavane01/doodle-app'} prefetch={false} className="p-3 rounded hover:bg-gray-100 transition-colors duration-300">
-                    <Image src={'/images/logos/github-outline.png'} alt="github-logo" width={100} height={100} className="size-5" />
+                    <Image src={'/images/logos/github.png'} alt="github-logo" width={100} height={100} className="size-8" />
                 </Link>
                 {children}
             </div>

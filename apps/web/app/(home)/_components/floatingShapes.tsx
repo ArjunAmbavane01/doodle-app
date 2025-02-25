@@ -63,7 +63,7 @@ const Shape = React.memo(({ shape, position, mousePos, isHovering }: any) => {
     left: `${position.x + repelX}%`,
     top: `${position.y + repelY}%`,
     rotate: `${Math.sin(Date.now() / 2000 + position.x) * 15}deg`,
-    opacity: 0.4 + brightnessFactor * 0.6,
+    opacity: 1,
     config: { mass: 1, tension: 40, friction: 18 },
   })
 
@@ -118,7 +118,7 @@ export const FloatingShapes = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 opacity-20" onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+    <div className="absolute inset-0 opacity-20 overflow-hidden" onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
       {SHAPES.map((shape, i) => (<Shape key={i} shape={shape} position={positions[i]} mousePos={mousePos} isHovering={isHovering} />))}
     </div>
   );
