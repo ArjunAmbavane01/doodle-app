@@ -39,8 +39,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let panOffsetX = -2500;
   let panOffsetY = -2500;
   let zoomScale = 1;
+  let zoomFactor = 1.01;
   let zoomOffsetX = 0;
   let zoomOffsetY = 0;
+  let zoomChangeTimeout: number | null = null;
   let dragStartX = 0;
   let dragStartY = 0;
 
@@ -106,9 +108,24 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   };
 
   const handleCanvasScroll = (e: WheelEvent) => {
-    panOffsetX -= e.deltaX;
-    panOffsetY -= e.deltaY;
-    render();
+    const isTrackpadPinch = e.ctrlKey || Math.abs(e.deltaY) < 10 && (!Number.isInteger(e.deltaX) || !Number.isInteger(e.deltaY));
+    if(isTrackpadPinch){
+      e.preventDefault();
+      const zoomDirection = e.deltaY < 0 ? 1 : -1;
+      if(zoomDirection > 0){
+        zoomScale = (Math.min(zoomScale * zoomFactor, 10));
+      } else {
+        zoomScale = (Math.max(zoomScale / zoomFactor, 0.1));
+      }
+      if(!isPanning) requestAnimationFrame(()=> render())
+      if(zoomChangeTimeout) clearTimeout(zoomChangeTimeout);
+      zoomChangeTimeout = window.setTimeout(() => notifyZoomComplete(zoomScale), 10);
+    }
+    else {
+      panOffsetX -= e.deltaX;
+      panOffsetY -= e.deltaY;
+      render();
+    }
   };
 
   const handleToolChange = (event: Event) => {
@@ -387,13 +404,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "+") {
-      // e.preventDefault();
-      // zoomScale = 1.1;
-      // render();
+      e.preventDefault();
+      handleZoomIn();
+      render();
     } else if ((e.ctrlKey || e.metaKey) && e.key === "-") {
-      // e.preventDefault();
-      // zoomScale = 1.1;
-      // render();
+      e.preventDefault();
+      handleZoomOut();
+      render();
     } else if ((e.ctrlKey || e.metaKey) && e.key === "z") {
       e.preventDefault();
       handleUndo();
@@ -466,13 +483,15 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   };
 
   const handleZoomIn = () => {
-    zoomScale = Math.min(zoomScale * 1.2, 10);
-    render();
+    zoomScale = Math.min(zoomScale * (zoomFactor+0.02), 10);
+    notifyZoomComplete(zoomScale);
+    requestAnimationFrame(()=>render());
   };
-
+  
   const handleZoomOut = () => {
-    zoomScale = Math.max(zoomScale / 1.2, 0.1);
-    render();
+    zoomScale = Math.max(zoomScale / (zoomFactor+0.02), 0.1);
+    notifyZoomComplete(zoomScale);
+    requestAnimationFrame(()=>render());
   };
 
   renderPersistentShapes();
@@ -488,12 +507,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("redo", handleRedo);
   window.addEventListener("undo", handleUndo);
-  window.addEventListener("zoomIn", () => {
-    handleZoomIn();
-  });
-  window.addEventListener("zoomOut", () => {
-    handleZoomOut();
-  });
+  window.addEventListener("zoomIn", () => { handleZoomIn() });
+  window.addEventListener("zoomOut", () => { handleZoomOut() });
   // window.addEventListener("resize", handleResize);
 
   return () => {
@@ -507,12 +522,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     window.removeEventListener("redo", handleRedo);
     window.removeEventListener("undo", handleUndo);
     window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("zoomIn", () => {
-      handleZoomIn();
-    });
-    window.removeEventListener("zoomOut", () => {
-      handleZoomOut();
-    });
+    window.removeEventListener("zoomIn", () => { handleZoomIn() });
+    window.removeEventListener("zoomOut", () => { handleZoomOut() });
     // window.removeEventListener("resize", handleResize);
   };
 };
@@ -712,8 +723,9 @@ const getUserColour = (userId: string) => {
     }
     let color = '#';
     for (let i = 0; i < 3; i++) {
-      const value = (hash >> (i * 8)) & 0xFF;
-      color += ('00' + value.toString(16)).substr(-2);
+        let value = (hash >> (i * 8)) & 0x7F; 
+        value = Math.max(32, value); 
+        color += ('00' + value.toString(16)).substring(-2);
     }
     return color;
 }
@@ -740,10 +752,9 @@ export const clearCanvas = ( roomShapes: IRoomShape[], selectedShape: IRoomShape
   });
 };
 
-export const getShapesFromMessages = (messages: IChatMessage[]) =>
-  messages.map((msg: { userId: string; message: string }) => {
+export const getShapesFromMessages = (messages: IChatMessage[]) => messages.map((msg: { userId: string; message: string }) => {
     return { userId: msg.userId, shape: JSON.parse(msg.message) };
-  });
+});
 
 export const strokeToSVG = (points: IPoint[]): string => {
   const strokeLength = points.length;
@@ -776,7 +787,7 @@ export const strokeToSVG = (points: IPoint[]): string => {
 };
 
 export const setupContext = (ctx: CanvasRenderingContext2D) => {
-  ctx.imageSmoothingEnabled = false;
+  ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
@@ -927,4 +938,10 @@ const getBoundingShape = ( clickedX: number, clickedY: number, roomShapes: IRoom
     }
   }
   return null;
+};
+
+const notifyZoomComplete = (zoomScale:number) => {
+  window.dispatchEvent(
+    new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(zoomScale * 100)} })
+  );
 };
