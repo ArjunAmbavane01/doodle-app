@@ -24,13 +24,13 @@ const Collab = () => {
                   <div className="size-3 rounded-full bg-yellow-500" />
                   <div className="size-3 rounded-full bg-green-500" />
                 </div>
-                <Badge className="flex gap-2 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">
+                {/* <Badge className="flex gap-2 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20">
                   <span className="size-2 rounded-full bg-emerald-400 animate-pulse" />
                   Live Session
-                </Badge>
+                </Badge> */}
               </div>
             </div>
-            <div className="aspect-[16/9] p-8 relative group">
+            <div className="aspect-[16/9] p-5 relative group">
               <div className="flex items-center justify-center h-full rounded-lg border border-dashed border-white/20 relative overflow-hidden">
                 <Image
                   src={"/images/appDemo.png"}
@@ -76,9 +76,6 @@ const Collab = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <Badge className="rounded-full px-3 py-1 text-sm leading-6 bg-white/5 text-white ring-1 ring-white/10 hover:bg-white/10">
-            What's new
-          </Badge>
           <h2 className="font-heading text-5xl text-white leading-tight">
             Real-Time Collaboration
             <br />

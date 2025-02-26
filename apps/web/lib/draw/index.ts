@@ -164,8 +164,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       return;
     } else if (selectedTool === "selection") {
       const boundingShape = getBoundingShape(x, y, roomShapes, ctx);
-      if (!boundingShape) return
-      selectedShape = boundingShape;
+      if (boundingShape){
+        selectedShape = boundingShape;
+      } else {
+        selectedShape = null;
+      }
       renderPersistentShapes();
       render();
     } else {
@@ -617,7 +620,6 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.closePath();
     }
   } else if (shape.type === "rectangle") {
-    ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     if (drawBoundary) {
       ctx.setLineDash([5, 5]);
       ctx.strokeRect(
@@ -627,7 +629,10 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
         shape.height + 12
       );
       ctx.setLineDash([]);
+    } else {
+      ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     }
+    
   } else if (shape.type === "triangle") {
     if (drawBoundary) {
       ctx.setLineDash([5, 5]);
@@ -670,34 +675,34 @@ const drawUserCursor = (roomUser:IRoomUserPos,roomUserId:string, ctx: CanvasRend
   const colour = getUserColour(roomUserId);
   const displayName = getUserDisplayName(roomUserId) || "user";
 
+  ctx.save();
+
+  const cursorPath = new Path2D("M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19841L11.7841 12.3673H5.65376Z");
+  ctx.translate(roomUser.posX,roomUser.posY);
+  ctx.fillStyle = colour;
+  ctx.fill(cursorPath);
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1;
+  ctx.stroke(cursorPath);
+
   ctx.font = '12px sans-serif';
   const textMetrics = ctx.measureText(displayName);
   const textWidth = textMetrics.width;
 
-  const tagWidth = textWidth + 30;
+  const tagWidth = textWidth + 24;
   const tagHeight = 24;
-  const tagX = roomUser.posX;
-  const tagY = roomUser.posY - tagHeight -5;
+  const tagX = 10;
+  const tagY = tagHeight - 5;
 
-  ctx.save();
   ctx.fillStyle = colour;
   ctx.beginPath();
-  ctx.roundRect(tagX, tagY, tagWidth, tagHeight, 12);
+  ctx.roundRect(tagX, tagY, tagWidth, tagHeight, 8);
   ctx.fill();
-
   ctx.fillStyle = 'white';
-  ctx.font = '12px sans-serif';
-  ctx.fillText(displayName, tagX + 24, tagY + tagHeight/2 + 4);
-  
-  ctx.fillStyle = colour;
-  ctx.moveTo(roomUser.posX , roomUser.posY + tagHeight); 
-  ctx.beginPath();
-  ctx.lineTo(roomUser.posX - 6, roomUser.posY + 10); 
-  ctx.lineTo(roomUser.posX + 6, roomUser.posY + 10); 
+  ctx.fillText(displayName, tagX + 12, tagY + tagHeight/2 + 4);
   ctx.closePath();
-  ctx.fill();
+
   ctx.restore();
-  
 }
 
 const getUserColour = (userId: string) => {
@@ -705,7 +710,6 @@ const getUserColour = (userId: string) => {
     for (let i = 0; i < userId.length; i++) {
       hash = userId.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
     let color = '#';
     for (let i = 0; i < 3; i++) {
       const value = (hash >> (i * 8)) & 0xFF;
@@ -715,7 +719,8 @@ const getUserColour = (userId: string) => {
 }
 
 const getUserDisplayName = (userId:string) => {
-  const names = ['Stunning Hamster', 'Clever Fox', 'Happy Dolphin', 'Quick Turtle', 'Witty Panda'];
+  const names = [ 'Vector Vulture',  'Glitchy Gecko',  'Cyber Corgi',  'Neon Newt',  'Pixel Pigeon',  'Sketchy Lynx',  'Binary Bunny',  'Gradient Giraffe',  'Code Chameleon',  'Render Raccoon'];
+  
   let hash = 0;
   for (let i = 0; i < userId.length; i++) {
     hash = userId.charCodeAt(i) + ((hash << 5) - hash);
@@ -771,12 +776,12 @@ export const strokeToSVG = (points: IPoint[]): string => {
 };
 
 export const setupContext = (ctx: CanvasRenderingContext2D) => {
-  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingEnabled = false;
   ctx.imageSmoothingQuality = "high";
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.font = "20px serif";
+  ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
   ctx.strokeStyle = "rgba(255,255,255)";
 };
 
@@ -818,12 +823,7 @@ const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number) => {
   return textAreaElem;
 };
 
-const getBoundingShape = (
-  clickedX: number,
-  clickedY: number,
-  roomShapes: IRoomShape[],
-  ctx: CanvasRenderingContext2D
-) => {
+const getBoundingShape = ( clickedX: number, clickedY: number, roomShapes: IRoomShape[], ctx: CanvasRenderingContext2D) => {
   for (let i = 0; i < roomShapes.length; i++) {
     const roomShape = roomShapes[i]?.shape;
     if (!roomShape) continue;
