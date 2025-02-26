@@ -76,14 +76,14 @@ const Collab = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="font-heading text-5xl text-white leading-tight">
+          <h2 className="font-heading text-4xl text-white leading-tight">
             Real-Time Collaboration
             <br />
             <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent animate-gradient">
               Made Simple
             </span>
           </h2>
-          <p className="text-xl tracking-wide font-body text-white/80">
+          <p className="text-lg max-w-[550px] tracking-wide font-body text-white/80">
             A powerful whiteboarding tool that brings your team's ideas to life. Sketch, design, and collaborate in
             real-time—all in one seamless experience.
           </p>

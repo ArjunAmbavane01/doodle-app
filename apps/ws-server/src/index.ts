@@ -51,11 +51,8 @@ wss.on("connection", (ws: WebSocket, req) => {
       try {
         const posX = parsedData.clientX;
         const posY = parsedData.clientY;
-        // users.forEach((user) => {
-        //   if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "room_user_pos", userId , posX, posY }));
-        // });
         users.forEach((user) => {
-          if (user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "room_user_pos", userId , posX, posY }));
+          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "room_user_pos", userId , posX, posY }));
         });
       } catch (e) {
         console.error("Database error:", e);
