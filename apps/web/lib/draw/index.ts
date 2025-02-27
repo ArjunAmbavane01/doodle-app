@@ -3,6 +3,7 @@ import { IChatMessage } from "@workspace/common/interfaces";
 
 export type Shape =
   | { type: "pen"; path: string }
+  | { type: "highlighter"; path?: Path2D, svgPath?:string , points?: IHighlightPoint[] }
   | { type: "text"; startX: number; startY: number; text: string }
   | { type: "line"; startX: number; startY: number; endX: number; endY: number }
   | { type: "arrow"; startX: number; startY: number; endX: number; endY: number;}
@@ -88,11 +89,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     ctx.drawImage(offscreenCanvas, 0, 0);
     roomUsers.forEach((roomUser,roomUserId)=> drawUserCursor(roomUser,roomUserId,ctx))
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
-    if (highlightPoints.length !== 0){
-      const elapsedTime = Date.now() - 3500;
-      highlightPoints = highlightPoints.filter((HighlightPoint : IHighlightPoint) => HighlightPoint.timestamp > elapsedTime )
-      drawHighlightPoints(highlightPoints);
-    }
+    if (highlightPoints.length !== 0) drawHighlightPoints(highlightPoints);
     ctx.restore();
   };
 
@@ -154,6 +151,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         render();
       } else if (receivedData.type === "chat") {
         const newShape: Shape = JSON.parse(receivedData.message);
+        if(newShape.type === "highlighter"){
+          // ADD FUNCTIONALITY OF RECIEVEING A HIGLIGHT STROKE
+          return;
+        }
         const shapeWithUser = { userId: receivedData.userId, shape: newShape };
         roomShapes.push(shapeWithUser);
         if ( receivedData.userId === userId && !undoStack.some(s => JSON.stringify(s.shape) === JSON.stringify(newShape))) undoStack.push(shapeWithUser);
@@ -162,7 +163,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       } else if (receivedData.type === "remove_shape") {
         const shape: Shape = JSON.parse(receivedData.message);
         const shapeWithUser = { userId: receivedData.userId, shape };
+        console.log(roomShapes)
         const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
+        console.log(shapeWithUser)
+        console.log(index)
         if (index !== -1) {
           roomShapes.splice(index, 1);
           renderPersistentShapes();
@@ -205,6 +209,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         return;
       }
       if (selectedTool === "highlighter") {
+        highlightPoints = [];
         highlightPoints.push({x:startX,y:startY,timestamp:Date.now()});
       }
       if (selectedTool === "pen") {
@@ -288,7 +293,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     render();
   };
 
-  // We have to send highlight to other users
   const handleMouseUp = (e: MouseEvent) => {
     if (isPanning) {
       isPanning = false;
@@ -508,9 +512,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     render();
   };
 
-  const drawHighlightPoints = (highlightPoints: IHighlightPoint[]) => {
+  const drawHighlightPoints = (highlightPoints: IHighlightPoint[], toSend:boolean = true) => {
     const currentTime = Date.now();
-    const maxAge = 3000;
+    const maxAge = 2000;
     const fadeDuration = 1000;
   
     if (highlightPoints.length < 2) return;
@@ -554,26 +558,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         path.lineTo(currPoint.x, currPoint.y);
       }
     }
-    
-    // shadow/glow
-    ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
-    ctx.shadowBlur = 8;
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
-    ctx.stroke(path);
-    
-    // Core highlight
-    ctx.shadowBlur = 3;
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
-    ctx.stroke(path);
-    
-    // Bright center
-    ctx.shadowBlur = 0;
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
-    ctx.stroke(path);
-    
+    drawShape({type: "highlighter", path} as Shape,ctx);
+
+    // to send highlight stroke
+    const svgPath = strokeToSVG(highlightPoints);
+    const highlighterShape = {type:"highlighter", svgPath}
+    toSend && socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(highlighterShape) }));
+
     ctx.restore();
   };
 
@@ -760,6 +751,26 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.closePath();
       ctx.setLineDash([]);
     }
+  } else if (shape.type === "highlighter") {
+    ctx.save();
+    ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
+    ctx.shadowBlur = 8;
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
+    ctx.stroke(shape.path as Path2D);
+    
+    // Core highlight
+    ctx.shadowBlur = 3;
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
+    ctx.stroke(shape.path as Path2D);
+    
+    // Bright center
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
+    ctx.stroke(shape.path as Path2D);
+    ctx.restore();
   }
 };
 

@@ -62,7 +62,8 @@ wss.on("connection", (ws: WebSocket, req) => {
     else if (parsedData.type === "chat") {
       const message = parsedData.message;
       try {
-        await prisma.chat.create({ data: { message, roomId, userId } });
+        const shapeReceived = JSON.parse(message);
+        if(shapeReceived.type !== "highlighter") await prisma.chat.create({ data: { message, roomId, userId } });
         users.forEach((user) => {
           if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, roomId, userId }));
         });
@@ -72,11 +73,11 @@ wss.on("connection", (ws: WebSocket, req) => {
       }
     } else if (parsedData.type === "delete_shape") {
       try {
-        const shapeToDelete = await prisma.chat.findFirst({ where: { userId ,roomId, message:parsedData.message }, orderBy: { id: "desc",},});
+        const shapeToDelete = await prisma.chat.findFirst({ where: {roomId, message:parsedData.message }, orderBy: { id: "desc",},});
         if(shapeToDelete){
           await prisma.chat.delete({ where: {id: shapeToDelete.id}})
           users.forEach((user) => {
-            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "remove_shape", message: shapeToDelete.message, userId }));
+            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "remove_shape", message: shapeToDelete.message, userId:shapeToDelete.userId }));
           });
         }
         else{
