@@ -10,11 +10,13 @@ export type Shape =
   | { type: "triangle"; startX: number; startY: number; width: number; height: number;}
   | { type: "circle"; centerX: number; centerY: number; radius: number };
 
-export interface IRoomShape { userId: string; shape: Shape; wasDeleted?:boolean}
+export interface IRoomShape { userId: string, shape: Shape, wasDeleted?:boolean};
 
 export interface IRoomUserPos { posX:number, posY:number, displayName?: string};
 
-export interface IPoint { x: number; y: number;}
+export interface IPoint { x: number, y: number};
+
+export interface IHighlightPoint { x: number, y: number, timestamp:number};
 
 export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[], userId: string) => {
   const roomShapes: IRoomShape[] = getShapesFromMessages(initialMessages);
@@ -46,6 +48,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let dragStartY = 0;
 
   let strokePoints: IPoint[] = [];
+  let highlightPoints: IHighlightPoint[] = [];
   let selectedShape: IRoomShape | null = null;
   const undoStack: IRoomShape[] = [];
   const redoStack: IRoomShape[] = [];
@@ -85,7 +88,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     ctx.drawImage(offscreenCanvas, 0, 0);
     roomUsers.forEach((roomUser,roomUserId)=> drawUserCursor(roomUser,roomUserId,ctx))
     if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx);
-
+    if (highlightPoints.length !== 0){
+      const elapsedTime = Date.now() - 3500;
+      highlightPoints = highlightPoints.filter((HighlightPoint : IHighlightPoint) => HighlightPoint.timestamp > elapsedTime )
+      drawHighlightPoints(highlightPoints);
+    }
     ctx.restore();
   };
 
@@ -197,6 +204,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         handleBlur(existingTextArea as HTMLTextAreaElement);
         return;
       }
+      if (selectedTool === "highlighter") {
+        highlightPoints.push({x:startX,y:startY,timestamp:Date.now()});
+      }
       if (selectedTool === "pen") {
         strokePoints.push({ x: startX, y: startY });
         currentShape = { type: "pen", path: `M ${startX} ${startY}` };
@@ -241,11 +251,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     const width = currentX - startX;
     const height = currentY - startY;
 
-    if (
-      !hasMovedSinceMouseDown &&
-      (Math.abs(currentX - startX) > 2 || Math.abs(currentY - startY) > 2)
-    )
-      hasMovedSinceMouseDown = true;
+    if (!hasMovedSinceMouseDown && (Math.abs(currentX - startX) > 2 || Math.abs(currentY - startY) > 2)) hasMovedSinceMouseDown = true;
     if (!hasMovedSinceMouseDown) return;
     switch (selectedTool) {
       case "pen":
@@ -256,6 +262,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
             currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
           }
         }
+        break;
+      case "highlighter":
+        highlightPoints.push({ x: currentX, y: currentY, timestamp:Date.now()});
         break;
       case "line":
         currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY,};
@@ -279,6 +288,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     render();
   };
 
+  // We have to send highlight to other users
   const handleMouseUp = (e: MouseEvent) => {
     if (isPanning) {
       isPanning = false;
@@ -477,6 +487,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       window.dispatchEvent(
         new CustomEvent("toolChangeFromKeyboard", { detail: "text" })
       );
+    } else if (e.key === "m") {
+      selectedTool = "highlighter";
+      window.dispatchEvent(
+        new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" })
+      );
     }
     canvas.style.cursor = selectedTool === "pan" ? "grab" : "default";
   };
@@ -491,6 +506,75 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     zoomScale = Math.max(zoomScale / (zoomFactor+0.02), 0.1);
     notifyZoomComplete(zoomScale);
     render();
+  };
+
+  const drawHighlightPoints = (highlightPoints: IHighlightPoint[]) => {
+    const currentTime = Date.now();
+    const maxAge = 3000;
+    const fadeDuration = 1000;
+  
+    if (highlightPoints.length < 2) return;
+  
+    ctx.save();
+    
+    const path = new Path2D();
+    let startIndex = -1;
+    const highlightLength = highlightPoints.length;
+
+    for (let i = 0; i < highlightLength; i++) {
+      const age =  currentTime - (highlightPoints[i] as IHighlightPoint).timestamp;
+      if (age <= maxAge + fadeDuration) {
+        startIndex = i;
+        break;
+      }
+    }
+    
+    if (startIndex === -1) {
+      ctx.restore();
+      return; 
+    }
+    
+    path.moveTo((highlightPoints[startIndex] as IHighlightPoint).x, (highlightPoints[startIndex] as IHighlightPoint).y);
+    
+    for (let i = startIndex + 1; i < highlightPoints.length; i++) {
+      const currPoint = highlightPoints[i];
+      if(!currPoint) continue
+      const age = currentTime - (currPoint as IHighlightPoint).timestamp;
+      
+      if (age > maxAge + fadeDuration) continue;
+      
+      if (i > startIndex + 1) {
+        const prevPoint = highlightPoints[i-1];
+        if( !prevPoint ) continue;
+        const midX = (prevPoint.x + currPoint.x) / 2;
+        const midY = (prevPoint.y + currPoint.y) / 2;
+        path.quadraticCurveTo(prevPoint.x, prevPoint.y, midX, midY);
+        path.lineTo(currPoint.x, currPoint.y);
+      } else {
+        path.lineTo(currPoint.x, currPoint.y);
+      }
+    }
+    
+    // shadow/glow
+    ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
+    ctx.shadowBlur = 8;
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
+    ctx.stroke(path);
+    
+    // Core highlight
+    ctx.shadowBlur = 3;
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
+    ctx.stroke(path);
+    
+    // Bright center
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
+    ctx.stroke(path);
+    
+    ctx.restore();
   };
 
   renderPersistentShapes();
