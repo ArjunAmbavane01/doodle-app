@@ -1,6 +1,5 @@
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
-import { X } from "lucide-react";
 
 export type Shape =
   | { type: "pen"; path: string }
@@ -485,13 +484,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const handleZoomIn = () => {
     zoomScale = Math.min(zoomScale * (zoomFactor+0.02), 10);
     notifyZoomComplete(zoomScale);
-    requestAnimationFrame(()=>render());
+    render();
   };
   
   const handleZoomOut = () => {
     zoomScale = Math.max(zoomScale / (zoomFactor+0.02), 0.1);
     notifyZoomComplete(zoomScale);
-    requestAnimationFrame(()=>render());
+    render();
   };
 
   renderPersistentShapes();
@@ -725,7 +724,7 @@ const getUserColour = (userId: string) => {
     for (let i = 0; i < 3; i++) {
         let value = (hash >> (i * 8)) & 0x7F; 
         value = Math.max(32, value); 
-        color += ('00' + value.toString(16)).substring(-2);
+        color += ('00' + value.toString(16)).slice(-2);
     }
     return color;
 }
@@ -742,7 +741,7 @@ const getUserDisplayName = (userId:string) => {
   return names[nameIndex];
 }
 
-export const clearCanvas = ( roomShapes: IRoomShape[], selectedShape: IRoomShape | null, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+const clearCanvas = ( roomShapes: IRoomShape[], selectedShape: IRoomShape | null, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#0C0C0C";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -752,11 +751,11 @@ export const clearCanvas = ( roomShapes: IRoomShape[], selectedShape: IRoomShape
   });
 };
 
-export const getShapesFromMessages = (messages: IChatMessage[]) => messages.map((msg: { userId: string; message: string }) => {
+const getShapesFromMessages = (messages: IChatMessage[]) => messages.map((msg: { userId: string; message: string }) => {
     return { userId: msg.userId, shape: JSON.parse(msg.message) };
 });
 
-export const strokeToSVG = (points: IPoint[]): string => {
+const strokeToSVG = (points: IPoint[]): string => {
   const strokeLength = points.length;
   if (!strokeLength) return "";
 
@@ -786,7 +785,7 @@ export const strokeToSVG = (points: IPoint[]): string => {
   return path;
 };
 
-export const setupContext = (ctx: CanvasRenderingContext2D) => {
+const setupContext = (ctx: CanvasRenderingContext2D) => {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   ctx.lineWidth = 2;
