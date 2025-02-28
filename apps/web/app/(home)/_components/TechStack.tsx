@@ -3,7 +3,8 @@
 import { useState } from "react"
 import { motion } from "motion/react"
 import { Badge } from "@workspace/ui/components/badge"
-import { Code, Sparkles } from "lucide-react"
+import { Code } from "lucide-react"
+import Image from "next/image"
 
 const technologies = [
   {
@@ -60,35 +61,25 @@ const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
   const [isFlipped, setIsFlipped] = useState(false)
 
   return (
-    <motion.div
-      className="relative place-items-center mx-auto size-52"
-      initial={{ opacity: 0, scale: 0.8 }}
-      viewport={{ once: true }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      whileHover={{ scale: 1.05 }}
-      onMouseEnter={() => setIsFlipped(true)}
-      onMouseLeave={() => setIsFlipped(false)}
+    <motion.div className="relative place-items-center mx-auto size-52"
+      initial={{ opacity: 0, scale: 0.8 }} viewport={{ once: true }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
+      onMouseEnter={() => setIsFlipped(true)} onMouseLeave={() => setIsFlipped(false)}
     >
-      <motion.div
-        className="absolute inset-0 cursor-pointer"
-        initial={false}
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.6, animationDirection: "normal" }}
-        style={{ transformStyle: "preserve-3d" }}
+      <motion.div className="absolute inset-0 cursor-pointer"
+        initial={false} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.6, animationDirection: "normal" }} style={{ transformStyle: "preserve-3d" }}
       >
-        {/* Front of card */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl bg-white/[0.07] p-6 backdrop-blur-xl backface-hidden border border-white/10 hover:border-white/20 transition-colors">
-          <Badge className="absolute top-3 right-3 bg-white/10 text-xs font-medium text-white/60">
+        {/* front of card */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 rounded-xl bg-white/10 backdrop-blur-xl backface-hidden border border-white/10 hover:border-white/20 transition-colors">
+          <Badge className="absolute top-3 right-3 bg-white/15 text-xs font-body text-white">
             {tech.category}
           </Badge>
-          <img src={tech.icon || "/placeholder.svg"} alt={tech.name} className="size-16 mb-4 drop-shadow-lg" />
+          <Image src={tech.icon || "/placeholder.svg"} alt={tech.name} width={30} height={30} quality={100} className="size-16 drop-shadow-lg" />
           <h3 className="text-lg font-semibold text-white text-center">{tech.name}</h3>
         </div>
 
-        {/* Back of card */}
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/[0.07] p-6 text-center backdrop-blur-xl backface-hidden border border-white/10 [transform:rotateY(180deg)]">
-          <p className="text-sm text-white/80 leading-relaxed">{tech.reason}</p>
+        {/* back of card */}
+        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/10 p-5 text-center backdrop-blur-xl backface-hidden border border-white/10 [transform:rotateY(180deg)]">
+          <p className="font-body text-sm text-white">{tech.reason}</p>
         </div>
       </motion.div>
     </motion.div>
@@ -97,66 +88,34 @@ const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
 
 const TechStack = () => {
   return (
-    <section className="flex w-full bg-black py-24 relative overflow-hidden">
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,164,228,0.05),transparent_50%)]" />
+    <section className="flex w-full bg-black p-20 py-24 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,164,228,0.06),transparent_40%)]" />
 
-      <div className="flex flex-col gap-20 max-w-screen-8xl w-full mx-auto relative">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          viewport={{ once: true }}
-          whileInView={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center gap-4"
+      <div className="flex flex-col gap-20 max-w-screen-8xl w-full mx-auto">
+        <motion.div className="flex flex-col items-center gap-4 text-white"
+          initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }}
         >
-          <Badge className="bg-white/5 text-white/80 gap-2 p-2">
-            <Code className="size-4" />
+          <Badge className="flex items-center gap-2 p-1 px-3 font-body bg-white/15 text-white">
+            <Code className="size-3" />
             Tech Stack
           </Badge>
-          <h2 className="font-heading font-bold text-center text-4xl text-white">
+          <h2 className="font-heading text-center text-4xl">
             The Stack Powering This Project
           </h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            viewport={{ once: true }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-center text-gray-400 font-body max-w-2xl"
-          >
+          <motion.p className="max-w-2xl font-body text-lg text-gray-400"
+            initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             Built with modern, efficient, and scalable tools.
           </motion.p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-16 px-20 w-full mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-16 w-full mx-auto">
           {technologies.map((tech, index) => (
-            <motion.div
-              key={tech.name}
-              initial={{ opacity: 0, y: 20 }}
-              viewport={{ once: true }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
+            <motion.div key={tech.name} initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
               <TechCard tech={tech} />
             </motion.div>
           ))}
         </div>
       </div>
-
-      <style jsx global>{`
-        .backface-hidden {
-          backface-visibility: hidden;
-        }
-        
-        @keyframes gradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        
-        .animate-gradient {
-          background-size: 200% auto;
-          animation: gradient 8s linear infinite;
-        }
-      `}</style>
     </section>
   )
 }

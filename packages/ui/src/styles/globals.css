@@ -4,8 +4,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -71,8 +69,6 @@
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -80,4 +76,19 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% auto;
+  animation: gradient 8s linear infinite;
 }

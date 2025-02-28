@@ -1,7 +1,7 @@
 'use client'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle} from "@workspace/ui/components/alert-dialog"
-import { signOut } from "next-auth/react";
 import { Dispatch, SetStateAction } from "react";
+import { signOut } from "next-auth/react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle} from "@workspace/ui/components/alert-dialog"
 
 
 const LogoutModal = ({ open, setOpen }: { open: boolean, setOpen: Dispatch<SetStateAction<boolean>> }) => {

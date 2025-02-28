@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 import Toolbar from "./Toolbar";
 import ActionButtons from "./CanvasActionButtons";
 
-// add highlighter option
 export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter';
 
 const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IChatMessage[], userId:string }) => {
@@ -14,24 +13,10 @@ const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, ro
 
     useEffect(() => {
         if (canvasRef.current && socket) {
-            // const container = containerRef.current;
-            // if(container){
-            //     canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
-            //     canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
-
-            //     const handleResize = () => {
-            //         if(canvasRef.current && containerRef){
-            //             canvasRef.current.width = container.clientWidth * window.devicePixelRatio;
-            //             canvasRef.current.height = container.clientHeight * window.devicePixelRatio;
-            //         }
-            //     }
-            //     window.addEventListener('resize',handleResize)
                 const cleanup = initDraw(canvasRef.current, socket, roomMessages, userId);
                 return () => {
                     cleanup();
-                    // window.removeEventListener('resize',handleResize);
                 };
-            // }
         }
     }, [socket, roomMessages, userId])
 

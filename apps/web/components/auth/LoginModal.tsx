@@ -5,20 +5,16 @@ import { signIn } from "next-auth/react";
 import Image from "next/image";
 
 const LoginModal = () => {
-  const handleLogin = () => {
-    signIn("google", {
-      redirect: true
-    })
-  }
+  const handleLogin = () => {signIn("google", { redirect: true })}
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>Get started</Button>
+        <Button className="rounded-full">Get started</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Welcome to Doodle</DialogTitle>
-          <DialogDescription className="py-5 text-md">
+          <DialogDescription className="py-5 text-md text-gray-600">
             A collaborative drawing app that lets teams brainstorm, sketch, and share ideas in real time on an interactive canvas.
           </DialogDescription>
         </DialogHeader>

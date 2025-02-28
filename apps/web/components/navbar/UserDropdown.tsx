@@ -1,7 +1,7 @@
 'use client'
 import { Suspense, useState } from "react";
-import { LogOut, Settings } from "lucide-react";
 import dynamic from 'next/dynamic'
+import { LogOut, Settings } from "lucide-react";
 import { ICustomUser } from "@/app/api/auth/[...nextauth]/options";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
@@ -21,14 +21,14 @@ const UserDropdown = ({ user }: { user: ICustomUser | undefined }) => {
                     </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                    <DropdownMenuLabel className="flex flex-col text-md">
-                        {user?.name} <span className="text-sm text-gray-500">{user?.email} </span>
+                    <DropdownMenuLabel className="flex flex-col font-body text-sm text-black">
+                        {user?.name} <span className="text-sm text-gray-600">{user?.email} </span>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem className="hover:cursor-pointer">
                         <Settings />Settings
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setLogoutOpen(s => !s)}>
+                    <DropdownMenuItem onClick={() => setLogoutOpen(s => !s)} className="hover:cursor-pointer">
                         <LogOut />Logout
                     </DropdownMenuItem>
                 </DropdownMenuContent>
