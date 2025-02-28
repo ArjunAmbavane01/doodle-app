@@ -13,7 +13,7 @@ const CanvasRoom = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMess
             socketRef.current = new WebSocket(`${BASE_WS_URL}?token=${wsToken}`);
             socketRef.current.onopen = () => { 
                 socketRef.current?.send(JSON.stringify({ type: "join_room" })) 
-                // setIsLoading(false);
+                setIsLoading(false);
             };
             socketRef.current.onclose = () => { socketRef.current = null };
             socketRef.current.onerror = (error) => {

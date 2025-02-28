@@ -33,13 +33,14 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
 
     const joinRoom = async () => {
         try {
-            setIsLoading(true);
             const roomSlug = inputRef.current?.value.trim();
             if (!roomSlug) {
                 inputRef.current?.focus();
                 setIsLoading(false)
                 return;
             }
+            setIsLoading(true);
+            setModalopen((s) => !s);
             router.push(`/canvas/${roomSlug}`);
         } catch (error) {
             console.error("Error joining room:", error);
