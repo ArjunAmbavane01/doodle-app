@@ -6,33 +6,50 @@ import { Info, PencilLine, Users } from "lucide-react";
 import { CREATE_ROOM_URL } from "@/lib/apiEndPoints";
 import { Button } from "@workspace/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
+import { useLoading } from "@/providers/LoadingProvider";
 import { FloatingShapes } from "./FloatingShapes";
-
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
     const router = useRouter();
-    const [modalOpen, setModalopen] = useState(false);
+    const {setIsLoading} = useLoading();
     const inputRef = useRef<HTMLInputElement>(null);
+    const [modalOpen, setModalopen] = useState(false);
 
     const createRoom = async () => {
-        const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
-        if (data.type === 'error') {
-            console.log(data.error)
-            return;
+        try {
+            setIsLoading(true);
+            const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
+            if (data.type === 'error') {
+                console.log(data.error);
+                setIsLoading(false);
+                return;
+            }
+            router.push(`/canvas/${data.data.slug}`);
+        } catch (error) {
+            console.error("Error creating room:", error);
+            setIsLoading(false);
         }
-        const roomSlug = data.data.slug;
-        router.push(`/canvas/${roomSlug}`);
     }
 
     const joinRoom = async () => {
-        const roomSlug = inputRef.current?.value.trim();
-        if (!roomSlug) inputRef.current?.focus;
-        router.push(`/canvas/${roomSlug}`);
+        try {
+            setIsLoading(true);
+            const roomSlug = inputRef.current?.value.trim();
+            if (!roomSlug) {
+                inputRef.current?.focus();
+                setIsLoading(false)
+                return;
+            }
+            router.push(`/canvas/${roomSlug}`);
+        } catch (error) {
+            console.error("Error joining room:", error);
+            setIsLoading(false);
+        }
     }
 
     return (
         <section className="flex w-full min-h-[100vh] bg-black">
-            <div className="flex flex-col justify-center items-center gap-8 max-w-screen-8xl w-full mx-auto">
+            <div className="flex flex-col justify-center items-center gap-8 max-w-screen-8xl w-full mx-auto relative">
                 <FloatingShapes />
                 <div className="flex flex-col justify-center items-center gap-8 bg-black z-20 rounded-xl">
 

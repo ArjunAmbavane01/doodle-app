@@ -153,12 +153,33 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         const newShape: Shape = JSON.parse(receivedData.message);
         if(newShape.type === "highlighter"){
           // ADD FUNCTIONALITY OF RECIEVEING A HIGLIGHT STROKE
+          const highlightPath = new Path2D(newShape.svgPath);
+          ctx.save();
+          ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
+          ctx.shadowBlur = 8;
+          ctx.lineWidth = 6;
+          ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
+          ctx.stroke(highlightPath);
+          
+          // Core highlight
+          ctx.shadowBlur = 3;
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
+          ctx.stroke(highlightPath);
+          
+          // Bright center
+          ctx.shadowBlur = 0;
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
+          ctx.stroke(highlightPath);
+          ctx.restore();
           return;
+        } else {
+          const shapeWithUser = { userId: receivedData.userId, shape: newShape };
+          roomShapes.push(shapeWithUser);
+          if ( receivedData.userId === userId && !undoStack.some(s => JSON.stringify(s.shape) === JSON.stringify(newShape))) undoStack.push(shapeWithUser);
+          renderPersistentShapes();
         }
-        const shapeWithUser = { userId: receivedData.userId, shape: newShape };
-        roomShapes.push(shapeWithUser);
-        if ( receivedData.userId === userId && !undoStack.some(s => JSON.stringify(s.shape) === JSON.stringify(newShape))) undoStack.push(shapeWithUser);
-        renderPersistentShapes();
         render();
       } else if (receivedData.type === "remove_shape") {
         const shape: Shape = JSON.parse(receivedData.message);

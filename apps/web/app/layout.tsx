@@ -1,8 +1,9 @@
+import { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { Providers } from "@/components/providers"
-import { Metadata } from "next"
-import SessionProvider from "../providers/SessionProvider"
+import LoadingProvider from "@/providers/LoadingProvider"
+import SessionProvider from "@/providers/SessionProvider"
 
 const fontSans = Geist({
   subsets: ["latin"],
@@ -27,11 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-      <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js"/>
+        <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
       </head>
       <SessionProvider>
-        <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased `}>
-          <Providers>{children}</Providers>
+        <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
+          <Providers>
+            <LoadingProvider>
+              {children}
+            </LoadingProvider>
+          </Providers>
         </body>
       </SessionProvider>
     </html>

@@ -1,31 +1,28 @@
 'use client'
-import { BASE_WS_URL } from "@/lib/apiEndPoints";
 import { useEffect, useRef, useState } from "react";
+import { BASE_WS_URL } from "@/lib/apiEndPoints";
 import {IChatMessage} from "@workspace/common/interfaces";
 import Canvas from "./Canvas";
+import { useLoading } from "@/providers/LoadingProvider";
 
 const CanvasRoom = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMessages:IChatMessage[] , userId:string}) => {
-    const [isConnected, setIsConnected] = useState<boolean>(false);
+    const {setIsLoading} = useLoading();
     const socketRef = useRef<WebSocket | null>(null);
     useEffect(() => {
         if (!socketRef.current) {
             socketRef.current = new WebSocket(`${BASE_WS_URL}?token=${wsToken}`);
-
-            socketRef.current.onopen = () => {
-                socketRef.current?.send(JSON.stringify({ type: "join_room" }));
-                setIsConnected(true);
+            socketRef.current.onopen = () => { 
+                socketRef.current?.send(JSON.stringify({ type: "join_room" })) 
+                // setIsLoading(false);
             };
-
-            socketRef.current.onclose = () => {
-                setIsConnected(false);
-                socketRef.current = null;
+            socketRef.current.onclose = () => { socketRef.current = null };
+            socketRef.current.onerror = (error) => {
+                console.error("WebSocket error:", error);
+                setIsLoading(false); 
             };
         }
     }, [wsToken])
 
-    if(!isConnected){
-        return <div className="flex justify-center items-center h-screen w-screen">Connecting to server</div>
-    }
     return <Canvas socket={socketRef.current} roomMessages={roomMessages} userId={userId} />
 }
 
