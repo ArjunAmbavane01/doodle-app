@@ -28,6 +28,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   let currentShape: Shape | null = null;
   let selectedTool = "pen";
+  let selectedShape: IRoomShape | null = null;
 
   let isDrawing = false;
   let isPanning = false;
@@ -47,10 +48,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let zoomChangeTimeout: number | null = null;
   let dragStartX = 0;
   let dragStartY = 0;
+  let shapeStartX = 0;
+  let shapeStartY = 0;
 
   let strokePoints: IPoint[] = [];
   let highlightPoints: IHighlightPoint[] = [];
-  let selectedShape: IRoomShape | null = null;
   const undoStack: IRoomShape[] = [];
   const redoStack: IRoomShape[] = [];
   const roomUsers = new Map<string,{ posX:number, posY:number}>();
@@ -152,28 +154,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       } else if (receivedData.type === "chat") {
         const newShape: Shape = JSON.parse(receivedData.message);
         if(newShape.type === "highlighter"){
-          // ADD FUNCTIONALITY OF RECIEVEING A HIGLIGHT STROKE
-          const highlightPath = new Path2D(newShape.svgPath);
-          ctx.save();
-          ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
-          ctx.shadowBlur = 8;
-          ctx.lineWidth = 6;
-          ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
-          ctx.stroke(highlightPath);
-          
-          // Core highlight
-          ctx.shadowBlur = 3;
-          ctx.lineWidth = 2.5;
-          ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
-          ctx.stroke(highlightPath);
-          
-          // Bright center
-          ctx.shadowBlur = 0;
-          ctx.lineWidth = 1;
-          ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
-          ctx.stroke(highlightPath);
-          ctx.restore();
-          return;
+          const path = new Path2D(newShape.svgPath);
+          newShape.path = path;
+          drawShape(newShape, ctx);
         } else {
           const shapeWithUser = { userId: receivedData.userId, shape: newShape };
           roomShapes.push(shapeWithUser);
@@ -214,6 +197,15 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const boundingShape = getBoundingShape(x, y, roomShapes, ctx);
       if (boundingShape){
         selectedShape = boundingShape;
+        currentShape = boundingShape.shape;
+        if(currentShape.type === "rectangle"){
+          shapeStartX = currentShape.startX;
+          shapeStartY = currentShape.startY;
+        }
+        dragStartX = x;
+        dragStartY = y;
+        isDragging = true;
+        hasMovedSinceMouseDown = true;
       } else {
         selectedShape = null;
       }
@@ -259,6 +251,17 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     const { x, y } = getCanvasPoint(e.clientX, e.clientY);
     socket.send(JSON.stringify({type:'user_pos',clientX:x,clientY:y}));
     if (isDragging) {
+      const deltaX = x - dragStartX;
+      const deltaY = y - dragStartY;
+      console.log(deltaX)
+      console.log(deltaY)
+      if(currentShape && currentShape.type === "rectangle"){
+        currentShape.startX = shapeStartX + deltaX;
+        currentShape.startY = shapeStartY + deltaY;
+      }
+      // console.log(currentShape)
+      render()
+      return;
     }
     if (isPanning) {
       const deltaX = e.clientX - lastMouseX;
@@ -315,6 +318,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   };
 
   const handleMouseUp = (e: MouseEvent) => {
+    if (isDragging) {
+      isDragging = false;
+    }
     if (isPanning) {
       isPanning = false;
       canvas.style.cursor = "grab";
@@ -342,6 +348,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       }
     }
     isDrawing = false;
+    isDragging = false;
     hasMovedSinceMouseDown = false;
     currentShape = null;
     strokePoints = [];
@@ -579,10 +586,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         path.lineTo(currPoint.x, currPoint.y);
       }
     }
-    drawShape({type: "highlighter", path} as Shape,ctx);
 
+    drawShape({type: "highlighter", path} as Shape,ctx);
+    
     // to send highlight stroke
     const svgPath = strokeToSVG(highlightPoints);
+    // drawShape({type: "highlighter", svgPath} as Shape,ctx);
     const highlighterShape = {type:"highlighter", svgPath}
     toSend && socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(highlighterShape) }));
 
@@ -774,25 +783,44 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     }
   } else if (shape.type === "highlighter") {
     ctx.save();
+    let pathObj;
+    if(shape.svgPath) {
+      pathObj = new Path2D(shape.svgPath);
+    } else if(shape.path instanceof Path2D) {
+     pathObj = shape.path;
+    } else if(typeof shape.path === 'string') {
+     pathObj = new Path2D(shape.path);
+    }
+
+    // ctx.fillStyle = "red";
+    // ctx.fillRect(50, 50, 100, 100);
+
+    if(!pathObj) {
+      console.error("No valid path found for highlighter", shape);
+      ctx.restore();
+      return;
+    }
+  
+    // draw highlighter 
     ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
     ctx.shadowBlur = 8;
     ctx.lineWidth = 6;
     ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
-    ctx.stroke(shape.path as Path2D);
-    
+    ctx.stroke(pathObj);
+  
     // Core highlight
     ctx.shadowBlur = 3;
     ctx.lineWidth = 2.5;
     ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
-    ctx.stroke(shape.path as Path2D);
-    
+    ctx.stroke(pathObj);
+  
     // Bright center
     ctx.shadowBlur = 0;
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
-    ctx.stroke(shape.path as Path2D);
+    ctx.stroke(pathObj);
     ctx.restore();
-  }
+}
 };
 
 const drawUserCursor = (roomUser:IRoomUserPos,roomUserId:string, ctx: CanvasRenderingContext2D) => {
