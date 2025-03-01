@@ -46,8 +46,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let zoomOffsetX = 0;
   let zoomOffsetY = 0;
   let zoomChangeTimeout: number | null = null;
-  let dragStartX = 0;
-  let dragStartY = 0;
   let shapeStartX = 0;
   let shapeStartY = 0;
 
@@ -182,11 +180,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleMouseDown = (e: MouseEvent) => {
     const { x, y } = getCanvasPoint(e.clientX, e.clientY);
-    console.log(`zoomX : ${zoomOffsetX}`);
-    console.log(`zoomY : ${zoomOffsetY}`);
-    console.log(`x ${x} y ${y}`);
-    console.log(`panx ${panOffsetX} pany ${panOffsetY}`);
-    if (selectedShape != null) selectedShape = null;
     if (selectedTool === "pan") {
       isPanning = true;
       lastMouseX = e.clientX;
@@ -202,10 +195,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
           shapeStartX = currentShape.startX;
           shapeStartY = currentShape.startY;
         }
-        dragStartX = x;
-        dragStartY = y;
+        startX = x;
+        startY = y;
         isDragging = true;
-        hasMovedSinceMouseDown = true;
       } else {
         selectedShape = null;
       }
@@ -249,20 +241,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleMouseMove = (e: MouseEvent) => {
     const { x, y } = getCanvasPoint(e.clientX, e.clientY);
+    // send user's position to other users
     socket.send(JSON.stringify({type:'user_pos',clientX:x,clientY:y}));
-    if (isDragging) {
-      const deltaX = x - dragStartX;
-      const deltaY = y - dragStartY;
-      console.log(deltaX)
-      console.log(deltaY)
-      if(currentShape && currentShape.type === "rectangle"){
-        currentShape.startX = shapeStartX + deltaX;
-        currentShape.startY = shapeStartY + deltaY;
-      }
-      // console.log(currentShape)
-      render()
-      return;
-    }
+
     if (isPanning) {
       const deltaX = e.clientX - lastMouseX;
       const deltaY = e.clientY - lastMouseY;
@@ -273,7 +254,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       render();
       return;
     }
-    if (!isDrawing) return;
+
     const currentX = x;
     const currentY = y;
 
@@ -282,57 +263,71 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
     if (!hasMovedSinceMouseDown && (Math.abs(currentX - startX) > 2 || Math.abs(currentY - startY) > 2)) hasMovedSinceMouseDown = true;
     if (!hasMovedSinceMouseDown) return;
-    switch (selectedTool) {
-      case "pen":
-        if (strokePoints.length > 0) {
-          const lastPoint = strokePoints[strokePoints.length - 1];
-          if ( lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
-            strokePoints.push({ x: currentX, y: currentY });
-            currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
+
+    if (isDragging) {
+      const deltaX = x - startX;
+      const deltaY = y - startY;
+      if(currentShape && currentShape.type === "rectangle"){
+        currentShape = {...currentShape, startX : shapeStartX + deltaX, startY : shapeStartY + deltaY};
+      }
+    } else if (isDrawing) {
+      switch (selectedTool) {
+        case "pen":
+         if (strokePoints.length > 0) {
+            const lastPoint = strokePoints[strokePoints.length - 1];
+           if ( lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
+              strokePoints.push({ x: currentX, y: currentY });
+              currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
+            }
           }
-        }
-        break;
-      case "highlighter":
-        highlightPoints.push({ x: currentX, y: currentY, timestamp:Date.now()});
-        break;
-      case "line":
-        currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY,};
-        break;
-      case "arrow":
-        currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY,};
-        break;
-      case "rectangle":
-        currentShape = { type: "rectangle", startX, startY, width, height };
-        break;
-      case "triangle":
-        currentShape = { type: "triangle", startX, startY, width, height };
-        break;
-      case "circle":
-        const centerX = startX + width / 2;
-        const centerY = startY + height / 2;
-        const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
-        currentShape = { type: "circle", centerX, centerY, radius };
-        break;
+          break;
+        case "highlighter":
+          highlightPoints.push({ x: currentX, y: currentY, timestamp:Date.now()});
+          break;
+        case "line":
+          currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY,};
+          break;
+        case "arrow":
+          currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY,};
+          break;
+        case "rectangle":
+          currentShape = { type: "rectangle", startX, startY, width, height };
+          break;
+        case "triangle":
+          currentShape = { type: "triangle", startX, startY, width, height };
+          break;
+        case "circle":
+          const centerX = startX + width / 2;
+          const centerY = startY + height / 2;
+          const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
+          currentShape = { type: "circle", centerX, centerY, radius };
+          break;
+      }
     }
     render();
   };
 
   const handleMouseUp = (e: MouseEvent) => {
-    if (isDragging) {
-      isDragging = false;
-    }
     if (isPanning) {
       isPanning = false;
       canvas.style.cursor = "grab";
       return;
     }
-    if (!isDrawing) return;
-    if (!hasMovedSinceMouseDown && selectedTool === "pen") {
+    if (isDragging) {
+      if(currentShape){
+        const shapeWithUser = { userId, shape: currentShape };
+        roomShapes.push(shapeWithUser);
+        undoStack.push(shapeWithUser);
+        // socket.send(JSON.stringify({type: "chat", message: JSON.stringify(currentShape),}));
+      }
+    }
+    else if (isDrawing){
+      if (!hasMovedSinceMouseDown && selectedTool === "pen") {
       const rect = canvas.getBoundingClientRect();
       const { x, y } = getCanvasPoint(e.clientX, e.clientY);
       const currentX = x - rect.left;
       const currentY = y - rect.top;
-
+      
       strokePoints = [{ x: currentX, y: currentY },{ x: currentX + 1, y: currentY + 1 },];
       currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
       const shapeWithUser = { userId, shape: currentShape };
@@ -347,10 +342,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         socket.send(JSON.stringify({type: "chat", message: JSON.stringify(currentShape),}));
       }
     }
+   }
     isDrawing = false;
     isDragging = false;
     hasMovedSinceMouseDown = false;
     currentShape = null;
+    selectedShape = null;
     strokePoints = [];
     renderPersistentShapes();
     render();
