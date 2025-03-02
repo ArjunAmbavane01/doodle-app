@@ -10,6 +10,7 @@ const CanvasRoom = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMess
     const socketRef = useRef<WebSocket | null>(null);
     useEffect(() => {
         if (!socketRef.current) {
+            setIsLoading(true);
             socketRef.current = new WebSocket(`${BASE_WS_URL}?token=${wsToken}`);
             socketRef.current.onopen = () => { 
                 socketRef.current?.send(JSON.stringify({ type: "join_room" })) 
