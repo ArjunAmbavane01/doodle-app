@@ -26,9 +26,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   setupContext(ctx);
 
-  let currentShape: Shape | null = null;
   let selectedTool = "pen";
+  let currentShape: Shape | null = null;
   let selectedShape: IRoomShape | null = null;
+  let zoomChangeTimeout: number | null = null;
+  let originalShapePath: string | null = null;
 
   let isDrawing = false;
   let isPanning = false;
@@ -45,7 +47,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let zoomFactor = 1.01;
   let zoomOffsetX = 0;
   let zoomOffsetY = 0;
-  let zoomChangeTimeout: number | null = null;
   let shapeStartX = 0;
   let shapeStartY = 0;
   let shapeEndX = 0;
@@ -55,6 +56,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let highlightPoints: IHighlightPoint[] = [];
   const undoStack: IRoomShape[] = [];
   const redoStack: IRoomShape[] = [];
+
   const roomUsers = new Map<string,{ posX:number, posY:number}>();
 
   // Create background canvas for existing shapes
@@ -216,8 +218,14 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         } else if (currentShape.type === "text"){
           shapeStartX = currentShape.startX;
           shapeStartY = currentShape.startY;
+        } else if (currentShape.type === "pen"){
+          originalShapePath = currentShape.path;
+          const match = originalShapePath.match(/M\s+(\d+\.?\d*)\s+(\d+\.?\d*)/);
+          if (match) {
+            shapeStartX = parseFloat(match[1] as string);
+            shapeStartY = parseFloat(match[2] as string);
+          }
         }
-        // Pen dragging remaining
         const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(selectedShape));
         if (index !== -1) roomShapes.splice(index, 1);
         startX = x;
@@ -308,6 +316,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       else if (currentShape && currentShape.type === "text"){
         currentShape = {...currentShape, startX : shapeStartX + deltaX, startY : shapeStartY + deltaY};
       } 
+      else if (currentShape && currentShape.type === "pen"){
+        currentShape = {...currentShape, path: translateSVGPath(originalShapePath as string, deltaX, deltaY)};
+        console.log(currentShape.path)
+      } 
     } else if (isDrawing) {
       switch (selectedTool) {
         case "pen":
@@ -353,6 +365,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     }
     if (isDragging && currentShape) {
         isDragging = false;
+        originalShapePath = null;
         const shapeWithUser = { userId, shape: currentShape };
         if (JSON.stringify(currentShape)===JSON.stringify(selectedShape?.shape)) {
           roomShapes.push(selectedShape as IRoomShape);
@@ -689,10 +702,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false) => {
   if (shape.type === "pen" && shape.path) {
     if (drawBoundary) {
-      ctx.setLineDash([5, 5]);
       const path = new Path2D(shape.path);
-      ctx.stroke(path);
+      const boundingRect = getBoundingBoxFromPath(shape.path);
+      ctx.setLineDash([5, 5]);
+      if(boundingRect) ctx.strokeRect(boundingRect?.minX,boundingRect?.minY,boundingRect?.width,boundingRect?.height);
       ctx.setLineDash([]);
+      ctx.stroke(path);
     } else {
       const path = new Path2D(shape.path);
       ctx.stroke(path);
@@ -1137,4 +1152,78 @@ const notifyZoomComplete = (zoomScale:number) => {
   window.dispatchEvent(
     new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(zoomScale * 100)} })
   );
+};
+
+const getBoundingBoxFromPath = (path: string): { width: number, height: number, minX: number, minY: number } | null => {
+  const regex = /[MQ]\s*([\d.-]+)\s*([\d.-]+)/g; 
+  let match;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  while ((match = regex.exec(path)) !== null) {
+      const x = parseFloat(match[1] as string);
+      const y = parseFloat(match[2] as string);
+
+      if (!isNaN(x) && !isNaN(y)) {
+          minX = Math.min(minX, x);
+          minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x);
+          maxY = Math.max(maxY, y);
+      }
+  }
+
+  if (minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity) {
+      return null; 
+  }
+
+  return {
+      width: maxX - minX,
+      height: maxY - minY,
+      minX,
+      minY
+  };
+};
+
+const translateSVGPath = (pathString: string, deltaX: number, deltaY: number): string => {
+  const validCommands: Array<{cmd: string, points: number[]}> = [];
+  
+  const segments = pathString.match(/[MLQ]\s+[-\d.]+\s+[-\d.]+(?:\s*,\s*[-\d.]+\s+[-\d.]+)?/g) || [];
+  
+  for (const segment of segments) {
+    const parts = segment.trim().split(/[\s,]+/);
+    const command = parts[0];
+    const points: number[] = [];
+    
+    for (let i = 1; i < parts.length; i++) {
+      const num = parseFloat(parts[i] as string);
+      if (!isNaN(num)) {
+        points.push(num);
+      }
+    }
+    
+    if ((command === 'M' || command === 'L') && points.length >= 2) {
+      validCommands.push({
+        cmd: command,
+        points: [points[0] as number + deltaX, points[1] as number + deltaY]
+      });
+    } else if (command === 'Q' && points.length >= 4) {
+      validCommands.push({
+        cmd: command,
+        points: [
+          points[0] as number + deltaX, points[1] as number + deltaY,
+          points[2] as number + deltaX, points[3] as number + deltaY
+        ]
+      });
+    }
+  }
+  
+  let newPath = '';
+  for (const cmd of validCommands) {
+    if (cmd.cmd === 'M' || cmd.cmd === 'L') {
+      newPath += `${cmd.cmd} ${cmd.points[0]} ${cmd.points[1]} `;
+    } else if (cmd.cmd === 'Q') {
+      newPath += `${cmd.cmd} ${cmd.points[0]} ${cmd.points[1]}, ${cmd.points[2]} ${cmd.points[3]} `;
+    }
+  }
+  
+  return newPath.trim();
 };
