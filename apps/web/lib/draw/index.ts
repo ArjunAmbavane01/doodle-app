@@ -11,13 +11,18 @@ export type Shape =
   | { type: "triangle"; startX: number; startY: number; width: number; height: number;}
   | { type: "circle"; centerX: number; centerY: number; radius: number };
 
-export interface IRoomShape { userId: string, shape: Shape, wasDeleted?:boolean};
+export interface IRoomShape { userId: string, shape: Shape};
 
 export interface IRoomUserPos { posX:number, posY:number, displayName?: string};
 
 export interface IPoint { x: number, y: number};
 
 export interface IHighlightPoint { x: number, y: number, timestamp:number};
+
+export interface IUserAction {
+  type: "add" | "delete" | "move",
+  shape : IRoomShape
+}
 
 export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[], userId: string) => {
   const roomShapes: IRoomShape[] = getShapesFromMessages(initialMessages);
@@ -54,8 +59,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   let strokePoints: IPoint[] = [];
   let highlightPoints: IHighlightPoint[] = [];
-  const undoStack: IRoomShape[] = [];
-  const redoStack: IRoomShape[] = [];
+  const undoStack: IUserAction[] = [];
+  const redoStack: IUserAction[] = [];
 
   const roomUsers = new Map<string,{ posX:number, posY:number}>();
 
@@ -157,6 +162,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         const posY = receivedData.posY;
         roomUsers.set(userId,{posX,posY});
         render();
+        return;
       } else if (receivedData.type === "chat") {
         const newShape: Shape = JSON.parse(receivedData.message);
         if(newShape.type === "highlighter"){
@@ -166,7 +172,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         } else {
           const shapeWithUser = { userId: receivedData.userId, shape: newShape };
           roomShapes.push(shapeWithUser);
-          if ( receivedData.userId === userId && !undoStack.some(s => JSON.stringify(s.shape) === JSON.stringify(newShape))) undoStack.push(shapeWithUser);
+          if ( receivedData.userId === userId && !undoStack.some(action => JSON.stringify(action.shape) === JSON.stringify(newShape))){
+            undoStack.push({type:"add",shape:shapeWithUser});
+          } 
           renderPersistentShapes();
         }
         render();
@@ -392,13 +400,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
       const shapeWithUser = { userId, shape: currentShape };
       roomShapes.push(shapeWithUser);
-      undoStack.push(shapeWithUser);
+      undoStack.push({type:"add",shape:shapeWithUser});
       socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape) }));
     } else {
       if (currentShape) {
         const shapeWithUser = { userId, shape: currentShape };
         roomShapes.push(shapeWithUser);
-        undoStack.push(shapeWithUser);
+        undoStack.push({type:"add",shape:shapeWithUser});
         socket.send(JSON.stringify({type: "chat", message: JSON.stringify(currentShape),}));
       }
     }
@@ -438,7 +446,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       };
       const shapeWithUser: IRoomShape = { userId, shape: newShape };
       roomShapes.push(shapeWithUser);
-      undoStack.push(shapeWithUser);
+      undoStack.push({type:"add",shape:shapeWithUser});
       socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newShape) }));
 
       renderPersistentShapes();
@@ -450,22 +458,17 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const handleUndo = () => {
     if (undoStack.length === 0) return;
     try {
-      const lastRoomShape = undoStack.pop();
-      if (!lastRoomShape) return;
-      const restoredShape = {
-        userId: lastRoomShape.userId,
-        shape: lastRoomShape.shape
-      };
-      if(lastRoomShape?.wasDeleted){
-        roomShapes.push(restoredShape);
-        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(restoredShape.shape),}));
-        redoStack.push(lastRoomShape);
-      }
-      else {
-        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastRoomShape));
+      const lastAction = undoStack.pop();
+      if(!lastAction) return;
+      if(lastAction.type === "delete"){
+        roomShapes.push(lastAction.shape);
+        redoStack.push({type:"delete",shape:lastAction.shape});
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(lastAction.shape.shape),}));
+      } else {
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastAction.shape));
         if (index !== -1) roomShapes.splice(index, 1);
-        socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(lastRoomShape.shape),}));
-        redoStack.push(restoredShape);
+        redoStack.push({type:"add",shape:lastAction.shape});
+        socket.send(JSON.stringify({ type: "delete_shape", message: JSON.stringify(lastAction.shape.shape),}));
       }
       renderPersistentShapes();
       render();
@@ -477,22 +480,36 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const handleRedo = () => {
     if (redoStack.length === 0) return;
     try {
-      const newRoomShape = redoStack.pop();
-      if (!newRoomShape) return;
-      const restoredShape = {
-        userId: newRoomShape.userId,
-        shape: newRoomShape.shape
-      };
-      if(newRoomShape?.wasDeleted){
-        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(newRoomShape));
+      const lastAction = redoStack.pop();
+      if(!lastAction) return;
+      if(lastAction.type === "delete"){
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastAction.shape));
         if (index !== -1) roomShapes.splice(index, 1);
-        socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(newRoomShape.shape),}));
-        undoStack.push(restoredShape)
-      } else{
-       roomShapes.push(restoredShape);
-       undoStack.push(restoredShape)
-       socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newRoomShape.shape),})); 
+        undoStack.push({type:"add",shape:lastAction.shape});
+        socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(lastAction.shape.shape),}));
+      } else {
+        roomShapes.push(lastAction.shape);
+        undoStack.push({type:"add",shape:lastAction.shape})
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(lastAction.shape.shape),})); 
       }
+
+
+      // const newRoomShape = redoStack.pop();
+      // if (!newRoomShape) return;
+      // const restoredShape = {
+      //   userId: newRoomShape.userId,
+      //   shape: newRoomShape.shape
+      // };
+      // if(newRoomShape?.wasDeleted){
+      //   const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(newRoomShape));
+      //   if (index !== -1) roomShapes.splice(index, 1);
+      //   socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(newRoomShape.shape),}));
+      //   undoStack.push(restoredShape)
+      // } else{
+      //  roomShapes.push(restoredShape);
+      //  undoStack.push(restoredShape)
+      //  socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newRoomShape.shape),})); 
+      // }
       renderPersistentShapes();
       render();
     } catch (e) {
@@ -523,11 +540,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeToDelete));
       if (index !== -1) {
         roomShapes.splice(index, 1);
-        undoStack.push({
+        undoStack.push({type:"delete",shape:{
           userId:shapeToDelete.userId,
-          shape:shapeToDelete.shape,
-          wasDeleted : true
-        });
+          shape:shapeToDelete.shape
+        }});
       }
       renderPersistentShapes();
       render();
