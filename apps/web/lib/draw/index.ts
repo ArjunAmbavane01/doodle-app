@@ -21,7 +21,10 @@ export interface IHighlightPoint { x: number, y: number, timestamp:number};
 
 export interface IUserAction {
   type: "add" | "delete" | "move",
-  shape : IRoomShape
+  shape : IRoomShape,
+  prevShape ?: Shape,
+  shapeStartX ?: number,
+  shapeStartY ?: number
 }
 
 export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[], userId: string) => {
@@ -33,6 +36,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   let selectedTool = "pen";
   let currentShape: Shape | null = null;
+  let prevMovedShape: Shape | null = null;
   let selectedShape: IRoomShape | null = null;
   let zoomChangeTimeout: number | null = null;
   let originalShapePath: string | null = null;
@@ -236,6 +240,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         }
         const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(selectedShape));
         if (index !== -1) roomShapes.splice(index, 1);
+        prevMovedShape = boundingShape.shape;
         startX = x;
         startY = y;
         isDragging = true;
@@ -326,7 +331,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       } 
       else if (currentShape && currentShape.type === "pen"){
         currentShape = {...currentShape, path: translateSVGPath(originalShapePath as string, deltaX, deltaY)};
-        console.log(currentShape.path)
       } 
     } else if (isDrawing) {
       switch (selectedTool) {
@@ -371,25 +375,27 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       canvas.style.cursor = "grab";
       return;
     }
-    if (isDragging && currentShape) {
-        isDragging = false;
-        originalShapePath = null;
-        const shapeWithUser = { userId, shape: currentShape };
-        if (JSON.stringify(currentShape)===JSON.stringify(selectedShape?.shape)) {
-          roomShapes.push(selectedShape as IRoomShape);
-        }
-        else {
+    if (isDragging && currentShape && prevMovedShape) {
+      const shapeWithUser = { userId, shape: currentShape };
+      if (JSON.stringify(currentShape)===JSON.stringify(selectedShape?.shape)) {
+        roomShapes.push(selectedShape as IRoomShape);
+        prevMovedShape = null;
+      }
+      else {
+          console.log(prevMovedShape)
           roomShapes.push(shapeWithUser);
-          // undoStack.push(shapeWithUser);
+          undoStack.push({type:"move",shape:shapeWithUser,prevShape:prevMovedShape});
   
           // JUST UNCOMMENT SENDING PART
           // socket.send(JSON.stringify({type: "remove_shape", message: JSON.stringify(selectedShape),}));
           // socket.send(JSON.stringify({type: "chat", message: JSON.stringify(currentShape),}));
         }
+        isDragging = false;
+        originalShapePath = null;
         renderPersistentShapes();
         render();
         return;
-    } else if (isDrawing){
+    } else if (isDrawing) {
       if (!hasMovedSinceMouseDown && selectedTool === "pen") {
       const rect = canvas.getBoundingClientRect();
       const { x, y } = getCanvasPoint(e.clientX, e.clientY);
@@ -412,7 +418,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     }
    }
     isDrawing = false;
-    isDragging = false;
     hasMovedSinceMouseDown = false;
     currentShape = null;
     selectedShape = null;
@@ -460,15 +465,27 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     try {
       const lastAction = undoStack.pop();
       if(!lastAction) return;
-      if(lastAction.type === "delete"){
-        roomShapes.push(lastAction.shape);
-        redoStack.push({type:"delete",shape:lastAction.shape});
-        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(lastAction.shape.shape),}));
-      } else {
+      if(lastAction.type === "add"){
         const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastAction.shape));
         if (index !== -1) roomShapes.splice(index, 1);
         redoStack.push({type:"add",shape:lastAction.shape});
         socket.send(JSON.stringify({ type: "delete_shape", message: JSON.stringify(lastAction.shape.shape),}));
+
+      } else if (lastAction.type === "delete") {
+        roomShapes.push(lastAction.shape);
+        redoStack.push({type:"delete",shape:lastAction.shape});
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(lastAction.shape.shape),}));
+      } else if (lastAction.type === "move" && lastAction.prevShape) {
+        selectedShape = null;
+        currentShape = null;
+        const newShape = {userId,shape:lastAction.prevShape};
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastAction.shape));
+        if (index !== -1) roomShapes.splice(index, 1);
+        roomShapes.push(newShape);
+
+        redoStack.push({type:"move",shape:newShape,prevShape:lastAction.shape.shape});
+        socket.send(JSON.stringify({ type: "remove_shape", message: JSON.stringify(lastAction.shape),}));
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newShape),}));
       }
       renderPersistentShapes();
       render();
@@ -482,34 +499,29 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     try {
       const lastAction = redoStack.pop();
       if(!lastAction) return;
-      if(lastAction.type === "delete"){
+      if(lastAction.type === "add"){
+        roomShapes.push(lastAction.shape);
+        undoStack.push({type:"add",shape:lastAction.shape})
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(lastAction.shape.shape),})); 
+      } else if (lastAction.type === "delete"){
         const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastAction.shape));
         if (index !== -1) roomShapes.splice(index, 1);
         undoStack.push({type:"add",shape:lastAction.shape});
         socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(lastAction.shape.shape),}));
-      } else {
-        roomShapes.push(lastAction.shape);
-        undoStack.push({type:"add",shape:lastAction.shape})
-        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(lastAction.shape.shape),})); 
+      } else if (lastAction.type === "move" && lastAction.prevShape){
+        selectedShape = null;
+        currentShape = null;
+
+        const newShape = {userId,shape:lastAction.prevShape};
+        const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(lastAction.shape));
+        if (index !== -1) roomShapes.splice(index, 1);
+        roomShapes.push(newShape);
+
+        undoStack.push({type:"move",shape:newShape, prevShape:lastAction.shape.shape});
+        socket.send(JSON.stringify({ type: "remove_shape", message: JSON.stringify(lastAction.shape),}));
+        socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newShape),}));
       }
 
-
-      // const newRoomShape = redoStack.pop();
-      // if (!newRoomShape) return;
-      // const restoredShape = {
-      //   userId: newRoomShape.userId,
-      //   shape: newRoomShape.shape
-      // };
-      // if(newRoomShape?.wasDeleted){
-      //   const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(newRoomShape));
-      //   if (index !== -1) roomShapes.splice(index, 1);
-      //   socket.send(JSON.stringify({type: "delete_shape", message: JSON.stringify(newRoomShape.shape),}));
-      //   undoStack.push(restoredShape)
-      // } else{
-      //  roomShapes.push(restoredShape);
-      //  undoStack.push(restoredShape)
-      //  socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newRoomShape.shape),})); 
-      // }
       renderPersistentShapes();
       render();
     } catch (e) {
