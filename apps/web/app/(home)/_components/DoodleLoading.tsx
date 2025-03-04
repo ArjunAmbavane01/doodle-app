@@ -33,7 +33,6 @@ const DoodleLoading = () => {
 
     return (
         <div className="flex justify-center fixed inset-0 z-50 bg-black">
-            {/* Fixed-width container for text to prevent cutoff */}
             <div className="flex flex-col justify-center gap-5 w-80 text-center">
                 <motion.div className="font-logo text-5xl font-bold text-center bg-gradient-to-r from-blue-300 to-pink-300 text-transparent bg-clip-text mb-6 whitespace-nowrap overflow-visible"
                     initial={{ opacity: 0, y: 20 }}

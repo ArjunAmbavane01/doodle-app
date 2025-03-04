@@ -87,6 +87,24 @@ wss.on("connection", (ws: WebSocket, req) => {
         console.error("Database error:", e);
         ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
       }
+    } else if (parsedData.type === "move_shape") {
+      try {
+        const message = parsedData.message;
+        if (!message.prevShape || !message.newShape) return;
+        const shapeToDelete = await prisma.chat.findFirst({ where: {roomId, message:message.prevShape }, orderBy: { id: "desc",},});
+        if(shapeToDelete){
+          await prisma.chat.update({where: {id: shapeToDelete.id}, data:{message:message.newShape}});
+          users.forEach((user) => {
+            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "move_shape", message, userId }));
+          });
+        }
+        else{
+          ws.send(JSON.stringify({ type: "error", message: "Shape not found, please try again later.",}));
+        }
+      } catch (e) {
+        console.error("Database error:", e);
+        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
+      }
     }
   });
 });
