@@ -645,6 +645,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     render();
   };
 
+  const handleZoomReset = () => {
+    zoomScale = 1;
+    notifyZoomComplete(zoomScale);
+    render();
+  }
+
   const drawHighlightPoints = (highlightPoints: IHighlightPoint[], toSend:boolean = true) => {
     const currentTime = Date.now();
     const maxAge = 2000;
@@ -718,6 +724,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("undo", handleUndo);
   window.addEventListener("zoomIn", () => { handleZoomIn() });
   window.addEventListener("zoomOut", () => { handleZoomOut() });
+  window.addEventListener("zoomReset", () => { handleZoomReset() });
   // window.addEventListener("resize", handleResize);
 
   return () => {
@@ -733,6 +740,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     window.removeEventListener("keydown", handleKeyDown);
     window.removeEventListener("zoomIn", () => { handleZoomIn() });
     window.removeEventListener("zoomOut", () => { handleZoomOut() });
+    window.removeEventListener("zoomReset", () => { handleZoomReset() });
     // window.removeEventListener("resize", handleResize);
   };
 };
@@ -759,27 +767,19 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     ctx.textAlign = "left";
     ctx.imageSmoothingEnabled = false;
     ctx.fillText(shape.text, shape.startX, shape.startY);
-    ctx.restore();
     if (drawBoundary) {
-      ctx.save();
       ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
       ctx.letterSpacing = "1px";
       const padding = 10;
       const metrics = ctx.measureText(shape.text);
       const textWidth = metrics.width;
-      const textHeight =
-        metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+      const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
       ctx.setLineDash([5, 5]);
-      ctx.strokeRect(
-        shape.startX - 3,
-        shape.startY - 3,
-        textWidth + padding,
-        textHeight + padding
-      );
+      ctx.strokeRect(shape.startX - 3,shape.startY - 3,textWidth + padding,textHeight + padding);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.restore();
     }
+    ctx.restore();
   } else if (shape.type === "line") {
     if (drawBoundary) {
       ctx.setLineDash([5, 5]);
