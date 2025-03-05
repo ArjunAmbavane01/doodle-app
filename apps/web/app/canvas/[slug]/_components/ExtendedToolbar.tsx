@@ -1,10 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import {
-  Paintbrush2, PaintBucket, Palette, X, Check, Pipette, CircleDashed, Type, Bold, Italic, Underline, Pen, Minus, Plus, Maximize2, Minimize2, Menu,
-} from "lucide-react"
 import { motion, AnimatePresence } from "motion/react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+
+import { Paintbrush2, PaintBucket, Palette, X, Check, Pipette, CircleDashed, Type, Bold, Italic, Underline, Pen, Minus, Plus, Maximize2, Minimize2, Menu, } from "lucide-react"
 
 type TabType = "color" | "text" | "pen"
 
@@ -102,16 +110,9 @@ const ExtendedToolbar = () => {
   }
 
   return (
-    <div className="absolute top-8 left-3 z-10 font-heading">
-      <motion.div className="flex flex-col gap-3 p-2 rounded-lg bg-white/10"
-        initial={{ width: "auto" }}
-        animate={{ width: "auto" }}
-      >
-        <motion.button className="flex items-center justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
-          aria-label="Open color menu"
-          whileTap={{ scale: 0.95 }}
-          onClick={toggleMenu}
-        >
+    <div className="absolute top-9 left-5 z-10 font-heading">
+      <motion.div className="flex flex-col gap-3 p-2 rounded-lg bg-white/10" initial={{ width: "auto" }} animate={{ width: "auto" }}>
+        <motion.button className="flex items-center justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors" aria-label="Open color menu" whileTap={{ scale: 0.95 }} onClick={toggleMenu}>
           <Menu className="size-4 text-white" />
         </motion.button>
 
@@ -177,10 +178,8 @@ const ExtendedToolbar = () => {
                   {activeTab === "pen" && "Pen Options"}
                 </h3>
               </div>
-              <button className="text-neutral-400 hover:text-white rounded-full p-1 hover:bg-neutral-700"
-                onClick={() => setIsOpen(false)}
-                aria-label="Close menu"
-              >
+              <button className="text-neutral-400 hover:text-white rounded-full p-1 hover:bg-neutral-700" onClick={() => setIsOpen(false)}
+                aria-label="Close menu">
                 <X className="size-3" />
               </button>
             </div>
@@ -215,9 +214,9 @@ const ExtendedToolbar = () => {
                       </div>
                       <div className="grid grid-cols-8 gap-1">
                         {recentColors.map((color) => (
-                          <button key={color} className="size-6 rounded-sm hover:scale-110 transition-transform  duration-75 ease-out relative" 
-                          style={{ backgroundColor: color }} 
-                          onClick={() => handleColorClick(color)} aria-label={`Select color ${color}`}>
+                          <button key={color} className="size-6 rounded-sm hover:scale-110 transition-transform  duration-75 ease-out relative"
+                            style={{ backgroundColor: color }}
+                            onClick={() => handleColorClick(color)} aria-label={`Select color ${color}`}>
                             {((colorSubTab === "stroke" && strokeColor === color) ||
                               (colorSubTab === "bg" && bgColor === color)) && (
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -307,17 +306,18 @@ const ExtendedToolbar = () => {
               <div className="flex flex-col gap-2 p-3 min-h-80">
                 <div className="flex flex-col gap-2">
                   <label className="text-xs text-neutral-200 block">Font Family</label>
-                  <select
-                    value={fontFamily}
-                    onChange={(e) => setFontFamily(e.target.value)}
-                    className="w-full bg-neutral-700 border border-neutral-600 rounded-sm p-2 text-sm text-white"
-                  >
-                    {fontFamilies.map((font) => (
-                      <option key={font.name} value={font.value}>
-                        {font.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select value={fontFamily} onValueChange={setFontFamily}>
+                    <SelectTrigger className="w-full bg-neutral-700 border border-neutral-600 rounded-sm p-2 text-sm text-white focus:outline-none focus:ring-0" value={fontFamily}>
+                    <SelectValue placeholder="Select Font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {fontFamilies.map((font) => (
+                          <SelectItem key={font.name} value={font.value}>{font.name}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -438,23 +438,6 @@ const ExtendedToolbar = () => {
                     >
                       <Plus className="w-4 h-4" />
                     </motion.button>
-                  </div>
-                </div>
-
-                <div className="mb-4">
-                  <label className="text-xs text-neutral-400 block mb-1">Pen Style</label>
-                  <div className="grid grid-cols-3 gap-1">
-                    {penStyles.map((style) => (
-                      <motion.button
-                        key={style.name}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setPenStyle(style.value)}
-                        className={`p-2 text-xs text-center rounded-md ${penStyle === style.value ? "bg-neutral-600" : "bg-neutral-700 hover:bg-neutral-600"
-                          }`}
-                      >
-                        {style.name}
-                      </motion.button>
-                    ))}
                   </div>
                 </div>
 
