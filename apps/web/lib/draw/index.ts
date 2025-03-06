@@ -26,9 +26,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return () => {};
 
-  setupContext(ctx);
-
   let selectedTool = "pen";
+  let strokeColour = "#ffffff";
+  let strokeWidth = 2;
+  let fillColour = "#ffffff";
+  let fontSize = 24;
+
   let currentShape: Shape | null = null;
   let prevMovedShape: Shape | null = null;
   let selectedShape: IRoomShape | null = null;
@@ -62,13 +65,16 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const roomUsers = new Map<string,{ posX:number, posY:number}>();
 
+  setupContext(ctx, strokeColour, strokeWidth, fontSize);
+
   // Create background canvas for existing shapes
   const offscreenCanvas = document.createElement("canvas");
   offscreenCanvas.width = canvas.width;
   offscreenCanvas.height = canvas.height;
   const offscreenCtx = offscreenCanvas.getContext("2d");
   if (!offscreenCtx) return () => {};
-  setupContext(offscreenCtx);
+  setupContext(offscreenCtx, strokeColour, strokeWidth, fontSize);
+
 
   const renderPersistentShapes = () => clearCanvas(roomShapes, selectedShape, offscreenCanvas, offscreenCtx);
 
@@ -745,7 +751,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   };
 };
 
-const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false) => {
+const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false, fontSize?:number,) => {
   if (shape.type === "pen" && shape.path) {
     if (drawBoundary) {
       const path = new Path2D(shape.path);
@@ -760,7 +766,8 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     }
   } else if (shape.type === "text") {
     ctx.save();
-    ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
+    ctx.strokeStyle = "#A2D2FF";
+    ctx.font = `${fontSize || 24 * window.devicePixelRatio}px Caveat`;
     ctx.letterSpacing = "1px";
     ctx.fillStyle = "white";
     ctx.textBaseline = "top";
@@ -782,6 +789,8 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     ctx.restore();
   } else if (shape.type === "line") {
     if (drawBoundary) {
+      ctx.save();
+      ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(shape.startX, shape.startY);
@@ -789,6 +798,7 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.stroke();
       ctx.closePath();
       ctx.setLineDash([]);
+      ctx.restore();
     } else {
       ctx.beginPath();
       ctx.moveTo(shape.startX, shape.startY);
@@ -798,6 +808,8 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     }
   } else if (shape.type === "arrow") {
     if (drawBoundary) {
+      ctx.save();
+      ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       const headlen = 12; // headlen in  pixels
       const dx = shape.endX - shape.startX;
@@ -822,6 +834,7 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       );
       ctx.stroke();
       ctx.closePath();
+      ctx.restore();
     } else {
       const headlen = 12; // headlen in  pixels
       const dx = shape.endX - shape.startX;
@@ -844,15 +857,20 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     }
   } else if (shape.type === "rectangle") {
     if (drawBoundary) {
+      ctx.save();
+      ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       ctx.strokeRect( shape.startX - 6, shape.startY - 6, shape.width + 12, shape.height + 12);
       ctx.setLineDash([]);
+      ctx.restore();
     } else {
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     }
     
   } else if (shape.type === "triangle") {
     if (drawBoundary) {
+      ctx.save();
+      ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(shape.startX + shape.width / 2, shape.startY);
@@ -862,6 +880,7 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.stroke();
       ctx.closePath();
       ctx.setLineDash([]);
+      ctx.restore();
     } else {
       ctx.beginPath();
       ctx.moveTo(shape.startX + shape.width / 2, shape.startY);
@@ -877,12 +896,15 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     ctx.stroke();
     ctx.closePath();
     if (drawBoundary) {
+      ctx.save();
       ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = '#A2D2FF';
       ctx.beginPath();
       ctx.arc(shape.centerX, shape.centerY, shape.radius + 6, 0, Math.PI * 2);
       ctx.stroke();
       ctx.closePath();
       ctx.setLineDash([]);
+      ctx.restore();
     }
   } else if (shape.type === "highlighter") {
     ctx.save();
@@ -1032,14 +1054,14 @@ const strokeToSVG = (points: IPoint[]): string => {
   return path;
 };
 
-const setupContext = (ctx: CanvasRenderingContext2D) => {
+const setupContext = (ctx: CanvasRenderingContext2D, strokeColour:string, strokeWidth:number, fontSize:number) => {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.lineWidth = 2;
+  ctx.lineWidth = strokeWidth;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
-  ctx.strokeStyle = "rgba(255,255,255)";
+  ctx.font = `${fontSize * window.devicePixelRatio}px Caveat`;
+  ctx.strokeStyle = strokeColour;
 };
 
 const cleanupTextArea = () => {
