@@ -1,6 +1,9 @@
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
+      // THERE IS ISSUE WHILE SELECTING, THE TEXT IS STILL SMALL IN MEASURE TEXT FUNCTION
+
+
 export type Shape =
   | { type: "pen"; path: string; strokeColour:string; strokeWidth:number  }
   | { type: "highlighter"; path?: Path2D, svgPath?:string; points?: IHighlightPoint[] }
@@ -29,7 +32,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let strokeColour = "#ffffff";
   let strokeWidth = 2;
   let fillColour = "#ffffff";
-  let fontSize = 24;
+  let fontSize = 76;
 
   let currentShape: Shape | null = null;
   let prevMovedShape: Shape | null = null;
@@ -278,8 +281,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       } else if (selectedTool === "text") {
         e.preventDefault();
         e.stopPropagation();
-
-        const textAreaElem = createTextArea(e, startX, startY);
+        const textAreaElem = createTextArea(e, startX, startY, fontSize, strokeColour);
         document.body.appendChild(textAreaElem);
         textAreaElem.focus();
         textAreaElem.addEventListener("blur", () => handleBlur(textAreaElem), {once: true,});
@@ -296,7 +298,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleMouseMove = (e: MouseEvent) => {
     const { x, y } = getCanvasPoint(e.clientX, e.clientY);
-    // send user's position to other users
+    // sends user's position to other users
     socket.send(JSON.stringify({type:'user_pos',clientX:x,clientY:y}));
 
     if (isPanning) {
@@ -336,7 +338,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         currentShape = {type:"arrow" , startX : shapeStartX + deltaX, startY : shapeStartY + deltaY, endX : shapeEndX + deltaX, endY : shapeEndY + deltaY, strokeColour, strokeWidth};
       } 
       else if (currentShape && currentShape.type === "text"){
-        currentShape = {...currentShape, startX : shapeStartX + deltaX, startY : shapeStartY + deltaY, strokeColour, fontSize};
+        currentShape = {...currentShape, startX : shapeStartX + deltaX, startY : shapeStartY + deltaY};
       } 
       else if (currentShape && currentShape.type === "pen"){
         currentShape = {...currentShape, path: translateSVGPath(originalShapePath as string, deltaX, deltaY)};
@@ -348,7 +350,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
             const lastPoint = strokePoints[strokePoints.length - 1];
            if ( lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
               strokePoints.push({ x: currentX, y: currentY });
-              currentShape = { type: "pen", path: strokeToSVG(strokePoints), strokeColour };
+              currentShape = { type: "pen", path: strokeToSVG(strokePoints), strokeColour, strokeWidth };
             }
           }
           break;
@@ -356,22 +358,22 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
           highlightPoints.push({ x: currentX, y: currentY, timestamp:Date.now()});
           break;
         case "line":
-          currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY, strokeColour};
+          currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY, strokeColour, strokeWidth};
           break;
         case "arrow":
-          currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY, strokeColour};
+          currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY, strokeColour, strokeWidth};
           break;
         case "rectangle":
-          currentShape = { type: "rectangle", startX, startY, width, height, strokeColour, fillColour };
+          currentShape = { type: "rectangle", startX, startY, width, height, strokeColour, fillColour, strokeWidth};
           break;
         case "triangle":
-          currentShape = { type: "triangle", startX, startY, width, height, strokeColour, fillColour };
+          currentShape = { type: "triangle", startX, startY, width, height, strokeColour, fillColour, strokeWidth};
           break;
         case "circle":
           const centerX = startX + width / 2;
           const centerY = startY + height / 2;
           const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
-          currentShape = { type: "circle", centerX, centerY, radius, strokeColour, fillColour };
+          currentShape = { type: "circle", centerX, centerY, radius, strokeColour, fillColour, strokeWidth};
           break;
       }
     }
@@ -412,7 +414,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const currentY = y - rect.top;
       
       strokePoints = [{ x: currentX, y: currentY },{ x: currentX + 1, y: currentY + 1 },];
-      currentShape = { type: "pen", path: strokeToSVG(strokePoints), strokeColour };
+      currentShape = { type: "pen", path: strokeToSVG(strokePoints), strokeColour, strokeWidth };
       const shapeWithUser = { userId, shape: currentShape };
       roomShapes.push(shapeWithUser);
       undoStack.push({type:"add",shape:shapeWithUser});
@@ -452,7 +454,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const canvasX = parseFloat(textAreaElem.dataset.canvasX || "0");
       const canvasY = parseFloat(textAreaElem.dataset.canvasY || "0");
 
-      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text, strokeColour };
+      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text, strokeColour, fontSize };
       const shapeWithUser: IRoomShape = { userId, shape: newShape };
       roomShapes.push(shapeWithUser);
       undoStack.push({type:"add",shape:shapeWithUser});
@@ -754,8 +756,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
 const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false, fontSize?:number) => {
   if (shape.type === "pen" && shape.path) {
+    ctx.save();
     if (drawBoundary) {
-      ctx.save();
       ctx.strokeStyle = "#A2D2FF";
       const path = new Path2D(shape.path);
       const boundingRect = getBoundingBoxFromPath(shape.path);
@@ -763,26 +765,24 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       if(boundingRect) ctx.strokeRect(boundingRect?.minX,boundingRect?.minY,boundingRect?.width,boundingRect?.height);
       ctx.setLineDash([]);
       ctx.stroke(path);
-      ctx.restore();
     } else {
-      ctx.save();
       ctx.strokeStyle = shape.strokeColour;
+      ctx.lineWidth = shape.strokeWidth;
       const path = new Path2D(shape.path);
       ctx.stroke(path);
-      ctx.restore();
     }
+    ctx.restore();
   } else if (shape.type === "text") {
     ctx.save();
-    ctx.strokeStyle = "#A2D2FF";
-    ctx.font = `${fontSize || 24 * window.devicePixelRatio}px Caveat`;
+    ctx.font = `${shape.fontSize || 24 * window.devicePixelRatio}px Caveat`
     ctx.letterSpacing = "1px";
-    ctx.fillStyle = "white";
     ctx.textBaseline = "top";
+    ctx.fillStyle = shape.strokeColour;
     ctx.textAlign = "left";
     ctx.imageSmoothingEnabled = false;
     ctx.fillText(shape.text, shape.startX, shape.startY);
     if (drawBoundary) {
-      ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
+      ctx.strokeStyle = "#A2D2FF";
       ctx.letterSpacing = "1px";
       const padding = 10;
       const metrics = ctx.measureText(shape.text);
@@ -795,8 +795,8 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     }
     ctx.restore();
   } else if (shape.type === "line") {
+    ctx.save();
     if (drawBoundary) {
-      ctx.save();
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
@@ -805,17 +805,19 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.stroke();
       ctx.closePath();
       ctx.setLineDash([]);
-      ctx.restore();
     } else {
+      ctx.strokeStyle = shape.strokeColour;
+      ctx.lineWidth = shape.strokeWidth;
       ctx.beginPath();
       ctx.moveTo(shape.startX, shape.startY);
       ctx.lineTo(shape.endX, shape.endY);
       ctx.stroke();
       ctx.closePath();
     }
+    ctx.restore();
   } else if (shape.type === "arrow") {
+    ctx.save();
     if (drawBoundary) {
-      ctx.save();
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       const headlen = 12; // headlen in  pixels
@@ -830,53 +832,44 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.closePath();
       ctx.beginPath();
       ctx.moveTo(shape.endX, shape.endY);
-      ctx.lineTo(
-        shape.endX - headlen * Math.cos(angle - Math.PI / 6),
-        shape.endY - headlen * Math.sin(angle - Math.PI / 6)
-      );
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6),shape.endY - headlen * Math.sin(angle - Math.PI / 6));
       ctx.moveTo(shape.endX, shape.endY);
-      ctx.lineTo(
-        shape.endX - headlen * Math.cos(angle + Math.PI / 6),
-        shape.endY - headlen * Math.sin(angle + Math.PI / 6)
-      );
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6),shape.endY - headlen * Math.sin(angle + Math.PI / 6));
       ctx.stroke();
       ctx.closePath();
-      ctx.restore();
     } else {
       const headlen = 12; // headlen in  pixels
       const dx = shape.endX - shape.startX;
       const dy = shape.endY - shape.startY;
       const angle = Math.atan2(dy, dx);
+      ctx.strokeStyle = shape.strokeColour;
+      ctx.lineWidth = shape.strokeWidth;
       ctx.beginPath();
       ctx.moveTo(shape.startX, shape.startY);
       ctx.lineTo(shape.endX, shape.endY);
-      ctx.lineTo(
-        shape.endX - headlen * Math.cos(angle - Math.PI / 6),
-        shape.endY - headlen * Math.sin(angle - Math.PI / 6)
-      );
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6),shape.endY - headlen * Math.sin(angle - Math.PI / 6));
       ctx.moveTo(shape.endX, shape.endY);
-      ctx.lineTo(
-        shape.endX - headlen * Math.cos(angle + Math.PI / 6),
-        shape.endY - headlen * Math.sin(angle + Math.PI / 6)
-      );
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6),shape.endY - headlen * Math.sin(angle + Math.PI / 6));
       ctx.stroke();
       ctx.closePath();
     }
+    ctx.restore();
   } else if (shape.type === "rectangle") {
+    ctx.save();
     if (drawBoundary) {
-      ctx.save();
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       ctx.strokeRect( shape.startX - 6, shape.startY - 6, shape.width + 12, shape.height + 12);
       ctx.setLineDash([]);
-      ctx.restore();
     } else {
+      ctx.strokeStyle = shape.strokeColour;
+      ctx.lineWidth = shape.strokeWidth;
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     }
-    
+    ctx.restore();
   } else if (shape.type === "triangle") {
+    ctx.save();
     if (drawBoundary) {
-      ctx.save();
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
@@ -887,8 +880,9 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.stroke();
       ctx.closePath();
       ctx.setLineDash([]);
-      ctx.restore();
     } else {
+      ctx.strokeStyle = shape.strokeColour;
+      ctx.lineWidth = shape.strokeWidth;
       ctx.beginPath();
       ctx.moveTo(shape.startX + shape.width / 2, shape.startY);
       ctx.lineTo(shape.startX, shape.startY + shape.height);
@@ -897,13 +891,16 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.stroke();
       ctx.closePath();
     }
+    ctx.restore();
   } else if (shape.type === "circle") {
+    ctx.save();
+    ctx.strokeStyle = shape.strokeColour;
+    ctx.lineWidth = shape.strokeWidth;
     ctx.beginPath();
     ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
     ctx.stroke();
     ctx.closePath();
     if (drawBoundary) {
-      ctx.save();
       ctx.setLineDash([5, 5]);
       ctx.strokeStyle = '#A2D2FF';
       ctx.beginPath();
@@ -911,8 +908,8 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.stroke();
       ctx.closePath();
       ctx.setLineDash([]);
-      ctx.restore();
     }
+    ctx.restore();
   } else if (shape.type === "highlighter") {
     ctx.save();
     let pathObj;
@@ -1074,19 +1071,19 @@ const cleanupTextArea = () => {
   }
 };
 
-const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number) => {
+const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSize: Number, strokeColour:string) => {
   const textAreaElem = document.createElement("textarea");
   textAreaElem.className = "canvas-text-input";
   textAreaElem.style.position = "absolute";
-  textAreaElem.style.left = `${e.clientX}px`;
   textAreaElem.style.top = `${e.clientY}px`;
+  textAreaElem.style.left = `${e.clientX}px`;
   textAreaElem.style.minWidth = "100px";
   textAreaElem.style.minHeight = "30px";
-  textAreaElem.style.fontSize = "24px";
+  textAreaElem.style.fontSize = `${fontSize}px`;
   textAreaElem.style.fontFamily = "Caveat";
   textAreaElem.style.letterSpacing = "1px";
+  textAreaElem.style.color = strokeColour;
   textAreaElem.style.background = "transparent";
-  textAreaElem.style.color = "white";
   textAreaElem.style.border = "none";
   textAreaElem.style.outline = "none";
   textAreaElem.style.resize = "none";
