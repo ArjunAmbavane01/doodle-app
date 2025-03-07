@@ -7,12 +7,11 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
 
-import { Paintbrush2, PaintBucket, Palette, X, Check, Pipette, CircleDashed, Type, Bold, Italic, Underline, Pen, Minus, Plus, Maximize2, Minimize2, Menu, } from "lucide-react"
+import { Paintbrush2, PaintBucket, Palette, X, Check, Pipette, CircleDashed, Type, Bold, Italic, Underline, Pen, Minus, Plus, Menu, } from "lucide-react"
 
 type TabType = "color" | "text" | "pen"
 
@@ -70,15 +69,22 @@ const ExtendedToolbar = () => {
   const handleColorClick = (color: string) => {
     if (colorSubTab === "stroke") {
       setStrokeColor(color)
+      window.dispatchEvent(new CustomEvent("strokeColourChange", { detail: color }))
       if (!recentColors.includes(color)) {
         setRecentColors((prev) => [color, ...prev.slice(0, 7)])
       }
     } else {
       setBgColor(color)
+      window.dispatchEvent(new CustomEvent("bgColourChange", { detail: color }))
       if (color !== "transparent" && !recentColors.includes(color)) {
         setRecentColors((prev) => [color, ...prev.slice(0, 7)])
       }
     }
+  }
+
+  const handlePenColorClick = (color:string) => {
+      setStrokeColor(color)
+      window.dispatchEvent(new CustomEvent("strokeColourChange", { detail: color }))
   }
 
   const toggleTextStyle = (style: keyof typeof textStyle) => { setTextStyle((prev) => ({...prev, [style]: !prev[style],})) }
@@ -94,9 +100,9 @@ const ExtendedToolbar = () => {
   }
 
   return (
-    <div className="absolute top-9 left-5 z-10 font-heading">
-      <motion.div className="flex flex-col gap-3 p-2 rounded-lg bg-white/10" initial={{ width: "auto" }} animate={{ width: "auto" }}>
-        <motion.button className="flex items-center justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors" aria-label="Open color menu" whileTap={{ scale: 0.95 }} onClick={toggleMenu}>
+    <div className="absolute top-7 left-5 z-10 font-heading">
+      <motion.div className="flex flex-col gap-3 p-2 rounded-lg bg-white/15" initial={{ width: "auto" }} animate={{ width: "auto" }}>
+        <motion.button className="flex items-center justify-center size-8 rounded bg-neutral-600 border border-neutral-700 shadow-lg hover:bg-neutral-600 transition-colors" aria-label="Open color menu" whileTap={{ scale: 0.95 }} onClick={toggleMenu}>
           <Menu className="size-4 text-white" />
         </motion.button>
 
@@ -104,7 +110,7 @@ const ExtendedToolbar = () => {
           {menuExpanded && (
             <>
               <motion.button
-                className="flex items-center h- justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
+                className="flex items-center justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
@@ -302,32 +308,26 @@ const ExtendedToolbar = () => {
 
                 <div className="flex flex-col gap-2">
                   <label className="text-xs text-neutral-200">Text Style</label>
-                  <div className="flex border border-neutral-600 rounded-sm overflow-hidden">
-                    <motion.button className={`flex-1 p-2 flex justify-center ${textStyle.bold ? "bg-neutral-600" : "bg-neutral-700 hover:bg-neutral-600"}`}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => toggleTextStyle("bold")}
+                  <div className="flex border border-neutral-600 rounded-sm overflow-hidden text-white">
+                    <button className={`flex-1 p-2 flex justify-center ${textStyle.bold ? "bg-neutral-400/80" : "bg-neutral-700 hover:bg-neutral-600"}`} onClick={() => toggleTextStyle("bold")}
                     >
-                      <Bold className="size-4 text-white" />
-                    </motion.button>
-                    <motion.button className={`flex-1 p-2 flex justify-center ${textStyle.italic ? "bg-neutral-600" : "bg-neutral-700 hover:bg-neutral-600"}`}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => toggleTextStyle("italic")}
+                      <Bold className="size-4" />
+                    </button>
+                    <button className={`flex-1 p-2 flex justify-center ${textStyle.italic ? "bg-neutral-400/80" : "bg-neutral-700 hover:bg-neutral-600"}`} onClick={() => toggleTextStyle("italic")}
                     >
-                      <Italic className="size-4 text-white" />
-                    </motion.button>
-                    <motion.button className={`flex-1 p-2 flex justify-center ${textStyle.underline ? "bg-neutral-600" : "bg-neutral-700 hover:bg-neutral-600"}`}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => toggleTextStyle("underline")}
+                      <Italic className="size-4" />
+                    </button>
+                    <button className={`flex-1 p-2 flex justify-center ${textStyle.underline ? "bg-neutral-400/80" : "bg-neutral-700 hover:bg-neutral-600"}`} onClick={() => toggleTextStyle("underline")}
                     >
-                      <Underline className="size-4 text-white" />
-                    </motion.button>
+                      <Underline className="size-4" />
+                    </button>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <label className="text-xs text-neutral-200 block">Text Color</label>
                   <div className="grid grid-cols-8 gap-1">
-                    {(colorGroups[0] as IColourGroup).colors.concat((colorGroups[1] as IColourGroup).colors.slice(0, 4)).map((color) => (
+                    {[...((colorGroups[0] as IColourGroup).colors), ...((colorGroups[1] as IColourGroup).colors), ...((colorGroups[2] as IColourGroup).colors)].map((color) => (
                       <motion.button
                         key={`text-${color}`}
                         className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75"
@@ -388,12 +388,12 @@ const ExtendedToolbar = () => {
                 <div className="flex flex-col gap-2">
                   <label className="text-xs text-neutral-200">Pen Color</label>
                   <div className="grid grid-cols-8 gap-1">
-                    {(colorGroups[0] as IColourGroup).colors.concat((colorGroups[1] as IColourGroup).colors.slice(0, 4)).map((color) => (
+                    {[...((colorGroups[0] as IColourGroup).colors), ...((colorGroups[1] as IColourGroup).colors), ...((colorGroups[2] as IColourGroup).colors)].map((color) => (
                       <motion.button
                         key={`pen-${color}`}
                         className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75"
                         style={{ backgroundColor: color }}
-                        onClick={() => setStrokeColor(color)}
+                        onClick={() => handlePenColorClick(color)}
                         whileTap={{ scale: 0.95 }}
                         aria-label={`Select pen color ${color}`}
                       >

@@ -38,7 +38,7 @@ export default function Toolbar() {
   }, [])
 
   return (
-    <div className="flex items-center gap-3 mx-auto w-fit p-1.5 px-5 rounded-xl bg-white fixed inset-x-0 top-8">
+    <div className="flex items-center gap-3 mx-auto w-fit p-1.5 px-5 rounded-xl bg-white fixed inset-x-0 top-6">
         {tools.map((tool) => {
           return (
             <div key={tool.type} onClick={() => chooseTool(tool.type)} className={`relative rounded-lg p-3 hover:bg-black/10 group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === tool.type ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/10"}`}>

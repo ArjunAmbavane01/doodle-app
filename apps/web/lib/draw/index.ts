@@ -2,14 +2,14 @@ import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
 export type Shape =
-  | { type: "pen"; path: string }
-  | { type: "highlighter"; path?: Path2D, svgPath?:string , points?: IHighlightPoint[] }
-  | { type: "text"; startX: number; startY: number; text: string }
-  | { type: "line"; startX: number; startY: number; endX: number; endY: number }
-  | { type: "arrow"; startX: number; startY: number; endX: number; endY: number;}
-  | { type: "rectangle"; startX: number; startY: number; width: number; height: number;}
-  | { type: "triangle"; startX: number; startY: number; width: number; height: number;}
-  | { type: "circle"; centerX: number; centerY: number; radius: number };
+  | { type: "pen"; path: string; strokeColour:string; strokeWidth:number  }
+  | { type: "highlighter"; path?: Path2D, svgPath?:string; points?: IHighlightPoint[] }
+  | { type: "text"; startX: number; startY: number; text: string; strokeColour:string; fontSize:number }
+  | { type: "line"; startX: number; startY: number; endX: number; endY: number; strokeColour:string; strokeWidth:number }
+  | { type: "arrow"; startX: number; startY: number; endX: number; endY: number; strokeColour:string; strokeWidth:number }
+  | { type: "rectangle"; startX: number; startY: number; width: number; height: number; strokeColour:string; fillColour:string; strokeWidth:number }
+  | { type: "triangle"; startX: number; startY: number; width: number; height: number; strokeColour:string; fillColour:string; strokeWidth:number }
+  | { type: "circle"; centerX: number; centerY: number; radius: number; strokeColour:string; fillColour:string; strokeWidth:number };
 
 export interface IRoomShape { userId: string, shape: Shape};
 
@@ -25,7 +25,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const roomShapes: IRoomShape[] = getShapesFromMessages(initialMessages);
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return () => {};
-
   let selectedTool = "pen";
   let strokeColour = "#ffffff";
   let strokeWidth = 2;
@@ -65,7 +64,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const roomUsers = new Map<string,{ posX:number, posY:number}>();
 
-  setupContext(ctx, strokeColour, strokeWidth, fontSize);
+  setupContext(ctx);
 
   // Create background canvas for existing shapes
   const offscreenCanvas = document.createElement("canvas");
@@ -73,7 +72,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   offscreenCanvas.height = canvas.height;
   const offscreenCtx = offscreenCanvas.getContext("2d");
   if (!offscreenCtx) return () => {};
-  setupContext(offscreenCtx, strokeColour, strokeWidth, fontSize);
+  setupContext(offscreenCtx);
 
 
   const renderPersistentShapes = () => clearCanvas(roomShapes, selectedShape, offscreenCanvas, offscreenCtx);
@@ -101,7 +100,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     // copy all shapes from bg canvas to main canvas
     ctx.drawImage(offscreenCanvas, 0, 0);
     roomUsers.forEach((roomUser,roomUserId)=> drawUserCursor(roomUser,roomUserId,ctx))
-
     if (selectedShape && !hasMovedSinceMouseDown) drawShape(currentShape as Shape, ctx, true);
     else if (currentShape && hasMovedSinceMouseDown) drawShape(currentShape, ctx, selectedShape!=null);
     if (highlightPoints.length !== 0) drawHighlightPoints(highlightPoints);
@@ -276,7 +274,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       }
       if (selectedTool === "pen") {
         strokePoints.push({ x: startX, y: startY });
-        currentShape = { type: "pen", path: `M ${startX} ${startY}` };
+        currentShape = { type: "pen", path: `M ${startX} ${startY}`, strokeColour, strokeWidth };
       } else if (selectedTool === "text") {
         e.preventDefault();
         e.stopPropagation();
@@ -332,13 +330,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         currentShape = {...currentShape, startX : shapeStartX + deltaX, startY : shapeStartY + deltaY};
       } 
       else if (currentShape && currentShape.type === "line"){
-        currentShape = {type:"line" , startX : shapeStartX + deltaX, startY : shapeStartY + deltaY, endX : shapeEndX + deltaX, endY : shapeEndY + deltaY};
+        currentShape = {type:"line" , startX : shapeStartX + deltaX, startY : shapeStartY + deltaY, endX : shapeEndX + deltaX, endY : shapeEndY + deltaY, strokeColour, strokeWidth};
       } 
       else if (currentShape && currentShape.type === "arrow"){
-        currentShape = {type:"arrow" , startX : shapeStartX + deltaX, startY : shapeStartY + deltaY, endX : shapeEndX + deltaX, endY : shapeEndY + deltaY};
+        currentShape = {type:"arrow" , startX : shapeStartX + deltaX, startY : shapeStartY + deltaY, endX : shapeEndX + deltaX, endY : shapeEndY + deltaY, strokeColour, strokeWidth};
       } 
       else if (currentShape && currentShape.type === "text"){
-        currentShape = {...currentShape, startX : shapeStartX + deltaX, startY : shapeStartY + deltaY};
+        currentShape = {...currentShape, startX : shapeStartX + deltaX, startY : shapeStartY + deltaY, strokeColour, fontSize};
       } 
       else if (currentShape && currentShape.type === "pen"){
         currentShape = {...currentShape, path: translateSVGPath(originalShapePath as string, deltaX, deltaY)};
@@ -350,7 +348,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
             const lastPoint = strokePoints[strokePoints.length - 1];
            if ( lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
               strokePoints.push({ x: currentX, y: currentY });
-              currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
+              currentShape = { type: "pen", path: strokeToSVG(strokePoints), strokeColour };
             }
           }
           break;
@@ -358,22 +356,22 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
           highlightPoints.push({ x: currentX, y: currentY, timestamp:Date.now()});
           break;
         case "line":
-          currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY,};
+          currentShape = { type: "line", startX, startY, endX: currentX, endY: currentY, strokeColour};
           break;
         case "arrow":
-          currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY,};
+          currentShape = { type: "arrow", startX, startY, endX: currentX, endY: currentY, strokeColour};
           break;
         case "rectangle":
-          currentShape = { type: "rectangle", startX, startY, width, height };
+          currentShape = { type: "rectangle", startX, startY, width, height, strokeColour, fillColour };
           break;
         case "triangle":
-          currentShape = { type: "triangle", startX, startY, width, height };
+          currentShape = { type: "triangle", startX, startY, width, height, strokeColour, fillColour };
           break;
         case "circle":
           const centerX = startX + width / 2;
           const centerY = startY + height / 2;
           const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
-          currentShape = { type: "circle", centerX, centerY, radius };
+          currentShape = { type: "circle", centerX, centerY, radius, strokeColour, fillColour };
           break;
       }
     }
@@ -393,7 +391,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         prevMovedShape = null;
       }
       else {
-          console.log(prevMovedShape)
           roomShapes.push(shapeWithUser);
           undoStack.push({type:"move",shape:shapeWithUser,prevShape:prevMovedShape});
   
@@ -415,7 +412,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const currentY = y - rect.top;
       
       strokePoints = [{ x: currentX, y: currentY },{ x: currentX + 1, y: currentY + 1 },];
-      currentShape = { type: "pen", path: strokeToSVG(strokePoints) };
+      currentShape = { type: "pen", path: strokeToSVG(strokePoints), strokeColour };
       const shapeWithUser = { userId, shape: currentShape };
       roomShapes.push(shapeWithUser);
       undoStack.push({type:"add",shape:shapeWithUser});
@@ -455,12 +452,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const canvasX = parseFloat(textAreaElem.dataset.canvasX || "0");
       const canvasY = parseFloat(textAreaElem.dataset.canvasY || "0");
 
-      const newShape: Shape = {
-        type: "text",
-        startX: canvasX,
-        startY: canvasY,
-        text,
-      };
+      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text, strokeColour };
       const shapeWithUser: IRoomShape = { userId, shape: newShape };
       roomShapes.push(shapeWithUser);
       undoStack.push({type:"add",shape:shapeWithUser});
@@ -504,7 +496,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       renderPersistentShapes();
       render();
     } catch (e) {
-      console.log("Some error occurred : " + e);
+      console.error("Some error occurred : " + e);
     }
   };
 
@@ -541,7 +533,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       renderPersistentShapes();
       render();
     } catch (e) {
-      console.log("Some error occurred : " + e);
+      console.error("Some error occurred : " + e);
     }
   };
 
@@ -715,6 +707,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     ctx.restore();
   };
 
+  const handleColourChange = (e:Event) => {
+    const colour = (e as CustomEvent).detail;
+    strokeColour = colour; 
+    ctx.strokeStyle = strokeColour;
+  }
+
+
   renderPersistentShapes();
   render();
 
@@ -731,6 +730,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("zoomIn", () => { handleZoomIn() });
   window.addEventListener("zoomOut", () => { handleZoomOut() });
   window.addEventListener("zoomReset", () => { handleZoomReset() });
+  window.addEventListener("strokeColourChange", handleColourChange);
+  window.addEventListener("bgColourChange", handleColourChange);
   // window.addEventListener("resize", handleResize);
 
   return () => {
@@ -751,18 +752,24 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   };
 };
 
-const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false, fontSize?:number,) => {
+const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false, fontSize?:number) => {
   if (shape.type === "pen" && shape.path) {
     if (drawBoundary) {
+      ctx.save();
+      ctx.strokeStyle = "#A2D2FF";
       const path = new Path2D(shape.path);
       const boundingRect = getBoundingBoxFromPath(shape.path);
       ctx.setLineDash([5, 5]);
       if(boundingRect) ctx.strokeRect(boundingRect?.minX,boundingRect?.minY,boundingRect?.width,boundingRect?.height);
       ctx.setLineDash([]);
       ctx.stroke(path);
+      ctx.restore();
     } else {
+      ctx.save();
+      ctx.strokeStyle = shape.strokeColour;
       const path = new Path2D(shape.path);
       ctx.stroke(path);
+      ctx.restore();
     }
   } else if (shape.type === "text") {
     ctx.save();
@@ -916,10 +923,6 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     } else if(typeof shape.path === 'string') {
      pathObj = new Path2D(shape.path);
     }
-
-    // ctx.fillStyle = "red";
-    // ctx.fillRect(50, 50, 100, 100);
-
     if(!pathObj) {
       console.error("No valid path found for highlighter", shape);
       ctx.restore();
@@ -1054,14 +1057,14 @@ const strokeToSVG = (points: IPoint[]): string => {
   return path;
 };
 
-const setupContext = (ctx: CanvasRenderingContext2D, strokeColour:string, strokeWidth:number, fontSize:number) => {
+const setupContext = (ctx: CanvasRenderingContext2D) => {
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
-  ctx.lineWidth = strokeWidth;
+  ctx.lineWidth = 2;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.font = `${fontSize * window.devicePixelRatio}px Caveat`;
-  ctx.strokeStyle = strokeColour;
+  ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
+  ctx.strokeStyle = "#ffffff";
 };
 
 const cleanupTextArea = () => {
