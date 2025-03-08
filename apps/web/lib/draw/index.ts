@@ -7,7 +7,7 @@ import { IChatMessage } from "@workspace/common/interfaces";
 export type Shape =
   | { type: "pen"; path: string; strokeColour:string; strokeWidth:number  }
   | { type: "highlighter"; path?: Path2D, svgPath?:string; points?: IHighlightPoint[] }
-  | { type: "text"; startX: number; startY: number; text: string; strokeColour:string; fontSize:number }
+  | { type: "text"; startX: number; startY: number; text: string; textColour:string; fontSize:number; textStyle:{ bold: boolean, italic: boolean }, fontFamily:string }
   | { type: "line"; startX: number; startY: number; endX: number; endY: number; strokeColour:string; strokeWidth:number }
   | { type: "arrow"; startX: number; startY: number; endX: number; endY: number; strokeColour:string; strokeWidth:number }
   | { type: "rectangle"; startX: number; startY: number; width: number; height: number; strokeColour:string; fillColour:string; strokeWidth:number }
@@ -31,8 +31,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let selectedTool = "pen";
   let strokeColour = "#ffffff";
   let strokeWidth = 2;
-  let fillColour = "#0C0C0C";
-  let fontSize = 76;
+  let fillColour = "transparent";
+  let fontSize = 24;
+  let fontFamily = "Caveat";
+  let textColour = "#ffffff";
+  let textStyle = { bold: false, italic: false };
 
   let currentShape: Shape | null = null;
   let prevMovedShape: Shape | null = null;
@@ -69,7 +72,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   setupContext(ctx);
 
-  // Create background canvas for existing shapes
+  // this creates background canvas for existing shapes
   const offscreenCanvas = document.createElement("canvas");
   offscreenCanvas.width = canvas.width;
   offscreenCanvas.height = canvas.height;
@@ -281,7 +284,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       } else if (selectedTool === "text") {
         e.preventDefault();
         e.stopPropagation();
-        const textAreaElem = createTextArea(e, startX, startY, fontSize, strokeColour);
+        const textAreaElem = createTextArea(e, startX, startY, fontSize, fontFamily, textColour, textStyle);
         document.body.appendChild(textAreaElem);
         textAreaElem.focus();
         textAreaElem.addEventListener("blur", () => handleBlur(textAreaElem), {once: true,});
@@ -454,7 +457,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const canvasX = parseFloat(textAreaElem.dataset.canvasX || "0");
       const canvasY = parseFloat(textAreaElem.dataset.canvasY || "0");
 
-      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text, strokeColour, fontSize };
+      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text, textColour, fontSize, textStyle, fontFamily };
       const shapeWithUser: IRoomShape = { userId, shape: newShape };
       roomShapes.push(shapeWithUser);
       undoStack.push({type:"add",shape:shapeWithUser});
@@ -711,10 +714,17 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
 
   const handleStrokeColourChange = (e:Event) => { strokeColour = (e as CustomEvent).detail }
 
-  const handleBGColourChange = (e:Event) => { 
-    const color = (e as CustomEvent).detail;
-    fillColour = color === "transparent" ? "#0C0C0C" : color;
-  }
+  const handleBGColourChange = (e:Event) => { fillColour = (e as CustomEvent).detail}
+
+  const handleFontFamilyChange = (e:Event) => { fontFamily = (e as CustomEvent).detail }
+
+  const handleFontSizeChange = (e:Event) => { fontSize = (e as CustomEvent).detail }
+
+  const handleTextColorChange = (e:Event) => { textColour = (e as CustomEvent).detail }
+
+  const handleTextStyleChange = (e:Event) => { textStyle = (e as CustomEvent).detail }
+
+  const handlePenWidthChange = (e:Event) => { strokeWidth = (e as CustomEvent).detail }
 
   renderPersistentShapes();
   render();
@@ -734,6 +744,11 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("zoomReset", () => { handleZoomReset() });
   window.addEventListener("strokeColourChange", handleStrokeColourChange);
   window.addEventListener("bgColourChange", handleBGColourChange);
+  window.addEventListener("fontFamilyChange", handleFontFamilyChange);
+  window.addEventListener("fontSizeChange", handleFontSizeChange);
+  window.addEventListener("textColorChange", handleTextColorChange);
+  window.addEventListener("textStyleChange", handleTextStyleChange);
+  window.addEventListener("penWidthChange", handlePenWidthChange);
   // window.addEventListener("resize", handleResize);
 
   return () => {
@@ -750,6 +765,14 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     window.removeEventListener("zoomIn", () => { handleZoomIn() });
     window.removeEventListener("zoomOut", () => { handleZoomOut() });
     window.removeEventListener("zoomReset", () => { handleZoomReset() });
+    window.removeEventListener("strokeColourChange", handleStrokeColourChange);
+    window.removeEventListener("bgColourChange", handleBGColourChange);
+    window.removeEventListener("fontFamilyChange", handleFontFamilyChange);
+    window.removeEventListener("fontSizeChange", handleFontSizeChange);
+    window.removeEventListener("textColorChange", handleTextColorChange);
+    window.removeEventListener("textStyleChange", handleTextStyleChange);
+    window.removeEventListener("penWidthChange", handlePenWidthChange);
+
     // window.removeEventListener("resize", handleResize);
   };
 };
@@ -774,16 +797,19 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     ctx.restore();
   } else if (shape.type === "text") {
     ctx.save();
-    ctx.font = `${shape.fontSize || 24 * window.devicePixelRatio}px Caveat`
+    const fontSize = (shape.fontSize || 24) * window.devicePixelRatio;
+    const fontFamily = (shape.fontFamily || "Caveat");
+    const fontWeight = shape.textStyle.bold ? "bold" : "";
+    const fontStyle = shape.textStyle.italic ? "italic" : "";
+    ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
     ctx.letterSpacing = "1px";
     ctx.textBaseline = "top";
-    ctx.fillStyle = shape.strokeColour;
+    ctx.fillStyle = shape.textColour;
     ctx.textAlign = "left";
     ctx.imageSmoothingEnabled = false;
     ctx.fillText(shape.text, shape.startX, shape.startY);
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
-      ctx.letterSpacing = "1px";
       const padding = 10;
       const metrics = ctx.measureText(shape.text);
       const textWidth = metrics.width;
@@ -863,9 +889,11 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.setLineDash([]);
     } else {
       ctx.strokeStyle = shape.strokeColour;
-      ctx.fillStyle = shape.fillColour;
       ctx.lineWidth = shape.strokeWidth;
-      ctx.fillRect(shape.startX, shape.startY, shape.width, shape.height);
+      if (shape.fillColour && shape.fillColour !== "transparent") {
+        ctx.fillStyle = shape.fillColour;
+        ctx.fillRect(shape.startX, shape.startY, shape.width, shape.height);
+      }
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     }
     ctx.restore();
@@ -890,6 +918,10 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.lineTo(shape.startX, shape.startY + shape.height);
       ctx.lineTo(shape.startX + shape.width, shape.startY + shape.height);
       ctx.lineTo(shape.startX + shape.width / 2, shape.startY);
+      if (shape.fillColour && shape.fillColour !== "transparent") {
+        ctx.fillStyle = shape.fillColour;
+        ctx.fill();
+      }
       ctx.stroke();
       ctx.closePath();
     }
@@ -900,6 +932,10 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     ctx.lineWidth = shape.strokeWidth;
     ctx.beginPath();
     ctx.arc(shape.centerX, shape.centerY, shape.radius, 0, Math.PI * 2);
+    if (shape.fillColour && shape.fillColour !== "transparent"){
+      ctx.fillStyle = shape.fillColour;
+      ctx.fill();
+    }
     ctx.stroke();
     ctx.closePath();
     if (drawBoundary) {
@@ -1073,18 +1109,23 @@ const cleanupTextArea = () => {
   }
 };
 
-const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSize: Number, strokeColour:string) => {
+const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSize: Number, fontFamily:string, textColor:string, textStyle:{ bold: boolean, italic: boolean }) => {
   const textAreaElem = document.createElement("textarea");
+  const fontStyle = textStyle.italic ? "italic" : "normal";
+  const fontWeight = textStyle.bold ? "bold" : "normal";
+
   textAreaElem.className = "canvas-text-input";
-  textAreaElem.style.position = "absolute";
   textAreaElem.style.top = `${e.clientY}px`;
   textAreaElem.style.left = `${e.clientX}px`;
+  textAreaElem.style.fontSize = `${fontSize}px`;
+  textAreaElem.style.fontFamily = fontFamily;
+  textAreaElem.style.color = textColor;
+  textAreaElem.style.fontWeight = fontWeight;
+  textAreaElem.style.fontStyle = fontStyle; 
+  textAreaElem.style.position = "absolute";
   textAreaElem.style.minWidth = "100px";
   textAreaElem.style.minHeight = "30px";
-  textAreaElem.style.fontSize = `${fontSize}px`;
-  textAreaElem.style.fontFamily = "Caveat";
   textAreaElem.style.letterSpacing = "1px";
-  textAreaElem.style.color = strokeColour;
   textAreaElem.style.background = "transparent";
   textAreaElem.style.border = "none";
   textAreaElem.style.outline = "none";

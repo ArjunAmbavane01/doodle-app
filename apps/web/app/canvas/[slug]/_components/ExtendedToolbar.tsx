@@ -2,16 +2,9 @@
 
 import { useState } from "react"
 import { motion, AnimatePresence } from "motion/react";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 
-import { Paintbrush2, PaintBucket, Palette, X, Check, Pipette, CircleDashed, Type, Bold, Italic, Underline, Pen, Minus, Plus, Menu, } from "lucide-react"
+import { Paintbrush2, PaintBucket, Palette, X, Check, Pipette, CircleDashed, Type, Bold, Italic, Pen, Minus, Plus, Menu, } from "lucide-react"
 
 type TabType = "color" | "text" | "pen"
 
@@ -41,11 +34,10 @@ const colorGroups: IColourGroup[] = [
 ]
 
 const fontFamilies: IToolOption[] = [
-  { name: "Handwritten", value: "Comic Sans MS, cursive" },
+  { name: "Handwritten", value: "Caveat, Comic Sans MS, cursive" },
   { name: "Sans Serif", value: "Arial, sans-serif" },
   { name: "Serif", value: "Georgia, serif" },
-  { name: "Monospace", value: "Courier New, monospace" },
-  { name: "Elegant", value: "Garamond, serif" },
+  { name: "Elegant", value: "Garamond, Times New Roman, serif" },
 ]
 
 
@@ -59,9 +51,10 @@ const ExtendedToolbar = () => {
   const [recentColors, setRecentColors] = useState<string[]>([]);
 
   // Text options
-  const [fontFamily, setFontFamily] = useState((fontFamilies[0] as IToolOption).value)
-  const [fontSize, setFontSize] = useState(16)
-  const [textStyle, setTextStyle] = useState({ bold: false, italic: false, underline: false })
+  const [fontFamily, setFontFamily] = useState((fontFamilies[0] as IToolOption).value);
+  const [fontSize, setFontSize] = useState(24);
+  const [textColor, setTextColor] = useState("#ffffff");
+  const [textStyle, setTextStyle] = useState({ bold: false, italic: false });
 
   // Pen options
   const [penWidth, setPenWidth] = useState(2)
@@ -82,12 +75,40 @@ const ExtendedToolbar = () => {
     }
   }
 
-  const handlePenColorClick = (color:string) => {
+  const handleFontFamilyClick = (fontFamily: string) => {
+    setFontFamily(fontFamily);
+    window.dispatchEvent(new CustomEvent("fontFamilyChange", { detail: fontFamily }));
+  }
+
+  const handleFontSizeClick = (type: "increase" | "decrease") => {
+    const modifier = type === "increase" ? 1 : -1;
+    const newSize = Math.min(72, Math.max(8, fontSize + modifier));
+    setFontSize(newSize)
+    window.dispatchEvent(new CustomEvent("fontSizeChange", { detail: newSize }));
+  }
+
+  const handleTextColorClick = (color: string) => {
+    setTextColor(color);
+    window.dispatchEvent(new CustomEvent("textColorChange", { detail: color }));
+  }
+
+  const handlePenColorClick = (color: string) => {
     setStrokeColor(color)
     window.dispatchEvent(new CustomEvent("strokeColourChange", { detail: color }))
   }
 
-  const toggleTextStyle = (style: keyof typeof textStyle) => { setTextStyle((prev) => ({...prev, [style]: !prev[style],})) }
+  const toggleTextStyle = (style: keyof typeof textStyle) => { 
+    const updatedTextStyle = {...textStyle, [style]: !textStyle[style],};
+    setTextStyle(updatedTextStyle);
+    window.dispatchEvent(new CustomEvent("textStyleChange", {detail : updatedTextStyle}));
+  }
+
+  const handlePenWidthClick = (type: "increase" | "decrease") => {
+    const modifier = type === "increase" ? 1 : -1;
+    const newSize = Math.min(20, Math.max(1, penWidth + modifier));
+    setPenWidth(newSize)
+    window.dispatchEvent(new CustomEvent("penWidthChange", { detail: newSize }));
+  }
 
   const toggleMenu = () => {
     setMenuExpanded(!menuExpanded)
@@ -206,7 +227,7 @@ const ExtendedToolbar = () => {
                             onClick={() => handleColorClick(color)} aria-label={`Select color ${color}`}>
                             {((colorSubTab === "stroke" && strokeColor === color) ||
                               (colorSubTab === "bg" && bgColor === color)) && (
-                                  <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }}/>
+                                <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }} />
                               )}
                           </button>
                         ))}
@@ -217,7 +238,7 @@ const ExtendedToolbar = () => {
                   <div className="flex flex-col gap-3">
                     {colorGroups.map((group) => (
                       <div key={group.name} className="flex flex-col gap-2">
-                          <h4 className="text-xs text-neutral-200">{group.name}</h4>
+                        <h4 className="text-xs text-neutral-200">{group.name}</h4>
                         <div className="grid grid-cols-8 gap-1">
                           {group.colors.map((color) => (
                             <motion.button
@@ -229,7 +250,7 @@ const ExtendedToolbar = () => {
                               aria-label={`Select color ${color}`}
                             >
                               {((colorSubTab === "stroke" && strokeColor === color) || (colorSubTab === "bg" && bgColor === color)) && (
-                                  <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }}/>
+                                <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }} />
                               )}
                             </motion.button>
                           ))}
@@ -250,13 +271,14 @@ const ExtendedToolbar = () => {
 
                 <div className="flex items-center justify-around p-3 text-xs text-white border-t border-neutral-700">
                   <div className="flex items-center gap-3">
-                    <div className="size-6 rounded-sm border border-white" style={{ backgroundColor: strokeColor }}/>
+                    <div className="size-6 rounded-sm border border-white" style={{ backgroundColor: strokeColor }} />
                     Stroke
                   </div>
                   <div className="flex items-center gap-3">
                     <div
                       className="size-6 rounded-sm border border-white"
-                      style={{ backgroundColor: bgColor === "transparent" ? "transparent" : bgColor,
+                      style={{
+                        backgroundColor: bgColor === "transparent" ? "transparent" : bgColor,
                         backgroundImage: bgColor === "transparent" ? "repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 8px 8px" : "none",
                       }}
                     />
@@ -271,9 +293,9 @@ const ExtendedToolbar = () => {
               <div className="flex flex-col gap-3 p-3 min-h-80">
                 <div className="flex flex-col gap-2">
                   <label className="text-xs text-neutral-200 block">Font Family</label>
-                  <Select value={fontFamily} onValueChange={setFontFamily}>
+                  <Select value={fontFamily} onValueChange={handleFontFamilyClick}>
                     <SelectTrigger className="p-2 rounded-sm text-sm w-full bg-neutral-700 border border-neutral-600 text-white focus:outline-none focus:ring-0" value={fontFamily}>
-                    <SelectValue placeholder="Select Font"/>
+                      <SelectValue placeholder="Select Font" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -290,7 +312,7 @@ const ExtendedToolbar = () => {
                   <div className="flex items-center h-8">
                     <motion.button className="grid place-items-center h-full w-8 rounded-l-sm border bg-neutral-700 hover:bg-neutral-600 text-white border-neutral-600"
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setFontSize((prev) => Math.max(8, prev - 1))}
+                      onClick={() => handleFontSizeClick("decrease")}
                     >
                       <Minus className="size-3" />
                     </motion.button>
@@ -299,7 +321,7 @@ const ExtendedToolbar = () => {
                     </div>
                     <motion.button className="grid place-items-center h-full w-8 rounded-r-sm border bg-neutral-700 hover:bg-neutral-600 text-white border-neutral-600"
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setFontSize((prev) => Math.min(72, prev + 1))}
+                      onClick={() => handleFontSizeClick("increase")}
                     >
                       <Plus className="size-4" />
                     </motion.button>
@@ -317,10 +339,6 @@ const ExtendedToolbar = () => {
                     >
                       <Italic className="size-4" />
                     </button>
-                    <button className={`flex-1 p-2 flex justify-center ${textStyle.underline ? "bg-neutral-400/80" : "bg-neutral-700 hover:bg-neutral-600"}`} onClick={() => toggleTextStyle("underline")}
-                    >
-                      <Underline className="size-4" />
-                    </button>
                   </div>
                 </div>
 
@@ -332,11 +350,11 @@ const ExtendedToolbar = () => {
                         key={`text-${color}`}
                         className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75"
                         style={{ backgroundColor: color }}
-                        onClick={() => setStrokeColor(color)}
+                        onClick={() => handleTextColorClick(color)}
                         whileTap={{ scale: 0.95 }}
                         aria-label={`Select text color ${color}`}
                       >
-                        {strokeColor === color && ( <Check className="size-4 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }}/>)}
+                        {textColor === color && (<Check className="size-4 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }} />)}
                       </motion.button>
                     ))}
                   </div>
@@ -349,8 +367,7 @@ const ExtendedToolbar = () => {
                       fontSize: `${fontSize}px`,
                       fontWeight: textStyle.bold ? "bold" : "normal",
                       fontStyle: textStyle.italic ? "italic" : "normal",
-                      textDecoration: textStyle.underline ? "underline" : "none",
-                      color: strokeColor,
+                      color: textColor,
                     }}
                   >
                     Hello World !
@@ -367,7 +384,7 @@ const ExtendedToolbar = () => {
                   <div className="flex items-center h-8">
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setPenWidth((prev) => Math.max(1, prev - 1))}
+                      onClick={() => handlePenWidthClick("decrease")}
                       className="h-full p-2 rounded-l-sm bg-neutral-700 hover:bg-neutral-600 text-white border border-neutral-600"
                     >
                       <Minus className="size-4" />
@@ -377,7 +394,7 @@ const ExtendedToolbar = () => {
                     </div>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setPenWidth((prev) => Math.min(20, prev + 1))}
+                      onClick={() => handlePenWidthClick("increase")}
                       className="h-full p-2 rounded-r-sm bg-neutral-700 hover:bg-neutral-600 text-white border border-neutral-600"
                     >
                       <Plus className="size-4" />
@@ -397,14 +414,14 @@ const ExtendedToolbar = () => {
                         whileTap={{ scale: 0.95 }}
                         aria-label={`Select pen color ${color}`}
                       >
-                        {strokeColor === color && ( <Check className="size-4 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }}/>)}
+                        {strokeColor === color && (<Check className="size-4 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }} />)}
                       </motion.button>
                     ))}
                   </div>
                 </div>
 
                 <div className="flex items-center justify-center w-full h-12 p-2 bg-neutral-900 rounded-sm">
-                    <div style={{ width: "80%", height: `${penWidth}px`, backgroundColor: strokeColor, borderColor: strokeColor,}}/>
+                  <div style={{ width: "80%", height: `${penWidth}px`, backgroundColor: strokeColor, borderColor: strokeColor, }} />
                 </div>
               </div>
             )}
