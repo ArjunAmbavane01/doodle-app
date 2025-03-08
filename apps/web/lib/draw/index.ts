@@ -1,7 +1,7 @@
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
-      // THERE IS ISSUE WHILE SELECTING, THE TEXT IS STILL SMALL IN MEASURE TEXT FUNCTION
+  // THERE IS ISSUE WHILE SELECTING, THE TEXT IS STILL SMALL IN MEASURE TEXT FUNCTION
 
 
 export type Shape =
@@ -31,7 +31,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   let selectedTool = "pen";
   let strokeColour = "#ffffff";
   let strokeWidth = 2;
-  let fillColour = "#ffffff";
+  let fillColour = "#0C0C0C";
   let fontSize = 76;
 
   let currentShape: Shape | null = null;
@@ -709,12 +709,12 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     ctx.restore();
   };
 
-  const handleColourChange = (e:Event) => {
-    const colour = (e as CustomEvent).detail;
-    strokeColour = colour; 
-    ctx.strokeStyle = strokeColour;
-  }
+  const handleStrokeColourChange = (e:Event) => { strokeColour = (e as CustomEvent).detail }
 
+  const handleBGColourChange = (e:Event) => { 
+    const color = (e as CustomEvent).detail;
+    fillColour = color === "transparent" ? "#0C0C0C" : color;
+  }
 
   renderPersistentShapes();
   render();
@@ -732,8 +732,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("zoomIn", () => { handleZoomIn() });
   window.addEventListener("zoomOut", () => { handleZoomOut() });
   window.addEventListener("zoomReset", () => { handleZoomReset() });
-  window.addEventListener("strokeColourChange", handleColourChange);
-  window.addEventListener("bgColourChange", handleColourChange);
+  window.addEventListener("strokeColourChange", handleStrokeColourChange);
+  window.addEventListener("bgColourChange", handleBGColourChange);
   // window.addEventListener("resize", handleResize);
 
   return () => {
@@ -863,7 +863,9 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
       ctx.setLineDash([]);
     } else {
       ctx.strokeStyle = shape.strokeColour;
+      ctx.fillStyle = shape.fillColour;
       ctx.lineWidth = shape.strokeWidth;
+      ctx.fillRect(shape.startX, shape.startY, shape.width, shape.height);
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     }
     ctx.restore();

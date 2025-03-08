@@ -74,7 +74,7 @@ const ExtendedToolbar = () => {
         setRecentColors((prev) => [color, ...prev.slice(0, 7)])
       }
     } else {
-      setBgColor(color)
+      setBgColor(color);
       window.dispatchEvent(new CustomEvent("bgColourChange", { detail: color }))
       if (color !== "transparent" && !recentColors.includes(color)) {
         setRecentColors((prev) => [color, ...prev.slice(0, 7)])
@@ -83,8 +83,8 @@ const ExtendedToolbar = () => {
   }
 
   const handlePenColorClick = (color:string) => {
-      setStrokeColor(color)
-      window.dispatchEvent(new CustomEvent("strokeColourChange", { detail: color }))
+    setStrokeColor(color)
+    window.dispatchEvent(new CustomEvent("strokeColourChange", { detail: color }))
   }
 
   const toggleTextStyle = (style: keyof typeof textStyle) => { setTextStyle((prev) => ({...prev, [style]: !prev[style],})) }
@@ -240,7 +240,7 @@ const ExtendedToolbar = () => {
 
                   {colorSubTab === "bg" && (
                     <button className="flex items-center gap-2 text-sm text-white hover:bg-neutral-700 p-2 rounded w-full transition-colors duration-200"
-                      onClick={() => setBgColor("transparent")}
+                      onClick={() => handleColorClick("transparent")}
                     >
                       <CircleDashed className="size-3" />
                       Transparent {bgColor === "transparent" && <Check className="ml-auto size-3 text-white" />}
