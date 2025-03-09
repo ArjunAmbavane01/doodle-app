@@ -1,8 +1,7 @@
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { IChatMessage } from "@workspace/common/interfaces";
 
-  // THERE IS ISSUE WHILE SELECTING, THE TEXT IS STILL SMALL IN MEASURE TEXT FUNCTION
-
+// THERE IS ISSUE WHILE SELECTING, THE TEXT IS STILL SMALL IN MEASURE TEXT FUNCTION
 
 export type Shape =
   | { type: "pen"; path: string; strokeColour:string; strokeWidth:number  }
@@ -28,6 +27,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   const roomShapes: IRoomShape[] = getShapesFromMessages(initialMessages);
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return () => {};
+  
   let selectedTool = "pen";
   let strokeColour = "#ffffff";
   let strokeWidth = 2;
@@ -134,12 +134,10 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     const isTrackpadPinch = e.ctrlKey || Math.abs(e.deltaY) < 10 && (!Number.isInteger(e.deltaX) || !Number.isInteger(e.deltaY));
     if(isTrackpadPinch){
       e.preventDefault();
-      const zoomDirection = e.deltaY < 0 ? 1 : -1;
-      if(zoomDirection > 0){
-        zoomScale = (Math.min(zoomScale * zoomFactor, 10));
-      } else {
-        zoomScale = (Math.max(zoomScale / zoomFactor, 0.1));
-      }
+      const zoomDirection = e.deltaY < 0 ? -1 : 1;
+      const dampingFactor = 0.005;
+      zoomScale *= 1 - dampingFactor * zoomDirection;
+      zoomScale = Math.max(0.1, Math.min(zoomScale, 10));
       if(!isPanning) requestAnimationFrame(()=> render())
       if(zoomChangeTimeout) clearTimeout(zoomChangeTimeout);
       zoomChangeTimeout = window.setTimeout(() => notifyZoomComplete(zoomScale), 10);
@@ -565,10 +563,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeToDelete));
       if (index !== -1) {
         roomShapes.splice(index, 1);
-        undoStack.push({type:"delete",shape:{
-          userId:shapeToDelete.userId,
-          shape:shapeToDelete.shape
-        }});
+        undoStack.push({type:"delete",shape:{ userId:shapeToDelete.userId, shape:shapeToDelete.shape }});
       }
       renderPersistentShapes();
       render();
@@ -576,62 +571,42 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     } else if (e.key === "h") {
       selectedTool = "pan";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "pan" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pan" }));
     } else if (e.key === "s") {
       selectedTool = "selection";
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "selection" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "selection" }));
     } else if (e.key === "r") {
       selectedTool = "rectangle";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" }));
     } else if (e.key === "c") {
       selectedTool = "circle";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "circle" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "circle" }));
     } else if (e.key === "t") {
       selectedTool = "triangle";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" }));
     } else if (e.key === "p") {
       selectedTool = "pen";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "pen" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pen" }));
     } else if (e.key === "l") {
       selectedTool = "line";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "line" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "line" }));
     } else if (e.key === "a") {
       selectedTool = "arrow";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" }));
     } else if (e.key === "w") {
       selectedTool = "text";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "text" })
-      );
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "text" }));
     } else if (e.key === "m") {
       selectedTool = "highlighter";
       selectedShape = null;
-      window.dispatchEvent(
-        new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" })
-      );
+      window.dispatchEvent( new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" }));
     }
     canvas.style.cursor = selectedTool === "pan" ? "grab" : "default";
   };
@@ -739,9 +714,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("redo", handleRedo);
   window.addEventListener("undo", handleUndo);
-  window.addEventListener("zoomIn", () => { handleZoomIn() });
-  window.addEventListener("zoomOut", () => { handleZoomOut() });
-  window.addEventListener("zoomReset", () => { handleZoomReset() });
+  window.addEventListener("zoomIn", handleZoomIn);
+  window.addEventListener("zoomOut", handleZoomOut);
+  window.addEventListener("zoomReset", handleZoomReset);
   window.addEventListener("strokeColourChange", handleStrokeColourChange);
   window.addEventListener("bgColourChange", handleBGColourChange);
   window.addEventListener("fontFamilyChange", handleFontFamilyChange);
@@ -749,7 +724,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
   window.addEventListener("textColorChange", handleTextColorChange);
   window.addEventListener("textStyleChange", handleTextStyleChange);
   window.addEventListener("penWidthChange", handlePenWidthChange);
-  // window.addEventListener("resize", handleResize);
 
   return () => {
     canvas.removeEventListener("mousedown", handleMouseDown);
@@ -762,9 +736,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     window.removeEventListener("redo", handleRedo);
     window.removeEventListener("undo", handleUndo);
     window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("zoomIn", () => { handleZoomIn() });
-    window.removeEventListener("zoomOut", () => { handleZoomOut() });
-    window.removeEventListener("zoomReset", () => { handleZoomReset() });
+    window.removeEventListener("zoomIn", handleZoomIn);
+    window.removeEventListener("zoomOut", handleZoomOut);
+    window.removeEventListener("zoomReset", handleZoomReset);
     window.removeEventListener("strokeColourChange", handleStrokeColourChange);
     window.removeEventListener("bgColourChange", handleBGColourChange);
     window.removeEventListener("fontFamilyChange", handleFontFamilyChange);
@@ -772,8 +746,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     window.removeEventListener("textColorChange", handleTextColorChange);
     window.removeEventListener("textStyleChange", handleTextStyleChange);
     window.removeEventListener("penWidthChange", handlePenWidthChange);
-
-    // window.removeEventListener("resize", handleResize);
   };
 };
 
@@ -801,13 +773,17 @@ const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: b
     const fontFamily = (shape.fontFamily || "Caveat");
     const fontWeight = shape.textStyle.bold ? "bold" : "";
     const fontStyle = shape.textStyle.italic ? "italic" : "";
+    const lineHeight = fontSize * 1.2;
     ctx.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
     ctx.letterSpacing = "1px";
     ctx.textBaseline = "top";
     ctx.fillStyle = shape.textColour;
     ctx.textAlign = "left";
     ctx.imageSmoothingEnabled = false;
-    ctx.fillText(shape.text, shape.startX, shape.startY);
+    const lines = shape.text.split('\n');
+    lines.forEach((line, index) => {
+      ctx.fillText(line, shape.startX, shape.startY + index * lineHeight);
+    });
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       const padding = 10;
@@ -1115,14 +1091,14 @@ const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSiz
   const fontWeight = textStyle.bold ? "bold" : "normal";
 
   textAreaElem.className = "canvas-text-input";
+  textAreaElem.style.position = "absolute";
   textAreaElem.style.top = `${e.clientY}px`;
   textAreaElem.style.left = `${e.clientX}px`;
   textAreaElem.style.fontSize = `${fontSize}px`;
-  textAreaElem.style.fontFamily = fontFamily;
-  textAreaElem.style.color = textColor;
   textAreaElem.style.fontWeight = fontWeight;
   textAreaElem.style.fontStyle = fontStyle; 
-  textAreaElem.style.position = "absolute";
+  textAreaElem.style.fontFamily = fontFamily;
+  textAreaElem.style.color = textColor;
   textAreaElem.style.minWidth = "100px";
   textAreaElem.style.minHeight = "30px";
   textAreaElem.style.letterSpacing = "1px";
@@ -1130,18 +1106,22 @@ const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSiz
   textAreaElem.style.border = "none";
   textAreaElem.style.outline = "none";
   textAreaElem.style.resize = "none";
-  textAreaElem.style.overflowY = "hidden";
+  textAreaElem.style.overflow = "hidden";
   textAreaElem.style.zIndex = "1000";
+  textAreaElem.style.whiteSpace = "pre-wrap";
+
   textAreaElem.dataset.canvasX = canvasX.toString();
   textAreaElem.dataset.canvasY = canvasY.toString();
 
-  const adjustHeight = () => {
+  const adjustSize = () => {
     textAreaElem.style.height = "auto";
+    textAreaElem.style.width = "auto";
     textAreaElem.style.height = `${textAreaElem.scrollHeight}px`;
+    textAreaElem.style.width = `${textAreaElem.scrollWidth}px`;
   };
 
-  textAreaElem.addEventListener("input", adjustHeight);
-  adjustHeight();
+  textAreaElem.addEventListener("input", adjustSize);
+  adjustSize();
   return textAreaElem;
 };
 

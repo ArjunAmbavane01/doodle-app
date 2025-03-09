@@ -31,7 +31,7 @@ export default function RootLayout({
         {/* <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" /> */}
       </head>
       <SessionProvider>
-        <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
+        <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased overflow-hidden bg-[#0C0C0C]`}>
           <Providers>
             <LoadingProvider>
               {children}
