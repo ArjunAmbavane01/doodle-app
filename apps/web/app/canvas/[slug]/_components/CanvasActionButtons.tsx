@@ -14,7 +14,7 @@ const CanvasActionButtons = () => {
         return () => window.removeEventListener('zoomLevelChange', handleZoomChange as EventListener);
     }, []);
     return (
-        <div className="flex gap-5 absolute bottom-8 left-8">
+        <div className="flex gap-5 fixed bottom-8 left-8">
             <div className="flex bg-white rounded-lg">
                 <button className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-l-lg disabled:opacity-50"
                     disabled={zoomLevel <= 10}

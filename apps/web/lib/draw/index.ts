@@ -23,7 +23,7 @@ export interface IHighlightPoint { x: number, y: number, timestamp:number};
 
 export interface IUserAction { type: "add" | "delete" | "move", shape : IRoomShape, prevShape ?: Shape}
 
-export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialMessages: IChatMessage[], userId: string) => {
+export const initDraw = ( canvas: HTMLCanvasElement, container: HTMLDivElement, socket: WebSocket, initialMessages: IChatMessage[], userId: string) => {
   const roomShapes: IRoomShape[] = getShapesFromMessages(initialMessages);
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return () => {};
@@ -283,7 +283,9 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
         e.preventDefault();
         e.stopPropagation();
         const textAreaElem = createTextArea(e, startX, startY, fontSize, fontFamily, textColour, textStyle);
-        document.body.appendChild(textAreaElem);
+        const textAreaContainer = document.getElementById('textarea-container');
+        // document.body.appendChild(textAreaElem);
+        if(textAreaContainer) textAreaContainer.appendChild(textAreaElem);
         textAreaElem.focus();
         textAreaElem.addEventListener("blur", () => handleBlur(textAreaElem), {once: true,});
         textAreaElem.addEventListener("keydown", (e) => {
@@ -464,7 +466,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       renderPersistentShapes();
       render();
     }
-    document.body.removeChild(textAreaElem);
+    const textAreaContainer = document.getElementById('textarea-container');
+    if(textAreaContainer) textAreaContainer.removeChild(textAreaElem);
   };
 
   const handleUndo = () => {
@@ -1108,7 +1111,7 @@ const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSiz
   textAreaElem.style.resize = "none";
   textAreaElem.style.overflow = "hidden";
   textAreaElem.style.zIndex = "1000";
-  textAreaElem.style.whiteSpace = "pre-wrap";
+  textAreaElem.style.whiteSpace = "pre";
 
   textAreaElem.dataset.canvasX = canvasX.toString();
   textAreaElem.dataset.canvasY = canvasY.toString();

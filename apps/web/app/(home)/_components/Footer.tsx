@@ -14,7 +14,7 @@ const socialLinks = [
   {
     icon: Linkedin,
     label: "LinkedIn",
-    href: "https://linkedin.com/in/ArjunAmbavane01",
+    href: "https://www.linkedin.com/in/arjun-ambavane/",
   },
   {
     icon: Mail,

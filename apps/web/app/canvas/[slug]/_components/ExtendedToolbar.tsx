@@ -121,7 +121,7 @@ const ExtendedToolbar = () => {
   }
 
   return (
-    <div className="absolute top-7 left-5 z-10 font-heading">
+    <div className="fixed top-7 left-5 z-10 font-heading">
       <motion.div className="flex flex-col gap-3 p-2 rounded-lg bg-white/15" initial={{ width: "auto" }} animate={{ width: "auto" }}>
         <motion.button className="flex items-center justify-center size-8 rounded bg-neutral-600 border border-neutral-700 shadow-lg hover:bg-neutral-600 transition-colors" aria-label="Open color menu" whileTap={{ scale: 0.95 }} onClick={toggleMenu}>
           <Menu className="size-4 text-white" />

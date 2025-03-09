@@ -13,15 +13,16 @@ const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, ro
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (canvasRef.current && socket) {
-            const cleanup = initDraw(canvasRef.current, socket, roomMessages, userId);
+        if (canvasRef.current && containerRef.current && socket) {
+            const cleanup = initDraw(canvasRef.current, containerRef.current, socket, roomMessages, userId);
             return cleanup;
         }
     }, [socket, roomMessages, userId])
 
     return (
-        <div ref={containerRef} className="w-screen h-screen relative overflow-hidden">
+        <div ref={containerRef} className="w-screen h-screen relative overflow-hidden" id="canvas-container">
             <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000] absolute inset-0" />
+            <div id="textarea-container" />
             <Toolbar />
             <ExtendedToolbar />
             <ActionButtons />
