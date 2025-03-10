@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from "react";
 import { BASE_WS_URL } from "@/lib/apiEndPoints";
-import {IChatMessage} from "@workspace/common/interfaces";
+import {IChatMessage} from "@workspace/common/schemas";
 import Canvas from "./Canvas";
 import { useLoading } from "@/providers/LoadingProvider";
 

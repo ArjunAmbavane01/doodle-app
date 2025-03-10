@@ -191,6 +191,9 @@ importers:
       '@types/ws':
         specifier: ^8.5.14
         version: 8.5.14
+      '@workspace/common':
+        specifier: workspace:*
+        version: link:../../packages/common
       '@workspace/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -222,6 +225,10 @@ importers:
         version: link:../typescript-config
 
   packages/common:
+    dependencies:
+      zod:
+        specifier: ^3.23.8
+        version: 3.24.1
     devDependencies:
       '@workspace/typescript-config':
         specifier: workspace:*

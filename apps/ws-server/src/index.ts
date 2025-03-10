@@ -2,16 +2,17 @@ import { verify } from "jsonwebtoken";
 import { WebSocketServer, WebSocket } from "ws";
 import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import prisma from "@workspace/db/client";
+import { messageSchema, messageType } from "@workspace/common/schemas";
 
-interface IUser {
-  userId: string;
-  rooms: number[];
-  ws: WebSocket;
-}
 // Auto-delete empty rooms
-
 // If all users leave a room, remove it from the WebSocket state.
 // Optionally, delete it from the DB after a timeout.
+
+
+interface IUser { userId: string; rooms: number[]; ws: WebSocket; }
+
+const users: IUser[] = [];
+
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -22,7 +23,6 @@ const checkToken = (token: string | null) => {
   return { userId: payload.userId, roomId: payload.roomId };
 };
 
-const users: IUser[] = [];
 
 wss.on("connection", (ws: WebSocket, req) => {
   const reqURL = req.url;
@@ -39,71 +39,72 @@ wss.on("connection", (ws: WebSocket, req) => {
     if (typeof data !== "string") parsedData = JSON.parse(data.toString());
     else parsedData = JSON.parse(data);
 
-    if (parsedData.type === "join_room") {
+    const result = messageSchema.safeParse(parsedData);
+    if(result.error){
+      ws.send(`Invalid message format : ${JSON.stringify(result.error)}`);
+      return;
+    }
+    const msg = result.data;
+
+    if (msg.type === "join_room" as messageType) {
       const user = users.find((x) => x.ws == ws);
       if (!user) return;
-      user?.rooms.push(roomId);
-    } else if (parsedData.type === "leave_room") {
+      user.rooms.push(roomId);
+    } else if (msg.type === "leave_room") {
       const user = users.find((x) => x.ws == ws);
       if (!user) return;
-      user?.rooms.filter((x) => x != roomId);
-    } else if (parsedData.type === "user_pos") {
+      user.rooms.filter((x) => x != roomId);
+    } else if (msg.type === "user_pos") {
       try {
-        const posX = parsedData.clientX;
-        const posY = parsedData.clientY;
+        const { posX, posY } = msg;
         users.forEach((user) => {
           if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "room_user_pos", userId , posX, posY }));
         });
       } catch (e) {
-        console.error("Database error:", e);
-        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
+        console.error("Error:", e);
+        ws.send(JSON.stringify({ type: "error", message: "Error sending user position",}));
       }
     } 
-    else if (parsedData.type === "chat") {
-      const message = parsedData.message;
+    else if (msg.type === "chat") {
+      const { message } = msg;
       try {
         const shapeReceived = JSON.parse(message);
         if(shapeReceived.type !== "highlighter") await prisma.chat.create({ data: { message, roomId, userId } });
         users.forEach((user) => {
-          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, roomId, userId }));
+          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, userId }));
         });
       } catch (e) {
         console.error("Database error:", e);
-        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
+        ws.send(JSON.stringify({ type: "error", message: "Error creating shape, please try again later.",}));
       }
-    } else if (parsedData.type === "delete_shape") {
+    } else if (msg.type === "delete_shape") {
       try {
-        const shapeToDelete = await prisma.chat.findFirst({ where: {roomId, message:parsedData.message }, orderBy: { id: "desc",},});
+        const shapeToDelete = await prisma.chat.findFirst({ where: {roomId, message:msg.message }, orderBy: { id: "desc",},});
         if(shapeToDelete){
           await prisma.chat.delete({ where: {id: shapeToDelete.id}})
           users.forEach((user) => {
-            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "remove_shape", message: shapeToDelete.message, userId:shapeToDelete.userId }));
+            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "remove_shape",userId:shapeToDelete.userId, message: shapeToDelete.message }));
           });
         }
-        else{
-          ws.send(JSON.stringify({ type: "error", message: "Shape not found, please try again later.",}));
-        }
+        else ws.send(JSON.stringify({ type: "error", message: "Shape not found, please try again later.",}));
       } catch (e) {
         console.error("Database error:", e);
-        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
+        ws.send(JSON.stringify({ type: "error", message: "Error deleting shape, please try again later.",}));
       }
-    } else if (parsedData.type === "move_shape") {
+    } else if (msg.type === "move_shape") {
       try {
-        const message = parsedData.message;
-        if (!message.prevShape || !message.newShape) return;
-        const shapeToDelete = await prisma.chat.findFirst({ where: {roomId, message:message.prevShape }, orderBy: { id: "desc",},});
-        if(shapeToDelete){
-          await prisma.chat.update({where: {id: shapeToDelete.id}, data:{message:message.newShape}});
+        const { message } = msg;
+        const shapeToMove = await prisma.chat.findFirst({ where: {roomId, message:message.prevShape }, orderBy: { id: "desc",},});
+        if(shapeToMove){
+          await prisma.chat.update({where: {id: shapeToMove.id}, data:{message:message.newShape}});
           users.forEach((user) => {
-            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "move_shape", message, userId }));
+            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "move_shape",userId, message}));
           });
         }
-        else{
-          ws.send(JSON.stringify({ type: "error", message: "Shape not found, please try again later.",}));
-        }
+        else ws.send(JSON.stringify({ type: "error", message: "Shape not found, please try again later.",}));
       } catch (e) {
         console.error("Database error:", e);
-        ws.send(JSON.stringify({ type: "error", message: "Database error, please try again later.",}));
+        ws.send(JSON.stringify({ type: "error", message: "Error moving shape, please try again later.",}));
       }
     }
   });

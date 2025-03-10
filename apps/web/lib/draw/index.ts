@@ -1,5 +1,5 @@
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
-import { IChatMessage } from "@workspace/common/interfaces";
+import { IChatMessage, messageSchema } from "@workspace/common/schemas";
 
 // THERE IS ISSUE WHILE SELECTING, THE TEXT IS STILL SMALL IN MEASURE TEXT FUNCTION
 
@@ -135,7 +135,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, container: HTMLDivElement, 
     if(isTrackpadPinch){
       e.preventDefault();
       const zoomDirection = e.deltaY < 0 ? -1 : 1;
-      const dampingFactor = 0.005;
+      const dampingFactor = 0.009;
       zoomScale *= 1 - dampingFactor * zoomDirection;
       zoomScale = Math.max(0.1, Math.min(zoomScale, 10));
       if(!isPanning) requestAnimationFrame(()=> render())
@@ -162,45 +162,50 @@ export const initDraw = ( canvas: HTMLCanvasElement, container: HTMLDivElement, 
   const handleMessage = (event: MessageEvent) => {
     try {
       const receivedData = JSON.parse(event.data);
-      if (receivedData.type === "room_user_pos") {
-        const userId = receivedData.userId;
-        const posX = receivedData.posX;
-        const posY = receivedData.posY;
+
+      const result = messageSchema.safeParse(receivedData);
+      if(result.error){
+        console.error(`Invalid message format : ${JSON.stringify(result.error)}`);
+        return;
+      }
+      const msg = result.data;
+
+      if (msg.type === "room_user_pos") {
+        const { userId ,posX ,posY } = msg;
         roomUsers.set(userId,{posX,posY});
         render();
         return;
-      } else if (receivedData.type === "chat") {
-        const newShape: Shape = JSON.parse(receivedData.message);
+      } else if (msg.type === "chat") {
+        const newShape: Shape = JSON.parse(msg.message);
         if(newShape.type === "highlighter"){
           const path = new Path2D(newShape.svgPath);
           newShape.path = path;
           drawShape(newShape, ctx);
         } else {
-          const shapeWithUser = { userId: receivedData.userId, shape: newShape };
+          const shapeWithUser = { userId: msg.userId, shape: newShape };
           roomShapes.push(shapeWithUser);
-          if ( receivedData.userId === userId && !undoStack.some(action => JSON.stringify(action.shape) === JSON.stringify(newShape))){
+          if ( msg.userId === userId && !undoStack.some(action => JSON.stringify(action.shape) === JSON.stringify(newShape))){
             undoStack.push({type:"add",shape:shapeWithUser});
           } 
           renderPersistentShapes();
         }
         render();
-      } else if (receivedData.type === "remove_shape") {
-        const shape: Shape = JSON.parse(receivedData.message);
-        const shapeWithUser = { userId: receivedData.userId, shape };
+      } else if (msg.type === "remove_shape") {
+        const shapeToMove: Shape = JSON.parse(msg.message);
+        const shapeWithUser = { userId: msg.userId, shape:shapeToMove };
         const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
         if (index !== -1) {
           roomShapes.splice(index, 1);
           renderPersistentShapes();
           render();
         }
-      } else if (receivedData.type === "move_shape") {
-        const prevShape = JSON.parse(receivedData.message.prevShape);
-        const newShape = JSON.parse(receivedData.message.newShape);
-        if (!prevShape || !newShape) return;
-        const shapeWithUser = { userId: receivedData.userId, shape:prevShape };
+      } else if (msg.type === "move_shape") {
+        const prevShape = JSON.parse(msg.message.prevShape);
+        const newShape = JSON.parse(msg.message.newShape);
+        const shapeWithUser = { userId: msg.userId, shape:prevShape };
         const index = roomShapes.findIndex((roomShape: IRoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
         if (index !== -1) {
-          roomShapes[index] = { userId: receivedData.userId, shape:newShape };
+          roomShapes[index] = { userId: msg.userId, shape:newShape };
           renderPersistentShapes();
           render();
         }
@@ -302,7 +307,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, container: HTMLDivElement, 
   const handleMouseMove = (e: MouseEvent) => {
     const { x, y } = getCanvasPoint(e.clientX, e.clientY);
     // sends user's position to other users
-    socket.send(JSON.stringify({type:'user_pos',clientX:x,clientY:y}));
+    socket.send(JSON.stringify({type:'user_pos',posX:x,posY:y}));
 
     if (isPanning) {
       const deltaX = e.clientX - lastMouseX;
@@ -421,13 +426,13 @@ export const initDraw = ( canvas: HTMLCanvasElement, container: HTMLDivElement, 
       const shapeWithUser = { userId, shape: currentShape };
       roomShapes.push(shapeWithUser);
       undoStack.push({type:"add",shape:shapeWithUser});
-      socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(currentShape) }));
+      socket.send(JSON.stringify({ type: "chat",userId, message: JSON.stringify(currentShape) }));
     } else {
       if (currentShape) {
         const shapeWithUser = { userId, shape: currentShape };
         roomShapes.push(shapeWithUser);
         undoStack.push({type:"add",shape:shapeWithUser});
-        socket.send(JSON.stringify({type: "chat", message: JSON.stringify(currentShape),}));
+        socket.send(JSON.stringify({type: "chat",userId, message: JSON.stringify(currentShape),}));
       }
     }
    }

@@ -1,6 +1,6 @@
 'use client'
 import { initDraw } from "@/lib/draw";
-import { IChatMessage } from "@workspace/common/interfaces";
+import { IChatMessage } from "@workspace/common/schemas";
 import { useEffect, useRef } from "react";
 import Toolbar from "./Toolbar";
 import ActionButtons from "./CanvasActionButtons";
