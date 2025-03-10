@@ -121,17 +121,17 @@ const ExtendedToolbar = () => {
   }
 
   return (
-    <div className="fixed top-7 left-5 z-10 font-heading">
-      <motion.div className="flex flex-col gap-3 p-2 rounded-lg bg-white/15" initial={{ width: "auto" }} animate={{ width: "auto" }}>
-        <motion.button className="flex items-center justify-center size-8 rounded bg-neutral-600 border border-neutral-700 shadow-lg hover:bg-neutral-600 transition-colors" aria-label="Open color menu" whileTap={{ scale: 0.95 }} onClick={toggleMenu}>
-          <Menu className="size-4 text-white" />
+    <div className="fixed bottom-7 sm:top-7 left-5 z-10 font-heading">
+      <motion.div className="flex flex-col gap-3 p-1.5 sm:p-2 rounded-lg bg-white/15" initial={{ width: "auto" }} animate={{ width: "auto" }}>
+        <motion.button className="flex items-center justify-center size-6 sm:size-8 rounded bg-neutral-600 border border-neutral-700 shadow-lg hover:bg-neutral-600 transition-colors" aria-label="Open color menu" whileTap={{ scale: 0.95 }} onClick={toggleMenu}>
+          <Menu className="size-3 sm:size-4 text-white" />
         </motion.button>
 
         <AnimatePresence>
           {menuExpanded && (
             <>
               <motion.button
-                className="flex items-center justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
+                className="flex items-center justify-center size-6 sm:size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
@@ -139,7 +139,7 @@ const ExtendedToolbar = () => {
                 onClick={() => handleToolClick("color")}
                 aria-label="Open color menu"
               >
-                <Palette className="size-4 text-white" />
+                <Palette className="size-3 sm:size-4 text-white" />
               </motion.button>
 
               <motion.button
@@ -148,10 +148,10 @@ const ExtendedToolbar = () => {
                 exit={{ opacity: 0 }}
                 transition={{ delay: 0.1 }}
                 onClick={() => handleToolClick("text")}
-                className="flex items-center justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
+                className="flex items-center justify-center size-6 sm:size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
                 aria-label="Open text menu"
               >
-                <Type className="size-4 text-white" />
+                <Type className="size-3 sm:size-4 text-white" />
               </motion.button>
 
               <motion.button
@@ -160,10 +160,10 @@ const ExtendedToolbar = () => {
                 exit={{ opacity: 0 }}
                 transition={{ delay: 0.15 }}
                 onClick={() => handleToolClick("pen")}
-                className="flex items-center justify-center size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
+                className="flex items-center justify-center size-6 sm:size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
                 aria-label="Open pen menu"
               >
-                <Pen className="size-4 text-white" />
+                <Pen className="size-3 sm:size-4 text-white" />
               </motion.button>
             </>
           )}

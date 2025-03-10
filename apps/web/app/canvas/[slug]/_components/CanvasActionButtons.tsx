@@ -14,8 +14,8 @@ const CanvasActionButtons = () => {
         return () => window.removeEventListener('zoomLevelChange', handleZoomChange as EventListener);
     }, []);
     return (
-        <div className="flex gap-5 fixed bottom-8 left-8">
-            <div className="flex bg-white rounded-lg">
+        <div className="flex gap-5 fixed bottom-8 right-8 sm:left-8">
+            <div className="hidden sm:flex bg-white rounded-lg ">
                 <button className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-l-lg disabled:opacity-50"
                     disabled={zoomLevel <= 10}
                     onClick={() => { dispatchEvent("zoomOut") }}>
@@ -36,10 +36,10 @@ const CanvasActionButtons = () => {
             </div>
             <div className="flex bg-white rounded-lg">
                 <button onClick={() => dispatchEvent("undo")} className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-l-lg">
-                    <Undo2 className="size-4" />
+                    <Undo2 className="size-3 md:size-4" />
                 </button>
                 <button onClick={() => dispatchEvent("redo")} className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-r-lg">
-                    <Redo2 className="size-4" />
+                    <Redo2 className="size-3 md:size-4" />
                 </button>
             </div>
         </div>

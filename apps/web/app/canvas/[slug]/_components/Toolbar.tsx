@@ -38,12 +38,12 @@ export default function Toolbar() {
   }, [])
 
   return (
-    <div className="flex items-center gap-3 mx-auto w-fit p-1.5 px-5 rounded-xl bg-white fixed inset-x-0 top-6">
+    <div className="flex items-center gap-1 sm:gap-2 md:gap-3 mx-auto w-fit p-1 sm:p-1.5 px-3 md:px-5 rounded-lg md:rounded-xl bg-white fixed inset-x-0 top-6">
         {tools.map((tool) => {
           return (
-            <div key={tool.type} onClick={() => chooseTool(tool.type)} className={`relative rounded-lg p-3 hover:bg-black/10 group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === tool.type ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/10"}`}>
-                <tool.icon className="size-5" strokeWidth={1.5} />
-                <span className={`absolute bottom-0.5 right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool === tool.type ? 'text-black' : 'text-muted-foreground'}`}>
+            <div key={tool.type} onClick={() => chooseTool(tool.type)} className={`relative rounded-lg p-2 md:p-3 hover:bg-black/10 group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === tool.type ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/10"}`}>
+                <tool.icon className="size-3 sm:size-4 md:size-5" strokeWidth={1.5} />
+                <span className={`hidden md:block absolute bottom-0.5 right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool === tool.type ? 'text-black' : 'text-muted-foreground'}`}>
                   {tool.shortcut}
                 </span>
                 <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 -translate-y-3 px-2 py-1 text-xs opacity-0 font-medium text-black bg-white/90 rounded whitespace-nowrap transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
