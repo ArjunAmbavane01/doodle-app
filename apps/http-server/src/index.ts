@@ -1,17 +1,17 @@
-import 'dotenv/config'
-import express,{Application, Request,Response} from "express";
+import "dotenv/config";
+import express, { Application } from "express";
 import cors from "cors";
-import Routes from './routes/index'
+import Routes from "./routes/index";
 
 const PORT = process.env.PORT;
 
-const app:Application = express();
+const app: Application = express();
 
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', Routes);
+app.use("/api", Routes);
 
-app.get('/', ()=> console.log('Hello From Doodle Api!'))
+app.get("/", () => console.log("Hello From Doodle's API !"));
 
-app.listen(PORT,()=> console.log(`Listening on port ${PORT}`) )
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));

@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-export type messageType = "join_room" | "leave_room" | "user_pos" | "chat";
-
 const joinRoomSchema = z.object({ type: z.literal("join_room") });
 
 const leaveRoomSchema = z.object({ type: z.literal("leave_room") });
@@ -58,9 +56,3 @@ export const messageSchema = z.discriminatedUnion("type", [
 ]);
 
 export type IChatMessage = z.infer<typeof chatSchema>;
-// export interface IChatMessage {
-//   type: "chat";
-//   message: string;
-//   roomId: number;
-//   userId: string;
-// }

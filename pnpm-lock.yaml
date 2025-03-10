@@ -219,6 +219,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
+      zod:
+        specifier: ^3.23.8
+        version: 3.24.1
     devDependencies:
       '@workspace/typescript-config':
         specifier: workspace:*

@@ -165,7 +165,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, container: HTMLDivElement, 
 
       const result = messageSchema.safeParse(receivedData);
       if(result.error){
-        console.error(`Invalid message format : ${JSON.stringify(result.error)}`);
+        console.error(`Invalid message format : ${result.error}`);
         return;
       }
       const msg = result.data;
