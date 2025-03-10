@@ -65,8 +65,7 @@ const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
       initial={{ opacity: 0, scale: 0.8 }} viewport={{ once: true }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
       onMouseEnter={() => setIsFlipped(true)} onMouseLeave={() => setIsFlipped(false)}
     >
-      <motion.div className="absolute inset-0 cursor-pointer"
-        initial={false} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.6, animationDirection: "normal" }} style={{ transformStyle: "preserve-3d" }}
+      <motion.div className="absolute inset-0 cursor-pointer" initial={false} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.6, animationDirection: "normal" }} style={{ transformStyle: "preserve-3d" }}
       >
         {/* front of card */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 rounded-xl bg-white/10 backdrop-blur-xl backface-hidden border border-white/10 hover:border-white/20 transition-colors">

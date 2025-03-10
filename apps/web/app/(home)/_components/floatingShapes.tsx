@@ -19,10 +19,7 @@ const SHAPES = [
   { type: "star", size: [50, 50], color: "#FF1744" },
 ];
 
-interface Position {
-  x: number
-  y: number
-}
+interface Position { x: number; y: number }
 
 const getRandomPosition = (section: number) => {
   let minX = 0, maxX = 50, minY = 0, maxY = 50;
