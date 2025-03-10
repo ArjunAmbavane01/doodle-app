@@ -61,7 +61,7 @@ const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
   const [isFlipped, setIsFlipped] = useState(false)
 
   return (
-    <motion.div className="relative place-items-center mx-auto size-52"
+    <motion.div className="relative place-items-center mx-auto size-48 xl:size-52"
       initial={{ opacity: 0, scale: 0.8 }} viewport={{ once: true }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
       onMouseEnter={() => setIsFlipped(true)} onMouseLeave={() => setIsFlipped(false)}
     >
@@ -87,27 +87,27 @@ const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
 
 const TechStack = () => {
   return (
-    <section className="flex w-full bg-black p-20 py-24 relative overflow-hidden">
+    <section className="flex w-full bg-black px-5 md:px-10 lg:p-20 py-24 relative overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,164,228,0.06),transparent_40%)]" />
 
-      <div className="flex flex-col gap-20 max-w-screen-8xl w-full mx-auto">
-        <motion.div className="flex flex-col items-center gap-4 text-white"
+      <div className="flex flex-col gap-16 md:gap-20 max-w-screen-8xl w-full mx-auto">
+        <motion.div className="flex flex-col items-center gap-4 text-white text-center"
           initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }}
         >
           <Badge className="flex items-center gap-2 p-1 px-3 font-body bg-white/15 text-white">
             <Code className="size-3" />
             Tech Stack
           </Badge>
-          <h2 className="font-heading text-center text-4xl">
+          <h2 className="font-heading text-center text-3xl md:text-4xl">
             The Stack Powering This Project
           </h2>
-          <motion.p className="max-w-2xl font-body text-lg text-gray-400"
+          <motion.p className="max-w-2xl font-body text-md md:text-lg text-gray-400"
             initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             Built with modern, efficient, and scalable tools.
           </motion.p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-16 w-full mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-16 w-full mx-auto">
           {technologies.map((tech, index) => (
             <motion.div key={tech.name} initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
               <TechCard tech={tech} />

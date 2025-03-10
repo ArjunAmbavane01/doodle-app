@@ -9,9 +9,9 @@ const LoginModal = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="rounded-full">Get started</Button>
+        <Button className="rounded-full text-xs md:text-md px-3 md:px-5">Get started</Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="rounded-lg">
         <DialogHeader>
           <DialogTitle>Welcome to Doodle</DialogTitle>
           <DialogDescription className="py-5 text-md text-gray-600">

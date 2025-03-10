@@ -13,7 +13,7 @@ const LogoutModal = ({ open, setOpen }: { open: boolean, setOpen: Dispatch<SetSt
   }
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogContent>
+      <AlertDialogContent className="rounded-lg">
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>

@@ -15,7 +15,7 @@ const UserDropdown = ({ user }: { user: ICustomUser | undefined }) => {
             {logoutOpen && <Suspense> <LogoutModal open={logoutOpen} setOpen={setLogoutOpen} /> </Suspense>}
             <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none focus:ring-0">
-                    <Avatar className="size-8">
+                    <Avatar className="size-6 md:size-8">
                         <AvatarImage src={user?.image as string} />
                         <AvatarFallback className="">{(user?.name as string).split(' ').map((w) => w[0])}</AvatarFallback>
                     </Avatar>
@@ -25,9 +25,9 @@ const UserDropdown = ({ user }: { user: ICustomUser | undefined }) => {
                         {user?.name} <span className="text-sm text-gray-600">{user?.email} </span>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="hover:cursor-pointer">
+                    {/* <DropdownMenuItem className="hover:cursor-pointer">
                         <Settings />Settings
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuItem onClick={() => setLogoutOpen(s => !s)} className="hover:cursor-pointer">
                         <LogOut />Logout
                     </DropdownMenuItem>
