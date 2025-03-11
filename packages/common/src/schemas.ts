@@ -55,4 +55,4 @@ export const messageSchema = z.discriminatedUnion("type", [
   moveShapeSchema,
 ]);
 
-export type IChatMessage = z.infer<typeof chatSchema>;
+export type IRoomChat = z.infer<typeof chatSchema>;

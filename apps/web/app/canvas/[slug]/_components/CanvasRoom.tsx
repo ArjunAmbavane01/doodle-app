@@ -1,11 +1,11 @@
 'use client'
 import { useEffect, useRef, useState } from "react";
 import { BASE_WS_URL } from "@/lib/apiEndPoints";
-import {IChatMessage} from "@workspace/common/schemas";
+import {IRoomChat} from "@workspace/common/schemas";
 import Canvas from "./Canvas";
 import { useLoading } from "@/providers/LoadingProvider";
 
-const CanvasRoom = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMessages:IChatMessage[] , userId:string}) => {
+const CanvasRoom = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMessages:IRoomChat[] , userId:string}) => {
     const {setIsLoading} = useLoading();
     const socketRef = useRef<WebSocket | null>(null);
     useEffect(() => {

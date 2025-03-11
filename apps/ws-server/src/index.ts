@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import prisma from "@workspace/db/client";
 import { messageSchema } from "@workspace/common/schemas";
+import { shapeSchema } from "@workspace/common/shapes";
 
 // Auto-delete empty rooms
 // If all users leave a room, remove it from the WebSocket state.
@@ -69,6 +70,12 @@ wss.on("connection", (ws: WebSocket, req) => {
       const { message } = msg;
       try {
         const shapeReceived = JSON.parse(message);
+        const shapeResult = shapeSchema.safeParse(shapeReceived);
+        if(shapeResult.error){
+          console.error(`Invalid shape format : ${shapeResult.error}`);
+          ws.send('Invalid shape format');
+          return;
+        }
         if(shapeReceived.type !== "highlighter") await prisma.chat.create({ data: { message, roomId, userId } });
         users.forEach((user) => {
           if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, userId }));
