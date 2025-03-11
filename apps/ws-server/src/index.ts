@@ -76,7 +76,7 @@ wss.on("connection", (ws: WebSocket, req) => {
           ws.send('Invalid shape format');
           return;
         }
-        if(shapeReceived.type !== "highlighter") await prisma.chat.create({ data: { message, roomId, userId } });
+        if(shapeReceived.type !== "highlighter") await prisma.chat.create({ data: { message, roomId, userId:msg.userId } });
         users.forEach((user) => {
           if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, userId:msg.userId }));
         });
@@ -100,12 +100,12 @@ wss.on("connection", (ws: WebSocket, req) => {
       }
     } else if (msg.type === "move_shape") {
       try {
-        const { message } = msg;
-        const shapeToMove = await prisma.chat.findFirst({ where: {roomId, message:message.prevShape }, orderBy: { id: "desc",},});
+        const {prevShape,newShape} = msg.message;
+        const shapeToMove = await prisma.chat.findFirst({ where: {roomId, message:prevShape }, orderBy: { id: "desc",},});
         if(shapeToMove){
-          await prisma.chat.update({where: {id: shapeToMove.id}, data:{message:message.newShape}});
+          await prisma.chat.update({where: {id: shapeToMove.id}, data:{message:newShape}});
           users.forEach((user) => {
-            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "move_shape",userId, message}));
+            if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "move_shape", userId:msg.userId, message:msg.message}));
           });
         }
         else ws.send(JSON.stringify({ type: "error", message: "Shape not found, please try again later.",}));

@@ -244,7 +244,8 @@ export const translateSVGPath = (pathString: string,deltaX: number,deltaY: numbe
   return newPath.trim();
 };
 
-export const getBoundingShape = (clickedX: number,clickedY: number,roomShapes: RoomShape[],ctx: CanvasRenderingContext2D) => {
+// Returns roomShapes[i] 
+export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes: RoomShape[], ctx: CanvasRenderingContext2D) => {
   for (let i = 0; i < roomShapes.length; i++) {
     const roomShape = roomShapes[i]?.shape;
     if (!roomShape) continue;
@@ -255,7 +256,7 @@ export const getBoundingShape = (clickedX: number,clickedY: number,roomShapes: R
       ctx.stroke(path);
       const value = ctx.isPointInStroke(path, clickedX, clickedY);
       ctx.restore();
-      if (value) return roomShapes[i];
+      if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "text") {
       ctx.save();
       ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
@@ -270,7 +271,7 @@ export const getBoundingShape = (clickedX: number,clickedY: number,roomShapes: R
         clickedY >= roomShape.startY - padding &&
         clickedY <= roomShape.startY + textHeight + padding;
       ctx.restore();
-      if (value) return roomShapes[i];
+      if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "line") {
       ctx.save();
       ctx.beginPath();
@@ -281,7 +282,7 @@ export const getBoundingShape = (clickedX: number,clickedY: number,roomShapes: R
       ctx.stroke();
       ctx.closePath();
       ctx.restore();
-      if (value) return roomShapes[i];
+      if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "arrow") {
       ctx.save();
       const headlen = 12; // headlen in  pixels
@@ -299,14 +300,14 @@ export const getBoundingShape = (clickedX: number,clickedY: number,roomShapes: R
       ctx.stroke();
       ctx.closePath();
       ctx.restore();
-      if (value) return roomShapes[i];
+      if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "rectangle") {
       ctx.beginPath();
       ctx.rect(roomShape.startX,roomShape.startY,roomShape.width,roomShape.height);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
-      if (value) return roomShapes[i];
+      if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "triangle") {
       ctx.beginPath();
       ctx.moveTo(roomShape.startX + roomShape.width / 2, roomShape.startY);
@@ -316,17 +317,17 @@ export const getBoundingShape = (clickedX: number,clickedY: number,roomShapes: R
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
-      if (value) return roomShapes[i];
+      if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "circle") {
       ctx.beginPath();
       ctx.arc(roomShape.centerX,roomShape.centerY,roomShape.radius,0,Math.PI * 2);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
-      if (value) return roomShapes[i];
+      if (value) return {roomShape:roomShapes[i],index:i};
     }
   }
-  return null;
+  return {roomShape:undefined,index:-1};
 };
 
 export const getBoundingBoxFromPath = (path: string): { width: number; height: number; minX: number; minY: number } | null => {
