@@ -3,7 +3,7 @@ import { initDraw } from "@/lib/draw";
 import { IRoomChat } from "@workspace/common/schemas";
 import { useEffect, useRef } from "react";
 import Toolbar from "./Toolbar";
-import ActionButtons from "./CanvasActionButtons";
+import ActionButtons from "./ActionButtons";
 import ExtendedToolbar from "./ExtendedToolbar";
 
 export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter';
