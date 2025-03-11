@@ -24,6 +24,11 @@ const chatSchema = z.object({
   message: z.string(),
 });
 
+const errorSchema = z.object({
+  type: z.literal("error"),
+  message: z.string(),
+});
+
 const deleteShapeSchema = z.object({
   type: z.literal("delete_shape"),
   message: z.string(),
@@ -50,6 +55,7 @@ export const messageSchema = z.discriminatedUnion("type", [
   userPosSchema,
   roomUserPosSchema,
   chatSchema,
+  errorSchema,
   deleteShapeSchema,
   removeShapeSchema,
   moveShapeSchema,

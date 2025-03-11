@@ -78,7 +78,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         }
         if(shapeReceived.type !== "highlighter") await prisma.chat.create({ data: { message, roomId, userId } });
         users.forEach((user) => {
-          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, userId }));
+          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "chat", message, userId:msg.userId }));
         });
       } catch (e) {
         console.error("Database error:", e);

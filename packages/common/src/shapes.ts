@@ -20,7 +20,7 @@ const pen = z.object({
 
 const highlighter = z.object({
   type: z.literal("highlighter"),
-  path: z.any().optional(), 
+  path: z.any().optional(),
   svgPath: z.string().optional(),
   points: z.array(highlightPoint).optional(),
 });
@@ -88,11 +88,20 @@ const circle = z.object({
   strokeWidth: z.number(),
 });
 
-export const shapeSchema = z.discriminatedUnion("type",[pen,text,highlighter,line,arrow,rectangle,triangle,circle])
+export const shapeSchema = z.discriminatedUnion("type", [
+  pen,
+  text,
+  highlighter,
+  line,
+  arrow,
+  rectangle,
+  triangle,
+  circle,
+]);
 
 const roomShape = z.object({
-    userId:z.string(),
-    shape: shapeSchema,
+  userId: z.string(),
+  shape: shapeSchema,
 });
 
 export type Shape = z.infer<typeof shapeSchema>;
