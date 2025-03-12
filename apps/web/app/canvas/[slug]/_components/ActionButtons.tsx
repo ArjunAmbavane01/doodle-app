@@ -1,6 +1,6 @@
 'use client';
-import { Minus, Plus, Redo2, Undo2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Minus, Plus, Redo2, Undo2 } from "lucide-react";
 
 const CanvasActionButtons = () => {
     const [zoomLevel, setZoomLevel] = useState(100);
@@ -14,7 +14,7 @@ const CanvasActionButtons = () => {
         return () => window.removeEventListener('zoomLevelChange', handleZoomChange as EventListener);
     }, []);
     return (
-        <div className="flex gap-5 fixed bottom-8 right-8 sm:right-auto sm:left-8">
+        <div className="flex gap-5 fixed bottom-7 right-8 sm:right-auto sm:left-8">
             <div className="hidden sm:flex bg-white rounded-lg cursor-pointer">
                 <button className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-l-lg disabled:opacity-50"
                     disabled={zoomLevel <= 10}
@@ -35,11 +35,11 @@ const CanvasActionButtons = () => {
                 </button>
             </div>
             <div className="flex bg-white rounded-lg">
-                <button onClick={() => dispatchEvent("undo")} className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-l-lg">
-                    <Undo2 className="size-3 md:size-4" />
+                <button onClick={() => dispatchEvent("undo")} className="flex justify-center items-center p-2.5 hover:bg-gray-200 rounded-l-lg">
+                    <Undo2 className="size-2.5 md:size-4" />
                 </button>
-                <button onClick={() => dispatchEvent("redo")} className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-r-lg">
-                    <Redo2 className="size-3 md:size-4" />
+                <button onClick={() => dispatchEvent("redo")} className="flex justify-center items-center p-2.5 hover:bg-gray-200 rounded-r-lg">
+                    <Redo2 className="size-2.5 md:size-4" />
                 </button>
             </div>
         </div>

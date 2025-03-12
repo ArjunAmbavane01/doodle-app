@@ -13,9 +13,7 @@ export const clearCanvas = ( roomShapes: RoomShape[], canvas: HTMLCanvasElement,
 };
 
 export const getShapesFromMessages = (messages: IRoomChat[]) =>
-  messages.map((msg: { userId: string; message: string }) => {
-    return { userId: msg.userId, shape: JSON.parse(msg.message) };
-  });
+  messages.map((msg: { userId: string; message: string }) => { return { userId: msg.userId, shape: JSON.parse(msg.message) }});
 
 export const setupContext = (ctx: CanvasRenderingContext2D) => {
   ctx.imageSmoothingEnabled = false;

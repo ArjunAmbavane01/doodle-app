@@ -6,8 +6,6 @@ import { drawHighlightPoints, drawShape, getBoundingShape, strokeToSVG, translat
 import { cleanupTextArea, createTextArea } from "./textUtils";
 import { drawUserCursor } from "./cursorUtils";
 
-// THERE IS ISSUE WHILE SELECTING, THE TEXT IS STILL SMALL IN MEASURE TEXT FUNCTION
-
 export interface IRoomUserPos { posX:number, posY:number, displayName?: string};
 
 export interface IUserAction { type: "add" | "delete" | "move", roomShape : RoomShape, prevShape ?: RoomShape}
