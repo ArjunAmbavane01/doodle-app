@@ -20,7 +20,8 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
     ctx.restore();
   } else if (shape.type === "text") {
     ctx.save();
-    const fontSize = (shape.fontSize || 24) * window.devicePixelRatio;
+    const lines = shape.text.split("\n");
+    const fontSize = (shape.fontSize || 24);
     const fontFamily = shape.fontFamily || "Caveat";
     const fontWeight = shape.textStyle.bold ? "bold" : "";
     const fontStyle = shape.textStyle.italic ? "italic" : "";
@@ -30,17 +31,14 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
     ctx.textBaseline = "top";
     ctx.fillStyle = shape.textColour;
     ctx.textAlign = "left";
-    ctx.imageSmoothingEnabled = false;
-    const lines = shape.text.split("\n");
     lines.forEach((line, index) => { ctx.fillText(line, shape.startX, shape.startY + index * lineHeight);});
     if (drawBoundary) {
+      const longestLineIdx = lines.reduce((maxIdx, line, idx, arr) => line.length > arr[maxIdx]!.length ? idx : maxIdx, 0);
       ctx.strokeStyle = "#A2D2FF";
-      const padding = 10;
-      const metrics = ctx.measureText(shape.text);
-      const textWidth = metrics.width;
-      const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+      const padding = 5;
+      const textWidth = ctx.measureText(lines[longestLineIdx] as string).width;
       ctx.setLineDash([5, 5]);
-      ctx.strokeRect( shape.startX - 3, shape.startY - 3, textWidth + padding, textHeight + padding);
+      ctx.strokeRect( shape.startX - 3, shape.startY - 3, textWidth + padding, lineHeight * lines.length + padding);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -259,11 +257,17 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "text") {
       ctx.save();
-      ctx.font = `${24 * window.devicePixelRatio}px Caveat`;
+      const lines = roomShape.text.split("\n");
+      const fontSize = (roomShape.fontSize || 24);
+      const fontFamily = roomShape.fontFamily || "Caveat";
+      const lineHeight = fontSize * 1.2;
+      const longestLineIdx = lines.reduce((maxIdx, line, idx, arr) => line.length > arr[maxIdx]!.length ? idx : maxIdx, 0);
+      ctx.font = `${fontSize}px ${fontFamily}`;
       ctx.letterSpacing = "1px";
-      const metrics = ctx.measureText(roomShape.text);
-      const textWidth = metrics.width;
-      const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+      ctx.textBaseline = "top";
+      ctx.textAlign = "left";
+      const textWidth = ctx.measureText(lines[longestLineIdx] as string).width;
+      const textHeight = lineHeight * lines.length;
       const padding = 5;
       const value =
         clickedX >= roomShape.startX - padding &&

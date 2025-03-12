@@ -86,7 +86,6 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
     const centerY = canvas.height / 2;
 
     ctx.save();
-
     ctx.translate(centerX, centerY);
     ctx.scale(zoomScale, zoomScale);
     ctx.translate(-centerX, -centerY);
@@ -447,7 +446,7 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       const shapeWithUser: RoomShape = { userId, shape: newShape };
       roomShapes.push(shapeWithUser);
       undoStack.push({type:"add",roomShape:shapeWithUser});
-      socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(newShape) }));
+      socket.send(JSON.stringify({ type: "chat",userId, message: JSON.stringify(newShape) }));
 
       renderPersistentShapes();
       render();
@@ -540,7 +539,8 @@ export const initDraw = ( canvas: HTMLCanvasElement, socket: WebSocket, initialM
       e.preventDefault();
       handleZoomOut();
       render();
-    } else if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+    } 
+    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
       e.preventDefault();
       handleUndo();
     } else if ((e.ctrlKey || e.metaKey) && e.key === "y") {

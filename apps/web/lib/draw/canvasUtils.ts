@@ -18,7 +18,7 @@ export const getShapesFromMessages = (messages: IRoomChat[]) =>
   });
 
 export const setupContext = (ctx: CanvasRenderingContext2D) => {
-  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingEnabled = false;
   ctx.imageSmoothingQuality = "high";
   ctx.lineWidth = 2;
   ctx.lineCap = "round";
