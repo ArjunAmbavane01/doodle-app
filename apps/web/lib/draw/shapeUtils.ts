@@ -1,8 +1,8 @@
 import { HighlightPoint, Point, RoomShape, Shape, } from "@workspace/common/shapes";
 
 export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false,) => {
+  ctx.save();
   if (shape.type === "pen" && shape.path) {
-    ctx.save();
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       const path = new Path2D(shape.path);
@@ -17,9 +17,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       const path = new Path2D(shape.path);
       ctx.stroke(path);
     }
-    ctx.restore();
   } else if (shape.type === "text") {
-    ctx.save();
     const lines = shape.text.split("\n");
     const fontSize = (shape.fontSize || 24);
     const fontFamily = shape.fontFamily || "Caveat";
@@ -42,9 +40,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.stroke();
       ctx.setLineDash([]);
     }
-    ctx.restore();
   } else if (shape.type === "line") {
-    ctx.save();
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
@@ -63,9 +59,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.stroke();
       ctx.closePath();
     }
-    ctx.restore();
   } else if (shape.type === "arrow") {
-    ctx.save();
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
@@ -102,9 +96,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.stroke();
       ctx.closePath();
     }
-    ctx.restore();
   } else if (shape.type === "rectangle") {
-    ctx.save();
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
@@ -119,9 +111,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       }
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
     }
-    ctx.restore();
   } else if (shape.type === "triangle") {
-    ctx.save();
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
@@ -148,9 +138,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.stroke();
       ctx.closePath();
     }
-    ctx.restore();
   } else if (shape.type === "circle") {
-    ctx.save();
     if (drawBoundary) {
       ctx.setLineDash([5, 5]);
       ctx.strokeStyle = "#A2D2FF";
@@ -160,7 +148,6 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.closePath();
       ctx.setLineDash([]);
     } else {
-
       ctx.strokeStyle = shape.strokeColour;
       ctx.lineWidth = shape.strokeWidth;
       ctx.beginPath();
@@ -172,16 +159,13 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.stroke();
       ctx.closePath();
     }
-    ctx.restore();
   } else if (shape.type === "highlighter") {
-    ctx.save();
     let pathObj;
     if (shape.svgPath) pathObj = new Path2D(shape.svgPath);
     else if (shape.path instanceof Path2D) pathObj = shape.path;
     else if (typeof shape.path === "string") pathObj = new Path2D(shape.path);
     if (!pathObj) {
       console.error("No valid path found for highlighter", shape);
-      ctx.restore();
       return;
     }
 
@@ -203,8 +187,8 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
     ctx.stroke(pathObj);
-    ctx.restore();
   }
+  ctx.restore();
 };
 
 // Returns roomShapes[i] 
@@ -212,8 +196,8 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
   for (let i = 0; i < roomShapes.length; i++) {
     const roomShape = roomShapes[i]?.shape;
     if (!roomShape) continue;
+    ctx.save();
     if (roomShape.type === "pen" && roomShape.path) {
-      ctx.save();
       const path = new Path2D(roomShape.path);
       ctx.lineWidth = 10;
       ctx.stroke(path);
@@ -221,7 +205,6 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.restore();
       if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "text") {
-      ctx.save();
       const lines = roomShape.text.split("\n");
       const fontSize = (roomShape.fontSize || 24);
       const fontFamily = roomShape.fontFamily || "Caveat";
@@ -242,7 +225,6 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.restore();
       if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "line") {
-      ctx.save();
       ctx.beginPath();
       ctx.lineWidth = 14;
       ctx.moveTo(roomShape.startX, roomShape.startY);
@@ -253,12 +235,12 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.restore();
       if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "arrow") {
-      ctx.save();
       const headlen = 12; // headlen in  pixels
       ctx.lineWidth = 14;
       const dx = roomShape.endX - roomShape.startX;
       const dy = roomShape.endY - roomShape.startY;
       const angle = Math.atan2(dy, dx);
+      drawArrowHead(ctx,roomShape.startX,roomShape.startY,angle);
       ctx.beginPath();
       ctx.moveTo(roomShape.startX, roomShape.startY);
       ctx.lineTo(roomShape.endX, roomShape.endY);
@@ -276,6 +258,7 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
+      ctx.restore();
       if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "triangle") {
       ctx.beginPath();
@@ -286,6 +269,7 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
+      ctx.restore();
       if (value) return {roomShape:roomShapes[i],index:i};
     } else if (roomShape.type === "circle") {
       ctx.beginPath();
@@ -293,6 +277,7 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
+      ctx.restore();
       if (value) return {roomShape:roomShapes[i],index:i};
     }
   }
@@ -438,4 +423,11 @@ export const drawHighlightPoints = (highlightPoints: HighlightPoint[],ctx: Canva
   const highlighterShape = { type: "highlighter", svgPath };
   socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(highlighterShape) }));
   ctx.restore();
+};
+
+const drawArrowHead = (ctx: CanvasRenderingContext2D, x: number, y: number, angle: number, length = 12) => {
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - length * Math.cos(angle - Math.PI / 6), y - length * Math.sin(angle - Math.PI / 6));
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - length * Math.cos(angle + Math.PI / 6), y - length * Math.sin(angle + Math.PI / 6));
 };
