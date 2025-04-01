@@ -159,15 +159,15 @@ class DrawingEngine {
     }
   };
 
-  private handleToolChange = (event: Event) => {
-    const customEvent = event as CustomEvent<SelectedToolType>;
-    if (customEvent.detail) {
-      this.selectedTool = customEvent.detail;
-      cleanupTextArea();
-      this.selectedRoomShape = null;
-      this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
-    }
-  };
+  // private handleToolChange = (event: Event) => {
+  //   const customEvent = event as CustomEvent<SelectedToolType>;
+  //   if (customEvent.detail) {
+  //     this.selectedTool = customEvent.detail;
+  //     cleanupTextArea();
+  //     this.selectedRoomShape = null;
+  //     this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
+  //   }
+  // };
 
   private handleMessage = (event: MessageEvent) => {
     try {
@@ -662,6 +662,10 @@ class DrawingEngine {
   private notifyZoomComplete = () => {
     window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
   };
+
+  handleToolChange = (tool:string) => {
+    this.selectedTool = tool
+  }
 
   private initHandlers() {
     this.canvas.addEventListener("mousedown", this.handleMouseDown);
