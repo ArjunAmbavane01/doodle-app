@@ -1,19 +1,28 @@
 'use client'
 import { initDraw } from "@/lib/draw";
 import { IRoomChat } from "@workspace/common/schemas";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Toolbar from "./Toolbar";
 import ActionButtons from "./ActionButtons";
 import ExtendedToolbar from "./ExtendedToolbar";
+import DrawingEngine from "@/lib/class";
 
 export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter';
 
 const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IRoomChat[], userId:string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const [canvasGame, setCanvasGame] = useState<DrawingEngine>();
+
     useEffect(() => {
         if (canvasRef.current && socket) {
-            const cleanup = initDraw(canvasRef.current, socket, roomMessages, userId);
-            return cleanup;
+            // const cleanup = initDraw(canvasRef.current, socket, roomMessages, userId);
+            // return cleanup;
+            const canvasGame = new DrawingEngine(canvasRef.current,socket,userId,roomMessages);
+            setCanvasGame(canvasGame);
+            return () => {
+                canvasGame.destroy();
+            }
         }
     }, [socket, roomMessages, userId])
 
