@@ -4,7 +4,7 @@ import { IRoomChat, messageSchema } from "@workspace/common/schemas";
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { drawUserCursor } from "./draw/cursorUtils";
 import { drawHighlightPoints, drawShape, getBoundingShape, strokeToSVG, translateSVGPath } from "./draw/shapeUtils";
-import { cleanupTextArea, createTextArea } from "./draw/textUtils";
+import { createTextArea } from "./draw/textUtils";
 
 export interface IRoomUserPos {
   posX: number;
@@ -28,7 +28,7 @@ class DrawingEngine {
 
   private roomShapes: RoomShape[];
 
-  private selectedTool = "pen";
+  private selectedTool: SelectedToolType = "pen";
   private strokeColour = "#ffffff";
   private strokeWidth = 2;
   private fillColour = "transparent";
@@ -158,16 +158,6 @@ class DrawingEngine {
       this.render();
     }
   };
-
-  // private handleToolChange = (event: Event) => {
-  //   const customEvent = event as CustomEvent<SelectedToolType>;
-  //   if (customEvent.detail) {
-  //     this.selectedTool = customEvent.detail;
-  //     cleanupTextArea();
-  //     this.selectedRoomShape = null;
-  //     this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
-  //   }
-  // };
 
   private handleMessage = (event: MessageEvent) => {
     try {
@@ -663,8 +653,15 @@ class DrawingEngine {
     window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
   };
 
-  handleToolChange = (tool:string) => {
-    this.selectedTool = tool
+  // handleToolChange = (tool:SelectedToolType) => {
+  //   this.selectedTool = tool
+  //   this.selectedRoomShape = null;
+  //   this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
+  // }
+  private handleToolChange = (e: Event) => {
+    this.selectedTool = (e as CustomEvent).detail as SelectedToolType;
+    this.selectedRoomShape = null;
+    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
   }
 
   private initHandlers() {
@@ -680,6 +677,7 @@ class DrawingEngine {
     window.addEventListener("zoomIn", this.handleZoomIn);
     window.addEventListener("zoomOut", this.handleZoomOut);
     window.addEventListener("zoomReset", this.handleZoomReset);
+    window.addEventListener("toolChange", this.handleToolChange);
     window.addEventListener("strokeColourChange", this.handleStrokeColourChange);
     window.addEventListener("bgColourChange", this.handleBGColourChange);
     window.addEventListener("fontFamilyChange", this.handleFontFamilyChange);
@@ -702,6 +700,7 @@ class DrawingEngine {
     window.removeEventListener("zoomIn", this.handleZoomIn);
     window.removeEventListener("zoomOut", this.handleZoomOut);
     window.removeEventListener("zoomReset", this.handleZoomReset);
+    window.removeEventListener("toolChange", this.handleToolChange);
     window.removeEventListener("strokeColourChange", this.handleStrokeColourChange);
     window.removeEventListener("bgColourChange", this.handleBGColourChange);
     window.removeEventListener("fontFamilyChange", this.handleFontFamilyChange);

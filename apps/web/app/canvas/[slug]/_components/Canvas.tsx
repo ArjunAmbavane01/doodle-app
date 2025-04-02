@@ -10,20 +10,14 @@ export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 't
 
 const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IRoomChat[], userId:string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
     const [canvasGame, setCanvasGame] = useState<DrawingEngine>();
-    const [selectedTool, setSelectedTool] = useState<SelectedToolType>("pen")
-
-    useEffect(() => {
-        canvasGame?.handleToolChange(selectedTool);
-    }, [selectedTool, canvasGame])
 
     useEffect(() => {
         if (canvasRef.current && socket) {
-            const canvasGame = new DrawingEngine(canvasRef.current,socket,userId,roomMessages);
-            setCanvasGame(canvasGame);
+            const game = new DrawingEngine(canvasRef.current,socket,userId,roomMessages);
+            setCanvasGame(game);
             return () => {
-                canvasGame.destroy();
+                game.destroy();
             }
         }
     }, [socket, roomMessages, userId])
@@ -32,7 +26,7 @@ const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, ro
         <div className="w-screen h-screen relative overflow-hidden" id="canvas-container">
             <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000] absolute inset-0" />
             <div id="textarea-container" />
-            <Toolbar selectedTool={selectedTool} setSelectedTool={setSelectedTool} />
+            <Toolbar />
             <ExtendedToolbar />
             <ActionButtons />
         </div>
