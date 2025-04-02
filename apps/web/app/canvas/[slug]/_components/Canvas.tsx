@@ -2,9 +2,10 @@
 import { IRoomChat } from "@workspace/common/schemas";
 import { useEffect, useRef, useState } from "react";
 import Toolbar from "./Toolbar";
-import ActionButtons from "./ActionButtons";
-import ExtendedToolbar from "./ExtendedToolbar";
+import CanvasControls from "./CanvasControls";
+import CustomizationToolbar from "./CustomizationToolbar";
 import DrawingEngine from "@/lib/class";
+import ProjectControls from "./ProjectControls";
 
 export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter';
 
@@ -27,8 +28,9 @@ const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, ro
             <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000] absolute inset-0" />
             <div id="textarea-container" />
             <Toolbar />
-            <ExtendedToolbar />
-            <ActionButtons />
+            <CustomizationToolbar />
+            <CanvasControls />
+            <ProjectControls />
         </div>
     );
 }

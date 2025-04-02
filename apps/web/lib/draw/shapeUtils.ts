@@ -18,6 +18,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.stroke(path);
     }
   } else if (shape.type === "text") {
+    ctx.imageSmoothingEnabled = false;
     const lines = shape.text.split("\n");
     const fontSize = (shape.fontSize || 24);
     const fontFamily = shape.fontFamily || "Caveat";
@@ -29,7 +30,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
     ctx.textBaseline = "top";
     ctx.fillStyle = shape.textColour;
     ctx.textAlign = "left";
-    lines.forEach((line, index) => { ctx.fillText(line, shape.startX, shape.startY + index * lineHeight);});
+    lines.forEach((line, index) => { ctx.fillText(line, shape.startX + 0.5, shape.startY + index * lineHeight + 0.5);});
     if (drawBoundary) {
       const longestLineIdx = lines.reduce((maxIdx, line, idx, arr) => line.length > arr[maxIdx]!.length ? idx : maxIdx, 0);
       ctx.strokeStyle = "#A2D2FF";

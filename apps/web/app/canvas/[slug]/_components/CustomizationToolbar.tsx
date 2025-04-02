@@ -41,7 +41,7 @@ const fontFamilies: IToolOption[] = [
 ]
 
 
-const ExtendedToolbar = () => {
+const CustomizationToolbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("color");
@@ -436,4 +436,4 @@ function isLightColor(color: string): boolean {
   return color === "#ffffff" || color === "#ffff00" || color === "#ffffcc"
 }
 
-export default ExtendedToolbar;
+export default CustomizationToolbar;

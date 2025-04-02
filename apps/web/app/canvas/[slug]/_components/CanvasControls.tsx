@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { Minus, Plus, Redo2, Undo2 } from "lucide-react";
 
-const CanvasActionButtons = () => {
+const CanvasControls = () => {
     const [zoomLevel, setZoomLevel] = useState(100);
     const dispatchEvent = (type: 'zoomOut' | 'zoomIn' | 'zoomReset' | 'redo' | 'undo') => {
         if (type === 'redo' || type === 'undo') window.dispatchEvent(new CustomEvent<string>(type, { detail: type }))
@@ -46,4 +46,4 @@ const CanvasActionButtons = () => {
     );
 }
 
-export default CanvasActionButtons;
+export default CanvasControls;

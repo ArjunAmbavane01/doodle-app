@@ -653,11 +653,6 @@ class DrawingEngine {
     window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
   };
 
-  // handleToolChange = (tool:SelectedToolType) => {
-  //   this.selectedTool = tool
-  //   this.selectedRoomShape = null;
-  //   this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
-  // }
   private handleToolChange = (e: Event) => {
     this.selectedTool = (e as CustomEvent).detail as SelectedToolType;
     this.selectedRoomShape = null;
