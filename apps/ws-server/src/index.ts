@@ -14,7 +14,6 @@ interface IUser { userId: string; rooms: number[]; ws: WebSocket; }
 
 const users: IUser[] = [];
 
-
 const wss = new WebSocketServer({ port: 8080 });
 
 const checkToken = (token: string | null) => {
@@ -51,6 +50,10 @@ wss.on("connection", (ws: WebSocket, req) => {
       const user = users.find((x) => x.ws == ws);
       if (!user) return;
       user.rooms.push(roomId);
+      // const userData = await prisma.user.findFirst({where:{id:userId}});
+      // users.forEach((user) => {
+      //   if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "user_joined", userId, name:userData?.name }));
+      // });
     } else if (msg.type === "leave_room") {
       const user = users.find((x) => x.ws == ws);
       if (!user) return;

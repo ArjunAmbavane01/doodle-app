@@ -2,7 +2,7 @@ import { authOptions, ICustomSession } from "@/app/api/auth/[...nextauth]/option
 import { JOIN_ROOM_URL } from "@/lib/apiEndPoints";
 import axios from "axios";
 import { getServerSession } from "next-auth";
-import CanvasRoom from "./_components/CanvasWrapper";
+import CanvasWrapper from "./_components/CanvasWrapper";
 
 const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     const session: ICustomSession | null = await getServerSession(authOptions);
@@ -13,7 +13,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     const roomMessages = data?.data?.roomMessages;
     const userId = session?.user?.id;
 
-    return <CanvasRoom wsToken={wsToken} roomMessages={roomMessages} userId={userId as unknown as string}/>
+    return <CanvasWrapper wsToken={wsToken} roomMessages={roomMessages} userId={userId as unknown as string}/>
 }
 
 export default page;

@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const userJoinSchema = z.object({
+  type: z.literal("user_joined"),
+  userId: z.string(),
+  name: z.string()
+});
+
 const joinRoomSchema = z.object({ type: z.literal("join_room") });
 
 const leaveRoomSchema = z.object({ type: z.literal("leave_room") });
@@ -52,6 +58,7 @@ const moveShapeSchema = z.object({
 export const messageSchema = z.discriminatedUnion("type", [
   joinRoomSchema,
   leaveRoomSchema,
+  userJoinSchema,
   userPosSchema,
   roomUserPosSchema,
   chatSchema,

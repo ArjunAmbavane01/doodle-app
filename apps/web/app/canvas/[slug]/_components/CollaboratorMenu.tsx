@@ -17,6 +17,20 @@ const CollaboratorMenu = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolea
   const [collaborators, setCollaborators] = useState<collaborator[]>([{ name: "You" }, { name: "Alex Kim" }, { name: "Archit" }]);
   const [isCopied, setIsCopied] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleCollaboratorJoin = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setCollaborators([...collaborators,{name:customEvent.detail}]);
+      }
+    }
+    
+    window.addEventListener('collaboratorJoined', handleCollaboratorJoin);
+
+    return () => window.removeEventListener('collaboratorJoined', handleCollaboratorJoin);
+  }, [])
+
   useEffect(() => {
     if (isCopied)
       timeoutRef.current = setTimeout(() => setIsCopied(false), 5000)
@@ -32,15 +46,15 @@ const CollaboratorMenu = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolea
   };
 
   return (
-    <div className="flex flex-col p-2">
+    <div className="flex flex-col px-2">
       <div className="flex justify-between p-2 py-3">
         <p className="flex items-center gap-2 text-md font-body"><Users className="size-4" />Collaboration</p>
         <Button variant={"ghost"} onClick={() => setOpen(false)}><X className="size-3" /></Button>
       </div>
-      <div className="flex flex-col gap-1 px-2 pb-3 border-b-[1px] border-slate-300">
+      <div className="flex flex-col gap-2 px-2 pb-3 border-b-[1px] border-slate-300">
         <p className="font-semibold font-body text-sm">Session ID</p>
         <div className="flex justify-between gap-2 items-center">
-          <Badge className="text-xs bg-blue-100 rounded-sm text-indigo-800 hover:bg-blue-100 p-2 w-52 truncate overflow-hidden text-ellipsis whitespace-nowrap">
+          <Badge className="text-xs bg-blue-100 rounded-sm text-indigo-800 hover:bg-blue-100 p-2 w-52 overflow-hidden whitespace-nowrap text-ellipsis">
             {sessionId}
           </Badge>
 

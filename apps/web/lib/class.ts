@@ -169,8 +169,16 @@ class DrawingEngine {
       }
       const msg = result.data;
 
-      if (msg.type === "room_user_pos") {
+      if (msg.type === "user_joined") {
+        const { userId, name } = msg;
+        console.log()
+        // this.roomUsers.set(userId,);
+        console.log(name + ' joined')
+        this.render();
+        return;
+      } else if (msg.type === "room_user_pos") {
         const { userId, posX, posY } = msg;
+        console.log(posX)
         this.roomUsers.set(userId, { posX, posY });
         this.render();
         return;

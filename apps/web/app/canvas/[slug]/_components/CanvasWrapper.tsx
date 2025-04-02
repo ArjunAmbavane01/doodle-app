@@ -5,9 +5,10 @@ import {IRoomChat} from "@workspace/common/schemas";
 import Canvas from "./Canvas";
 import { useLoading } from "@/providers/LoadingProvider";
 
-const CanvasRoom = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMessages:IRoomChat[] , userId:string}) => {
+const CanvasWrapper = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMessages:IRoomChat[] , userId:string}) => {
     const {setIsLoading} = useLoading();
     const socketRef = useRef<WebSocket | null>(null);
+    console.log(userId)
     useEffect(() => {
         if (!socketRef.current) {
             setIsLoading(true);
@@ -27,4 +28,4 @@ const CanvasRoom = ({ wsToken,roomMessages,userId }: { wsToken: string, roomMess
     return <Canvas socket={socketRef.current} roomMessages={roomMessages} userId={userId} />
 }
 
-export default CanvasRoom;
+export default CanvasWrapper;
