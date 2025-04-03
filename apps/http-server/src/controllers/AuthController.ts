@@ -2,12 +2,12 @@ import { Request, Response } from "express";
 import { sign } from "jsonwebtoken";
 import prisma from "@workspace/db/client";
 import { JWT_SECRET } from "@workspace/backend-common/config";
-import { loginSchema } from "@workspace/backend-common/schemas";
+import { googleLoginSchema } from "@workspace/backend-common/schemas";
 
 // Fix the problem ki jwt is still valid after next auth logout
 export const login = async (req: Request, res: Response) => {
   try {
-    const result = loginSchema.safeParse(req.body);
+    const result = googleLoginSchema.safeParse(req.body);
     if (result.error) {
       console.error(`Invalid request body`, result.error.format());
       res.status(400).json({ type: "error", message: "Invalid body format", error: result.error.flatten() });

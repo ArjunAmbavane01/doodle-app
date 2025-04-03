@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "exports": {
-    "./schemas": "./src/schemas.ts",
+    "./messages": "./src/messages.ts",
     "./shapes": "./src/shapes.ts"
   },
   "scripts": {

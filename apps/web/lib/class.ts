@@ -1,6 +1,6 @@
 import { HighlightPoint, Point, RoomShape, Shape } from "@workspace/common/shapes";
 import { clearCanvas, getShapesFromMessages, setupContext } from "./draw/canvasUtils";
-import { IRoomChat, messageSchema } from "@workspace/common/schemas";
+import { IRoomChat, messageSchema } from "@workspace/common/messages";
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 import { drawUserCursor } from "./draw/cursorUtils";
 import { drawHighlightPoints, drawShape, getBoundingShape, strokeToSVG, translateSVGPath } from "./draw/shapeUtils";
@@ -171,14 +171,10 @@ class DrawingEngine {
 
       if (msg.type === "user_joined") {
         const { userId, name } = msg;
-        console.log()
-        // this.roomUsers.set(userId,);
-        console.log(name + ' joined')
         this.render();
         return;
       } else if (msg.type === "room_user_pos") {
         const { userId, posX, posY } = msg;
-        console.log(posX)
         this.roomUsers.set(userId, { posX, posY });
         this.render();
         return;

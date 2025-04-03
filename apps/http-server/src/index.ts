@@ -12,6 +12,8 @@ app.use(express.json());
 
 app.use("/api", Routes);
 
-app.get("/", () => console.log("Hello From Doodle's API !"));
+app.get("/", (req, res) => {
+    res.send("Hello From Doodle's API !")
+});
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}`));

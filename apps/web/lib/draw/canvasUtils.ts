@@ -1,8 +1,8 @@
-import { IRoomChat } from "@workspace/common/schemas";
+import { IRoomChat } from "@workspace/common/messages";
 import { RoomShape } from "@workspace/common/shapes";
 import { drawShape } from "./shapeUtils";
 
-export const clearCanvas = ( roomShapes: RoomShape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
+export const clearCanvas = (roomShapes: RoomShape[], canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = "#0C0C0C";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -13,7 +13,7 @@ export const clearCanvas = ( roomShapes: RoomShape[], canvas: HTMLCanvasElement,
 };
 
 export const getShapesFromMessages = (messages: IRoomChat[]) =>
-  messages.map((msg: { userId: string; message: string }) => { return { userId: msg.userId, shape: JSON.parse(msg.message) }});
+  messages.map((msg: { userId: string; message: string }) => { return { userId: msg.userId, shape: JSON.parse(msg.message) } });
 
 export const setupContext = (ctx: CanvasRenderingContext2D) => {
   ctx.imageSmoothingEnabled = true;

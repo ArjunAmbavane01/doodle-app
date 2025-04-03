@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { ICustomRequest } from "../auth";
 import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import { sign } from "jsonwebtoken";
-import { joinRoomSchema } from "@workspace/backend-common/schemas";
+import { roomJoinSchema } from "@workspace/backend-common/schemas";
 
 export const createRoom = async (req: ICustomRequest, res: Response) => {
   try {
@@ -18,7 +18,7 @@ export const createRoom = async (req: ICustomRequest, res: Response) => {
 
 export const joinRoom = async (req: ICustomRequest, res: Response) => {
   try {
-    const result = joinRoomSchema.safeParse(req.body);
+    const result = roomJoinSchema.safeParse(req.body);
     if (result.error) {
       console.error(`Invalid request body`, result.error.format());
       res.status(400).json({ type: "error", message: "Invalid body format", error: result.error.flatten() });

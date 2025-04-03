@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-export const loginSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  oauth_id: z.string(),
+export const googleLoginSchema = z.object({
+  name: z.string().nonempty("Name is required"),
+  email: z.string().email("Invalid email format"),
+  oauth_id: z.string().nonempty("OAuth ID is required"),
   provider: z.literal("google"),
-  photo: z.string().optional(),
+  photo: z.string().url().optional(),
 });
 
-export const joinRoomSchema = z.object({
-  slug: z.string()
+export const roomJoinSchema = z.object({
+  slug: z.string().nonempty("Room slug is required"),
 });

@@ -2,7 +2,7 @@ import { verify } from "jsonwebtoken";
 import { WebSocketServer, WebSocket } from "ws";
 import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import prisma from "@workspace/db/client";
-import { messageSchema } from "@workspace/common/schemas";
+import { messageSchema } from "@workspace/common/messages";
 import { shapeSchema } from "@workspace/common/shapes";
 
 // Auto-delete empty rooms
