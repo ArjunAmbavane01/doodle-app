@@ -7,7 +7,7 @@ import { CREATE_ROOM_URL } from "@/lib/apiEndPoints";
 import { Button } from "@workspace/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { useLoading } from "@/providers/LoadingProvider";
-import { FloatingShapes } from "./FloatingShapes";
+import { FloatingShapes } from "./visuals/FloatingShapes";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
     const router = useRouter();

@@ -4,7 +4,7 @@ import LoginModal from "@/components/auth/LoginModal";
 import UserDropdown from "@/components/navbar/UserDropdown";
 import Navbar from "./_components/Navbar"
 import HeroSection from "./_components/HeroSection"
-import Collab from "./_components/Collab";
+import CollabSection from "./_components/CollabSection";
 import ShortcutsSection from "./_components/Shortcuts";
 import TechStack from "./_components/TechStack";
 import Footer from "./_components/Footer";
@@ -14,10 +14,10 @@ const Page = async () => {
   return (
     <>
       <Navbar>
-        {session?.user ? <UserDropdown user={session?.user} /> : <LoginModal />}
+        {session?.user ? <UserDropdown user={session.user} /> : <LoginModal />}
       </Navbar>
-      <HeroSection userToken={session?.user?.token} />
-      <Collab />
+      <HeroSection userToken={session?.user?.token ?? ""} />
+      <CollabSection />
       <ShortcutsSection />
       <TechStack />
       <Footer />
