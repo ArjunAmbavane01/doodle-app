@@ -7,9 +7,10 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.strokeStyle = "#A2D2FF";
       const path = new Path2D(shape.path);
       const boundingRect = getBoundingBoxFromPath(shape.path);
-      ctx.setLineDash([5, 5]);
+      ctx.setLineDash([6, 8]);
       if (boundingRect) ctx.strokeRect(boundingRect?.minX,boundingRect?.minY,boundingRect?.width,boundingRect?.height);
       ctx.setLineDash([]);
+      ctx.strokeStyle = shape.strokeColour;
       ctx.stroke(path);
     } else {
       ctx.strokeStyle = shape.strokeColour;
@@ -36,8 +37,9 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.strokeStyle = "#A2D2FF";
       const padding = 5;
       const textWidth = ctx.measureText(lines[longestLineIdx] as string).width;
-      ctx.setLineDash([5, 5]);
+      ctx.setLineDash([6, 8]);
       ctx.strokeRect( shape.startX - 3, shape.startY - 3, textWidth + padding, lineHeight * lines.length + padding);
+      ctx.strokeStyle = shape.textColour;
       ctx.stroke();
       ctx.setLineDash([]);
     }

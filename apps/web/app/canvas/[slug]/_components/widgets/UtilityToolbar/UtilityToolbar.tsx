@@ -18,7 +18,7 @@ const UtilityToolbar = () => {
                 <PopoverTrigger className="flex justify-center items-center gap-2 rounded bg-white text-black p-3 py-1 w-fit text-sm">
                     <Users className="size-4" onClick={() => setOpenCollaborators(true)} />
                 </PopoverTrigger>
-                <PopoverContent className="p-0"><CollaboratorMenu setOpen={setOpenCollaborators} /></PopoverContent>
+                <PopoverContent className="p-0 mt-2 bg-transparent border-none"><CollaboratorMenu setOpen={setOpenCollaborators} /></PopoverContent>
             </Popover>
            
             <AlertDialog>
