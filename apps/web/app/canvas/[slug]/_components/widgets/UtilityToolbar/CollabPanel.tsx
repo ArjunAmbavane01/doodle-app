@@ -1,20 +1,20 @@
 "use client"
 
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Avatar } from "@workspace/ui/components/avatar";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
 import { AnimatePresence, motion } from "motion/react";
 import { CheckCircle2, Copy, Users, X } from "lucide-react";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 
-interface collaborator {
+interface ICollaborator {
   name: string
 }
 
-const CollaboratorMenu = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) => {
+const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) => {
 
   const sessionId = '5261dd2a-ee17-47f4-b11f-7d408fd7ce49';
-  const [collaborators, setCollaborators] = useState<collaborator[]>([{ name: "You" }, { name: "Alex Kim" }, { name: "Archit" }]);
+  const [collaborators, setCollaborators] = useState<ICollaborator[]>([{ name: "You" }, { name: "Alex Kim" }, { name: "Archit" }]);
   const [isCopied, setIsCopied] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -32,8 +32,7 @@ const CollaboratorMenu = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolea
   }, [])
 
   useEffect(() => {
-    if (isCopied)
-      timeoutRef.current = setTimeout(() => setIsCopied(false), 5000)
+    if (isCopied) timeoutRef.current = setTimeout(() => setIsCopied(false), 5000)
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -122,4 +121,4 @@ const CollaboratorMenu = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolea
   );
 }
 
-export default CollaboratorMenu;
+export default CollabPanel;

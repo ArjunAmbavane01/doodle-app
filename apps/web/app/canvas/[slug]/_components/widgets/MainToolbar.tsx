@@ -1,8 +1,8 @@
 "use client"
 
 import { Circle, Hand, Minus, MousePointer, MoveRight, Pen, Square, Triangle, TypeIcon as TypeOutline, Highlighter } from "lucide-react"
-import { Dispatch, SetStateAction, useEffect, useState } from "react"
-import { SelectedToolType } from "./Canvas"
+import { useEffect, useState } from "react"
+import { SelectedToolType } from "../Canvas"
 
 const tools = [
   { icon: Hand, name: "Pan", shortcut: "H", type: "pan" },
@@ -17,7 +17,7 @@ const tools = [
   { icon: Highlighter, name: "Highlighter", shortcut: "M", type: "highlighter" },
 ] as const
 
-const Toolbar = () => {
+const MainToolbar = () => {
 
   const [activeTool, setActiveTool] = useState<SelectedToolType>("pen")
  
@@ -58,4 +58,4 @@ const Toolbar = () => {
   )
 }
 
-export default Toolbar;
+export default MainToolbar;
