@@ -1,5 +1,5 @@
 import { authOptions } from "./options";
 import NextAuth from "next-auth";
 
-const nextAuth = NextAuth(authOptions);
-export { nextAuth as GET, nextAuth as POST };
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };

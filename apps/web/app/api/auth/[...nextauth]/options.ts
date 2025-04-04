@@ -33,10 +33,13 @@ export const authOptions: AuthOptions = {
         };
 
         const { data } = await axios.post(LOGIN_URL, payload);
-        user.token = data?.user?.token;
-        user.id = data?.user?.id?.toString();
-        user.provider = data?.user?.provider;
-        return true;
+        if (data?.user?.token) {
+          user.token = data.user.token;
+          user.id = data.user.id?.toString();
+          user.provider = data.user.provider;
+          return true;
+        }
+        return false;
       } catch (e) {
         return false;
       }
@@ -45,9 +48,12 @@ export const authOptions: AuthOptions = {
       if (user) token.user = user;
       return token;
     },
-    async session({ session, user, token,}: { session: ICustomSession; user: ICustomUser; token: JWT;}) {
+    async session({ session, token,}: { session: ICustomSession; token: JWT;}) {
       session.user = token.user as ICustomUser;
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      return baseUrl; 
     },
   },
   providers: [

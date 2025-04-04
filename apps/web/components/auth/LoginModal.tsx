@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import Image from "next/image";
 
 const LoginModal = () => {
-  const handleLogin = () => {signIn("google", { redirect: true })}
+  const handleLogin = () => {signIn("google", { redirect: true, callbackUrl: '/' })}
   return (
     <Dialog>
       <DialogTrigger asChild>
