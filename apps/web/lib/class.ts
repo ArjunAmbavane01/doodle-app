@@ -1,10 +1,10 @@
 import { HighlightPoint, Point, RoomShape, Shape } from "@workspace/common/shapes";
-import { clearCanvas, getShapesFromMessages, setupContext } from "./draw/canvasUtils";
+import { clearCanvas, getShapesFromMessages, setupContext } from "./utils/canvasUtils";
 import { IRoomChat, messageSchema } from "@workspace/common/messages";
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
-import { drawUserCursor } from "./draw/cursorUtils";
-import { drawHighlightPoints, drawShape, getBoundingShape, strokeToSVG, translateSVGPath } from "./draw/shapeUtils";
-import { createTextArea } from "./draw/textUtils";
+import { drawUserCursor } from "./utils/cursorUtils";
+import { drawHighlightPoints, drawShape, getBoundingShape, strokeToSVG, translateSVGPath } from "./utils/shapeUtils";
+import { createTextArea } from "./utils/textUtils";
 
 export interface IRoomUserPos {
   posX: number;
@@ -617,6 +617,10 @@ class DrawingEngine {
       this.selectedTool = "highlighter";
       this.selectedRoomShape = null;
       window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" }));
+    } else if (e.key === "d") {
+      this.selectedTool = "ai";
+      this.selectedRoomShape = null;
+      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "ai" }));
     }
     this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
   };

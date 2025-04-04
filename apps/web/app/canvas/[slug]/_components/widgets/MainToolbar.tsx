@@ -3,6 +3,7 @@
 import { Circle, Hand, Minus, MousePointer, MoveRight, Pen, Square, Triangle, TypeIcon as TypeOutline, Highlighter } from "lucide-react"
 import { useEffect, useState } from "react"
 import { SelectedToolType } from "../Canvas"
+import Image from "next/image"
 
 const tools = [
   { icon: Hand, name: "Pan", shortcut: "H", type: "pan" },
@@ -20,32 +21,32 @@ const tools = [
 const MainToolbar = () => {
 
   const [activeTool, setActiveTool] = useState<SelectedToolType>("pen")
- 
-   const chooseTool = (type: SelectedToolType) => {
-     setActiveTool(type)
-     window.dispatchEvent(new CustomEvent("toolChange", { detail: type }))
-   }
- 
-   useEffect(() => {
-     const handleToolChange = (e: Event) => {
-       const customEvent = e as CustomEvent;
-       if (customEvent.detail) {
-         setActiveTool(customEvent.detail);
-       }
-     }
-     window.addEventListener('toolChangeFromKeyboard', handleToolChange);
- 
-     return () => window.removeEventListener('toolChangeFromKeyboard', handleToolChange);
-   }, [])
+
+  const chooseTool = (type: SelectedToolType) => {
+    setActiveTool(type)
+    window.dispatchEvent(new CustomEvent("toolChange", { detail: type }))
+  }
+
+  useEffect(() => {
+    const handleToolChange = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setActiveTool(customEvent.detail);
+      }
+    }
+    window.addEventListener('toolChangeFromKeyboard', handleToolChange);
+
+    return () => window.removeEventListener('toolChangeFromKeyboard', handleToolChange);
+  }, [])
 
 
   return (
     <div className="flex items-center gap-1 sm:gap-2 md:gap-3 mx-auto w-fit p-1 sm:p-1.5 px-1.5 sm:px-3 md:px-5 rounded-lg md:rounded-xl bg-white fixed inset-x-0 top-4 sm:top-6">
       {tools.map((tool) => {
         return (
-          <div key={tool.type} onClick={() => chooseTool(tool.type)} className={`relative rounded-lg p-1.5 sm:p-2 md:p-3 hover:bg-black/10 group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool  === tool.type ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/6"}`}>
+          <div key={tool.type} onClick={() => chooseTool(tool.type)} className={`relative rounded-lg p-1.5 sm:p-2 md:p-3 hover:bg-black/10 group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === tool.type ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/6"}`}>
             <tool.icon className="size-3 sm:size-4 md:size-5" strokeWidth={1.5} />
-            <span className={`hidden md:block absolute bottom-0.5 right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool  === tool.type ? 'text-black' : 'text-muted-foreground'}`}>
+            <span className={`hidden md:block absolute bottom-0.5 right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool === tool.type ? 'text-black' : 'text-muted-foreground'}`}>
               {tool.shortcut}
             </span>
             <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 -translate-y-3 px-2 py-1 text-xs opacity-0 font-medium text-black bg-white/90 rounded whitespace-nowrap transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
@@ -54,6 +55,18 @@ const MainToolbar = () => {
           </div>
         )
       })}
+      <div className="w-[0.5px] bg-blue-200 h-10" />
+      <div key={'ai'} onClick={() => chooseTool('ai')} className={`relative rounded-lg p-1.5 sm:p-2 md:p-3 hover:bg-black/10 group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === 'ai' ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/6"}`}>
+        <Image src={'/images/chatbot.png'} alt="Chatbot" width={100} height={100} className="size-4 md:size-5" />
+        <span className={`hidden md:block absolute bottom-0.5 right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool === 'ai' ? 'text-black' : 'text-muted-foreground'}`}>
+          D
+        </span>
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 -translate-y-3 px-2 py-1 text-xs opacity-0 font-medium text-black bg-white/90 rounded whitespace-nowrap transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
+          AI Prompt
+        </div>
+      </div>
+
+      {/* </div> */}
     </div>
   )
 }

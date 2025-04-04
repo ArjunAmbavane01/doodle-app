@@ -7,7 +7,7 @@ import StyleToolbar from "./widgets/StyleToolbar/StyleToolbar";
 import DrawingEngine from "@/lib/class";
 import UtilityToolbar from "./widgets/UtilityToolbar/UtilityToolbar";
 
-export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter';
+export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter' | 'ai';
 
 const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IRoomChat[], userId: string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -123,7 +123,7 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
           <AnimatePresence initial={false}>
             {collaborators.map((collaborator, idx) => (
               <motion.div
-                key={collaborator.name}
+                key={idx}
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
