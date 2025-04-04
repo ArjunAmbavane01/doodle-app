@@ -116,7 +116,7 @@ export const FloatingShapes = () => {
   }, []);
 
   return (
-    <div className="absolute inset-0 opacity-20 overflow-hidden" onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
+    <div className="absolute inset-0 opacity-25 overflow-hidden" onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
       {SHAPES.map((shape, i) => (<Shape key={i} shape={shape} position={positions[i]} mousePos={mousePos} isHovering={isHovering} />))}
     </div>
   );

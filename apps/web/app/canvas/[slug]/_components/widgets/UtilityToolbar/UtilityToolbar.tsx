@@ -21,9 +21,11 @@ const UtilityToolbar = () => {
                 <PopoverContent className="p-0 mt-2 bg-transparent border-none"><CollaboratorMenu setOpen={setOpenCollaborators} /></PopoverContent>
             </Popover>
            
+                    <Button variant="outline" className="rounded"><Plus className="size-4" /> New Canvas</Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="outline" className="rounded"><Plus className="size-4" /> New Canvas</Button>
+                    <Button variant="outline" className="p-2 rounded bg-red-500 text-white border-none hover:text-white hover:bg-red-500/80"> Clear Canvas</Button>
+                    {/* <Button variant="outline" className="rounded"><Plus className="size-4" /> New Canvas</Button> */}
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>

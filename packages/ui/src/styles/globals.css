@@ -95,7 +95,7 @@
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(191, 219, 254, 0.734) rgba(24, 24, 27, 0.5);
+  scrollbar-color: rgba(125, 179, 245, 0.811) rgba(24, 24, 27, 0);
 }
 
 .custom-scrollbar::-webkit-scrollbar {

@@ -96,11 +96,14 @@ const ColorTab = ({ strokeColor, setStrokeColor }: ColorTabProps) => {
 
       <div className="flex items-center justify-around p-3 text-xs text-white border-t border-neutral-700">
         <div className="flex items-center gap-3">
-          <div className="size-6 rounded-sm border border-white" style={{ backgroundColor: strokeColor }} />
+          <div className="size-6 rounded-sm border border-white hover:cursor-pointer" 
+          onClick={()=>setColorSubTab("stroke")}
+          style={{ backgroundColor: strokeColor }} />
           Stroke
         </div>
         <div className="flex items-center gap-3">
-          <div className="size-6 rounded-sm border border-white"
+          <div className="size-6 rounded-sm border border-white hover:cursor-pointer"
+          onClick={()=>setColorSubTab("bg")}
             style={{
               backgroundColor: bgColor === "transparent" ? "transparent" : bgColor,
               backgroundImage: bgColor === "transparent" ? "repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 8px 8px" : "none",

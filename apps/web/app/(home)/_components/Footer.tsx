@@ -52,7 +52,7 @@ export default function Footer() {
             {socialLinks.map((link) => (
               <a className="group flex items-center gap-3 text-gray-400 hover:text-white transition-colors w-fit mx-auto sm:mx-0"
                 key={link.label} href={link.href} target="_blank">
-                <div className="flex items-center justify-center size-10 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
+                <div className="flex items-center justify-center size-10 rounded-lg bg-white/10 group-hover:bg-white/15 transition-colors">
                   <link.icon className="size-5" />
                 </div>
                 {link.label}

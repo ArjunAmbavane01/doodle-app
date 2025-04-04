@@ -55,17 +55,17 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className="flex flex-col bg-zinc-900 text-zinc-100 font-body rounded-lg shadow-xl border border-zinc-600 overflow-hidden"
+      className="flex flex-col bg-white font-body rounded-lg shadow-xl border border-zinc-600 overflow-hidden"
     >
       <div className="flex justify-between items-center p-4 py-2 border-b border-zinc-800">
-        <h3 className="flex items-center gap-2 text-md">
-          <Users className="size-4 text-blue-300" />
+        <h3 className="flex items-center gap-2 text-md text-zinc-900">
+          <Users className="size-4 text-blue-600" />
           <span>Collaboration</span>
         </h3>
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 rounded-full text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800"
+          className="size-8 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200"
           onClick={() => setOpen(false)}
         >
           <X className="size-4" />
@@ -73,16 +73,15 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
       </div>
 
       <div className="flex flex-col gap-2 p-4 border-b border-zinc-800/50">
-        <p className="text-sm font-medium text-zinc-400">Session ID</p>
+        <p className="text-sm font-medium text-zinc-900">Session ID</p>
         <div className="flex items-center gap-2">
-          <div className="flex-1 bg-zinc-800/70 rounded-md px-3 py-2 text-xs font-body text-white overflow-hidden whitespace-nowrap text-ellipsis">
+          <div className="flex-1 bg-zinc-200/90 rounded-md px-3 py-2 text-xs font-body text-black overflow-hidden whitespace-nowrap text-ellipsis">
             {sessionId}
           </div>
           <motion.button
-            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleCopyClick}
-            className="flex items-center justify-center size-8 rounded-md bg-zinc-800 hover:bg-zinc-700 transition-colors"
+            className="flex items-center justify-center size-8 rounded-md bg-zinc-200/90 hover:bg-zinc-300 transition-colors"
           >
             <AnimatePresence mode="wait">
               {isCopied ? (
@@ -93,7 +92,7 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
                   exit={{ scale: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <CheckCircle2 className="size-4 text-green-400" />
+                  <CheckCircle2 className="size-4 text-green-600" />
                 </motion.div>
               ) : (
                 <motion.div
@@ -103,7 +102,7 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
                   exit={{ scale: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Copy className="size-4 text-zinc-200" />
+                  <Copy className="size-4 text-zinc-900" />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -113,8 +112,8 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
 
       <div className="flex flex-col gap-2 p-4">
         <div className="flex items-center justify gap-2">
-          <p className="text-sm font-medium text-zinc-400">Collaborators</p>
-          <Badge className="flex justify-center items-center px-2 py-1 bg-zinc-800 text-zinc-300 hover:bg-zinc-800 text-[10px]">
+          <p className="text-sm font-medium text-zinc-900">Collaborators</p>
+          <Badge className="flex justify-center items-center px-2 py-1 bg-zinc-300 hover:bg-zinc-300 text-zinc-900 text-[8px]">
             {collaborators.length}
           </Badge>
         </div>
@@ -128,7 +127,7 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.2, delay: idx * 0.05 }}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-zinc-800/50 transition-colors"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-zinc-300/50 transition-colors"
               >
                 <div className="relative">
                   <Avatar className="flex justify-center items-center size-8 bg-blue-200/80 text-indigo-200 border border-blue-600">
@@ -136,7 +135,7 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
                   </Avatar>
                   <span className="absolute bottom-0 right-0 size-2 rounded-full bg-green-400 ring-2 ring-zinc-900"></span>
                 </div>
-                <span className="text-sm text-zinc-200">{collaborator.name}</span>
+                <span className="text-sm text-zinc-900">{collaborator.name}</span>
               </motion.div>
             ))}
           </AnimatePresence>
