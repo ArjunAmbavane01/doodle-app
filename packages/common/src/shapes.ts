@@ -88,6 +88,17 @@ const circle = z.object({
   strokeWidth: z.number(),
 });
 
+const genAI = z.object({
+  type: z.literal("genAI"),
+  startX: z.number(),
+  startY: z.number(),
+  width: z.number(),
+  height: z.number(),
+  svgPath: z.string(),
+  strokeColour: z.string(),
+  strokeWidth: z.number(),
+});
+
 export const shapeSchema = z.discriminatedUnion("type", [
   pen,
   text,
@@ -97,6 +108,7 @@ export const shapeSchema = z.discriminatedUnion("type", [
   rectangle,
   triangle,
   circle,
+  genAI
 ]);
 
 const roomShape = z.object({
@@ -108,3 +120,4 @@ export type Shape = z.infer<typeof shapeSchema>;
 export type RoomShape = z.infer<typeof roomShape>;
 export type HighlightPoint = z.infer<typeof highlightPoint>;
 export type Point = z.infer<typeof point>;
+export type genAI = z.infer<typeof genAI>;

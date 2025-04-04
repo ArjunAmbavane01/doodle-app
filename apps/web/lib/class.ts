@@ -38,6 +38,7 @@ class DrawingEngine {
   private textStyle = { bold: false, italic: false };
 
   private currentShape: Shape | null = null;
+  private currentAiShape: Shape | null = null;
   private movedShape: RoomShape | null = null;
   private selectedRoomShape: RoomShape | null = null;
   private zoomChangeTimeout: number | null = null;
@@ -92,8 +93,7 @@ class DrawingEngine {
     this.render();
   }
 
-  private renderPersistentShapes = () =>
-    clearCanvas(this.roomShapes, this.offscreenCanvas, this.offscreenCtx);
+  private renderPersistentShapes = () => clearCanvas(this.roomShapes, this.offscreenCanvas, this.offscreenCtx);
 
   private render = () => {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -264,6 +264,11 @@ class DrawingEngine {
       }
       this.renderPersistentShapes();
       this.render();
+    } else if (this.selectedTool === "genAI") {
+      this.startX = x;
+      this.startY = y;
+      this.isDrawing = true;
+      this.hasMovedSinceMouseDown = false;
     } else {
       this.startX = x;
       this.startY = y;
@@ -379,6 +384,9 @@ class DrawingEngine {
           const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
           this.currentShape = { type: "circle", centerX, centerY, radius, strokeColour: this.strokeColour, fillColour: this.fillColour, strokeWidth: this.strokeWidth };
           break;
+        case "genAI":
+          this.currentShape = { type: "genAI", startX: this.startX, startY: this.startY, width, height, svgPath: '', strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
+          break;
       }
     }
     this.render();
@@ -422,6 +430,27 @@ class DrawingEngine {
         this.roomShapes.push(shapeWithUser);
         this.undoStack.push({ type: "add", roomShape: shapeWithUser });
         this.socket.send(JSON.stringify({ type: "chat", userId: this.userId, message: JSON.stringify(this.currentShape) }));
+      } else if (this.selectedTool === "genAI") {
+
+        window.dispatchEvent(new CustomEvent("openPrompt", { detail: this.currentShape }));
+        this.currentAiShape = this.currentShape;
+        // generateAISvgPath(this.currentShape.startX,this.currentShape.startY,this.currentShape.width,this.currentShape.height);
+        // const shapeWithUser = { userId: this.userId, shape: this.currentShape };
+
+        // fetch('/api/genAI', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(this.currentShape),
+        // }).then((res)=>res.json()).then((data)=>{
+        //   if(data.svgPath){
+        //     shapeWithUser.shape.svgPath = data.svgPath
+        //     this.roomShapes.push(shapeWithUser);
+        //   }
+        // }).catch(error => console.error('Error generating AI drawing:', error));
+
+        // this.socket.send(JSON.stringify({ type: "genAI", userId: this.userId, message: JSON.stringify(this.currentShape), }));
+        // this.roomShapes.push(shapeWithUser);
+        // this.undoStack.push({ type: "add", roomShape: shapeWithUser });
       } else {
         if (this.currentShape) {
           const shapeWithUser = { userId: this.userId, shape: this.currentShape };
@@ -618,11 +647,11 @@ class DrawingEngine {
       this.selectedRoomShape = null;
       window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" }));
     } else if (e.key === "d") {
-      this.selectedTool = "ai";
+      this.selectedTool = "genAI";
       this.selectedRoomShape = null;
       window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "ai" }));
     }
-    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
+    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
   };
 
   private handleZoomIn = () => {
@@ -664,7 +693,18 @@ class DrawingEngine {
   private handleToolChange = (e: Event) => {
     this.selectedTool = (e as CustomEvent).detail as SelectedToolType;
     this.selectedRoomShape = null;
-    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : "default";
+    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
+  }
+
+  private handleRenderSvg = (e: Event) => {
+    if (this.currentAiShape?.type == "genAI") {
+      this.currentAiShape.svgPath = (e as CustomEvent).detail;
+      const shapeWithUser = { userId: this.userId, shape: this.currentAiShape };
+      this.roomShapes.push(shapeWithUser);
+      console.log(this.roomShapes)
+      this.renderPersistentShapes();
+      this.render();
+    }
   }
 
   private initHandlers() {
@@ -688,6 +728,7 @@ class DrawingEngine {
     window.addEventListener("textColorChange", this.handleTextColorChange);
     window.addEventListener("textStyleChange", this.handleTextStyleChange);
     window.addEventListener("penWidthChange", this.handlePenWidthChange);
+    window.addEventListener("renderSvg", this.handleRenderSvg);
   }
 
   destroy() {
@@ -711,6 +752,7 @@ class DrawingEngine {
     window.removeEventListener("textColorChange", this.handleTextColorChange);
     window.removeEventListener("textStyleChange", this.handleTextStyleChange);
     window.removeEventListener("penWidthChange", this.handlePenWidthChange);
+    window.removeEventListener("renderSvg", this.handleRenderSvg);
   }
 }
 

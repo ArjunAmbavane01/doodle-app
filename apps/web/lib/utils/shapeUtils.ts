@@ -1,6 +1,6 @@
 import { HighlightPoint, Point, RoomShape, Shape, } from "@workspace/common/shapes";
 
-export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false,) => {
+export const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBoundary: boolean = false,) => {
   ctx.save();
   if (shape.type === "pen" && shape.path) {
     if (drawBoundary) {
@@ -8,7 +8,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       const path = new Path2D(shape.path);
       const boundingRect = getBoundingBoxFromPath(shape.path);
       ctx.setLineDash([6, 8]);
-      if (boundingRect) ctx.strokeRect(boundingRect?.minX,boundingRect?.minY,boundingRect?.width,boundingRect?.height);
+      if (boundingRect) ctx.strokeRect(boundingRect?.minX, boundingRect?.minY, boundingRect?.width, boundingRect?.height);
       ctx.setLineDash([]);
       ctx.strokeStyle = shape.strokeColour;
       ctx.stroke(path);
@@ -31,14 +31,14 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
     ctx.textBaseline = "top";
     ctx.fillStyle = shape.textColour;
     ctx.textAlign = "left";
-    lines.forEach((line, index) => { ctx.fillText(line, shape.startX + 0.5, shape.startY + index * lineHeight + 0.5);});
+    lines.forEach((line, index) => { ctx.fillText(line, shape.startX + 0.5, shape.startY + index * lineHeight + 0.5); });
     if (drawBoundary) {
       const longestLineIdx = lines.reduce((maxIdx, line, idx, arr) => line.length > arr[maxIdx]!.length ? idx : maxIdx, 0);
       ctx.strokeStyle = "#A2D2FF";
       const padding = 5;
       const textWidth = ctx.measureText(lines[longestLineIdx] as string).width;
       ctx.setLineDash([6, 8]);
-      ctx.strokeRect( shape.startX - 3, shape.startY - 3, textWidth + padding, lineHeight * lines.length + padding);
+      ctx.strokeRect(shape.startX - 3, shape.startY - 3, textWidth + padding, lineHeight * lines.length + padding);
       ctx.strokeStyle = shape.textColour;
       ctx.stroke();
       ctx.setLineDash([]);
@@ -78,9 +78,9 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.closePath();
       ctx.beginPath();
       ctx.moveTo(shape.endX, shape.endY);
-      ctx.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6),shape.endY - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6), shape.endY - headlen * Math.sin(angle - Math.PI / 6));
       ctx.moveTo(shape.endX, shape.endY);
-      ctx.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6),shape.endY - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6), shape.endY - headlen * Math.sin(angle + Math.PI / 6));
       ctx.stroke();
       ctx.closePath();
     } else {
@@ -93,9 +93,9 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
       ctx.beginPath();
       ctx.moveTo(shape.startX, shape.startY);
       ctx.lineTo(shape.endX, shape.endY);
-      ctx.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6),shape.endY - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle - Math.PI / 6), shape.endY - headlen * Math.sin(angle - Math.PI / 6));
       ctx.moveTo(shape.endX, shape.endY);
-      ctx.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6),shape.endY - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.lineTo(shape.endX - headlen * Math.cos(angle + Math.PI / 6), shape.endY - headlen * Math.sin(angle + Math.PI / 6));
       ctx.stroke();
       ctx.closePath();
     }
@@ -103,7 +103,7 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       ctx.setLineDash([5, 5]);
-      ctx.strokeRect(shape.startX - 6,shape.startY - 6,shape.width + 12,shape.height + 12);
+      ctx.strokeRect(shape.startX - 6, shape.startY - 6, shape.width + 12, shape.height + 12);
       ctx.setLineDash([]);
     } else {
       ctx.strokeStyle = shape.strokeColour;
@@ -190,6 +190,21 @@ export const drawShape = ( shape: Shape, ctx: CanvasRenderingContext2D, drawBoun
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
     ctx.stroke(pathObj);
+  } else if (shape.type === "genAI") {
+    if ( shape.svgPath == ''){
+      ctx.strokeStyle = "#A2D2FF";
+      ctx.lineWidth = shape.strokeWidth;
+      ctx.setLineDash([5, 6]);
+      ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
+      ctx.setLineDash([]);
+    } else {
+      console.log('here');
+      console.log(shape.svgPath)
+      ctx.strokeStyle = shape.strokeColour;
+      ctx.lineWidth = shape.strokeWidth;
+      const path = new Path2D(shape.svgPath);
+      ctx.stroke(path);
+    }
   }
   ctx.restore();
 };
@@ -206,7 +221,7 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.stroke(path);
       const value = ctx.isPointInStroke(path, clickedX, clickedY);
       ctx.restore();
-      if (value) return {roomShape:roomShapes[i],index:i};
+      if (value) return { roomShape: roomShapes[i], index: i };
     } else if (roomShape.type === "text") {
       const lines = roomShape.text.split("\n");
       const fontSize = (roomShape.fontSize || 24);
@@ -226,7 +241,7 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
         clickedY >= roomShape.startY - padding &&
         clickedY <= roomShape.startY + textHeight + padding;
       ctx.restore();
-      if (value) return {roomShape:roomShapes[i],index:i};
+      if (value) return { roomShape: roomShapes[i], index: i };
     } else if (roomShape.type === "line") {
       ctx.beginPath();
       ctx.lineWidth = 14;
@@ -236,55 +251,55 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.stroke();
       ctx.closePath();
       ctx.restore();
-      if (value) return {roomShape:roomShapes[i],index:i};
+      if (value) return { roomShape: roomShapes[i], index: i };
     } else if (roomShape.type === "arrow") {
       const headlen = 12; // headlen in  pixels
       ctx.lineWidth = 14;
       const dx = roomShape.endX - roomShape.startX;
       const dy = roomShape.endY - roomShape.startY;
       const angle = Math.atan2(dy, dx);
-      drawArrowHead(ctx,roomShape.startX,roomShape.startY,angle);
+      drawArrowHead(ctx, roomShape.startX, roomShape.startY, angle);
       ctx.beginPath();
       ctx.moveTo(roomShape.startX, roomShape.startY);
       ctx.lineTo(roomShape.endX, roomShape.endY);
-      ctx.lineTo(roomShape.endX - headlen * Math.cos(angle - Math.PI / 6),roomShape.endY - headlen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(roomShape.endX - headlen * Math.cos(angle - Math.PI / 6), roomShape.endY - headlen * Math.sin(angle - Math.PI / 6));
       ctx.moveTo(roomShape.endX, roomShape.endY);
-      ctx.lineTo(roomShape.endX - headlen * Math.cos(angle + Math.PI / 6),roomShape.endY - headlen * Math.sin(angle + Math.PI / 6));
+      ctx.lineTo(roomShape.endX - headlen * Math.cos(angle + Math.PI / 6), roomShape.endY - headlen * Math.sin(angle + Math.PI / 6));
       const value = ctx.isPointInStroke(clickedX, clickedY);
       ctx.stroke();
       ctx.closePath();
       ctx.restore();
-      if (value) return {roomShape:roomShapes[i],index:i};
+      if (value) return { roomShape: roomShapes[i], index: i };
     } else if (roomShape.type === "rectangle") {
       ctx.beginPath();
-      ctx.rect(roomShape.startX,roomShape.startY,roomShape.width,roomShape.height);
+      ctx.rect(roomShape.startX, roomShape.startY, roomShape.width, roomShape.height);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
       ctx.restore();
-      if (value) return {roomShape:roomShapes[i],index:i};
+      if (value) return { roomShape: roomShapes[i], index: i };
     } else if (roomShape.type === "triangle") {
       ctx.beginPath();
       ctx.moveTo(roomShape.startX + roomShape.width / 2, roomShape.startY);
       ctx.lineTo(roomShape.startX, roomShape.startY + roomShape.height);
-      ctx.lineTo(roomShape.startX + roomShape.width,roomShape.startY + roomShape.height);
+      ctx.lineTo(roomShape.startX + roomShape.width, roomShape.startY + roomShape.height);
       ctx.lineTo(roomShape.startX + roomShape.width / 2, roomShape.startY);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
       ctx.restore();
-      if (value) return {roomShape:roomShapes[i],index:i};
+      if (value) return { roomShape: roomShapes[i], index: i };
     } else if (roomShape.type === "circle") {
       ctx.beginPath();
-      ctx.arc(roomShape.centerX,roomShape.centerY,roomShape.radius,0,Math.PI * 2);
+      ctx.arc(roomShape.centerX, roomShape.centerY, roomShape.radius, 0, Math.PI * 2);
       ctx.fill();
       const value = ctx.isPointInPath(clickedX, clickedY);
       ctx.closePath();
       ctx.restore();
-      if (value) return {roomShape:roomShapes[i],index:i};
+      if (value) return { roomShape: roomShapes[i], index: i };
     }
   }
-  return {roomShape:undefined,index:-1};
+  return { roomShape: undefined, index: -1 };
 };
 
 export const getBoundingBoxFromPath = (path: string): { width: number; height: number; minX: number; minY: number } | null => {
@@ -304,11 +319,11 @@ export const getBoundingBoxFromPath = (path: string): { width: number; height: n
     }
   }
 
-  if ( minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity) return null;
+  if (minX === Infinity || minY === Infinity || maxX === -Infinity || maxY === -Infinity) return null;
   return { width: maxX - minX, height: maxY - minY, minX, minY };
 };
 
-export const translateSVGPath = (pathString: string,deltaX: number,deltaY: number): string => {
+export const translateSVGPath = (pathString: string, deltaX: number, deltaY: number): string => {
   const validCommands: Array<{ cmd: string; points: number[] }> = [];
 
   const segments = pathString.match(/[MLQ]\s+[-\d.]+\s+[-\d.]+(?:\s*,\s*[-\d.]+\s+[-\d.]+)?/g) || [];
@@ -326,12 +341,12 @@ export const translateSVGPath = (pathString: string,deltaX: number,deltaY: numbe
     if ((command === "M" || command === "L") && points.length >= 2) {
       validCommands.push({
         cmd: command,
-        points: [(points[0] as number) + deltaX,(points[1] as number) + deltaY,],
+        points: [(points[0] as number) + deltaX, (points[1] as number) + deltaY,],
       });
     } else if (command === "Q" && points.length >= 4) {
       validCommands.push({
         cmd: command,
-        points: [(points[0] as number) + deltaX,(points[1] as number) + deltaY,(points[2] as number) + deltaX,(points[3] as number) + deltaY,],
+        points: [(points[0] as number) + deltaX, (points[1] as number) + deltaY, (points[2] as number) + deltaX, (points[3] as number) + deltaY,],
       });
     }
   }
@@ -373,7 +388,7 @@ export const strokeToSVG = (points: Point[]): string => {
   return path;
 };
 
-export const drawHighlightPoints = (highlightPoints: HighlightPoint[],ctx: CanvasRenderingContext2D,socket: WebSocket) => {
+export const drawHighlightPoints = (highlightPoints: HighlightPoint[], ctx: CanvasRenderingContext2D, socket: WebSocket) => {
   const currentTime = Date.now();
   const maxAge = 2000;
   const fadeDuration = 1000;
@@ -399,7 +414,7 @@ export const drawHighlightPoints = (highlightPoints: HighlightPoint[],ctx: Canva
     return;
   }
 
-  path.moveTo((highlightPoints[startIndex] as HighlightPoint).x,(highlightPoints[startIndex] as HighlightPoint).y);
+  path.moveTo((highlightPoints[startIndex] as HighlightPoint).x, (highlightPoints[startIndex] as HighlightPoint).y);
 
   for (let i = startIndex + 1; i < highlightPoints.length; i++) {
     const currPoint = highlightPoints[i];
@@ -434,3 +449,4 @@ const drawArrowHead = (ctx: CanvasRenderingContext2D, x: number, y: number, angl
   ctx.moveTo(x, y);
   ctx.lineTo(x - length * Math.cos(angle + Math.PI / 6), y - length * Math.sin(angle + Math.PI / 6));
 };
+
