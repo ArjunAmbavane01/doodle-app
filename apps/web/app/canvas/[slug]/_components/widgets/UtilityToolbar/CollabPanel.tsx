@@ -8,19 +8,13 @@ import { AnimatePresence, motion } from "motion/react"
 import { CheckCircle2, Copy, Users, X } from "lucide-react"
 
 interface ICollaborator {
-  name: string
+  userId: String,
+  username: string,
+  displayName: string
 }
 
-const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }) => {
-  const sessionId = "5261dd2a-ee17-47f4-b11f-7d408fd7ce49"
-  const [collaborators, setCollaborators] = useState<ICollaborator[]>([
-    { name: "You" },
-    { name: "Alex Kim" },
-    { name: "Alex Kim" },
-    { name: "Alex Kim" },
-    { name: "Alex Kim" },
-    { name: "Archit" },
-  ])
+const CollabPanel = ({ sessionId, setOpen, onCollaboratorJoin }: { sessionId: string, setOpen: Dispatch<SetStateAction<boolean>>, onCollaboratorJoin: () => void }) => {
+  const [collaborators, setCollaborators] = useState<ICollaborator[]>([{ userId: '', username: 'You', displayName: "" }])
   const [isCopied, setIsCopied] = useState(false)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -28,14 +22,29 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
     const handleCollaboratorJoin = (e: Event) => {
       const customEvent = e as CustomEvent
       if (customEvent.detail) {
-        setCollaborators([...collaborators, { name: customEvent.detail }])
+        const { userId, username, displayName } = customEvent.detail;
+        setCollaborators([...collaborators, { userId, username, displayName }])
+        onCollaboratorJoin();
+      }
+    }
+
+    const handleCollaboratorLeft = (e: Event) => {
+      const customEvent = e as CustomEvent
+      if (customEvent.detail) {
+        const { userId } = customEvent.detail;
+        const leftCollaborators = collaborators.filter((collaborator) => collaborator.userId !== userId);
+        setCollaborators(leftCollaborators)
       }
     }
 
     window.addEventListener("collaboratorJoined", handleCollaboratorJoin)
+    window.addEventListener("collaboratorLeft", handleCollaboratorLeft)
 
-    return () => window.removeEventListener("collaboratorJoined", handleCollaboratorJoin)
-  }, [collaborators])
+    return () => {
+      window.removeEventListener("collaboratorJoined", handleCollaboratorJoin)
+      window.removeEventListener("collaboratorLeft", handleCollaboratorLeft)
+    }
+  }, [collaborators, onCollaboratorJoin])
 
   useEffect(() => {
     if (isCopied) timeoutRef.current = setTimeout(() => setIsCopied(false), 4000)
@@ -131,11 +140,14 @@ const CollabPanel = ({ setOpen }: { setOpen: Dispatch<SetStateAction<boolean>> }
               >
                 <div className="relative">
                   <Avatar className="flex justify-center items-center size-8 bg-blue-200/80 text-indigo-200 border border-blue-600">
-                    <span className="text-sm font-medium text-zinc-800">{collaborator.name.charAt(0)}</span>
+                    <span className="text-sm font-medium text-zinc-800">{collaborator.username.charAt(0)}</span>
                   </Avatar>
                   <span className="absolute bottom-0 right-0 size-2 rounded-full bg-green-400 ring-2 ring-zinc-900"></span>
                 </div>
-                <span className="text-sm text-zinc-900">{collaborator.name}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-zinc-900">{collaborator.username}</span>
+                  <span className="text-xs text-zinc-500">{collaborator.displayName}</span>
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>

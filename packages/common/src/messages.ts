@@ -5,9 +5,15 @@ const joinRoomSchema = z.object({ type: z.literal("join_room") });
 const leaveRoomSchema = z.object({ type: z.literal("leave_room") });
 
 const collaboratorJoinedSchema = z.object({
-  type: z.literal("user_joined"),
+  type: z.literal("collaborator_joined"),
   userId: z.string(),
-  name: z.string()
+  username: z.string()
+});
+
+const collaboratorLeftSchema = z.object({
+  type: z.literal("collaborator_left"),
+  userId: z.string(),
+  username: z.string()
 });
 
 const userPositionSchema = z.object({
@@ -17,7 +23,7 @@ const userPositionSchema = z.object({
 });
 
 const collaboratorPositionSchema = z.object({
-  type: z.literal("room_user_pos"),
+  type: z.literal("collaborator_pos"),
   userId: z.string(),
   posX: z.number(),
   posY: z.number(),
@@ -59,6 +65,7 @@ export const messageSchema = z.discriminatedUnion("type", [
   joinRoomSchema,
   leaveRoomSchema,
   collaboratorJoinedSchema,
+  collaboratorLeftSchema,
   userPositionSchema,
   collaboratorPositionSchema,
   roomChatSchema,

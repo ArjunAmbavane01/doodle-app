@@ -2,7 +2,7 @@ import { HighlightPoint, Point, RoomShape, Shape } from "@workspace/common/shape
 import { clearCanvas, getShapesFromMessages, setupContext } from "./utils/canvasUtils";
 import { IRoomChat, messageSchema } from "@workspace/common/messages";
 import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
-import { drawUserCursor } from "./utils/cursorUtils";
+import { drawUserCursor, getUserDisplayName } from "./utils/cursorUtils";
 import { drawHighlightPoints, drawShape, getBoundingShape, strokeToSVG, translateSVGPath } from "./utils/shapeUtils";
 import { createTextArea } from "./utils/textUtils";
 
@@ -69,7 +69,7 @@ class DrawingEngine {
   private undoStack: IUserAction[] = [];
   private redoStack: IUserAction[] = [];
 
-  private roomUsers = new Map<string, { posX: number, posY: number }>();
+  private roomUsers = new Map<string, { username: string, displayName: string, posX: number, posY: number }>();
 
   constructor(canvas: HTMLCanvasElement, socket: WebSocket, userId: string, initialMessages: IRoomChat[]) {
     this.canvas = canvas;
@@ -118,7 +118,7 @@ class DrawingEngine {
     this.ctx.drawImage(this.offscreenCanvas, 0, 0);
 
     // draw collaborator cursors
-    this.roomUsers.forEach((roomUser, roomUserId) => drawUserCursor(roomUser, roomUserId, this.ctx));
+    this.roomUsers.forEach((user, userId) => drawUserCursor(user, userId, this.ctx));
     // draw selected shape 
     if (this.selectedRoomShape && !this.hasMovedSinceMouseDown) drawShape(this.currentShape as Shape, this.ctx, true);
     // draw current shape that user is drawing
@@ -174,14 +174,26 @@ class DrawingEngine {
         return;
       }
       const msg = result.data;
-
-      if (msg.type === "user_joined") {
-        const { userId, name } = msg;
+      if (msg.type === "collaborator_joined") {
+        const { userId, username } = msg;
+        const displayName = getUserDisplayName(userId) || "collaborator";
+        this.roomUsers.set(userId, { username, displayName, posX: 0, posY: 0 });
+        window.dispatchEvent(new CustomEvent('collaboratorJoined', { detail: { userId, username, displayName } }))
         this.render();
         return;
-      } else if (msg.type === "room_user_pos") {
+      } else if (msg.type === "collaborator_left") {
+        const { userId } = msg;
+        this.roomUsers.delete(userId);
+        window.dispatchEvent(new CustomEvent('collaboratorLeft', { detail: { userId } }))
+        this.render();
+        return;
+      } else if (msg.type === "collaborator_pos") {
         const { userId, posX, posY } = msg;
-        this.roomUsers.set(userId, { posX, posY });
+        const roomUser = this.roomUsers.get(userId);
+        if (roomUser) {
+          roomUser.posX = posX;
+          roomUser.posY = posY;
+        }
         this.render();
         return;
       } else if (msg.type === "chat") {

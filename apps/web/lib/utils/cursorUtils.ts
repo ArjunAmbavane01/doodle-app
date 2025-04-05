@@ -1,14 +1,13 @@
-import { IRoomUserPos } from ".";
+import { IRoomUserPos } from "../class";
 
-export const drawUserCursor = (roomUser: IRoomUserPos,roomUserId: string,ctx: CanvasRenderingContext2D) => {
-  if (!ctx || !roomUser) return;
+export const drawUserCursor = (user: IRoomUserPos, userId: string,ctx: CanvasRenderingContext2D) => {
+  if (!ctx || !user) return;
 
-  const colour = getUserColour(roomUserId);
-  const displayName = getUserDisplayName(roomUserId) || "user";
+  const colour = getUserColour(userId);
 
   ctx.save();
   const cursorPath = new Path2D("M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19841L11.7841 12.3673H5.65376Z");
-  ctx.translate(roomUser.posX, roomUser.posY);
+  ctx.translate(user.posX, user.posY);
   ctx.fillStyle = colour;
   ctx.fill(cursorPath);
   ctx.strokeStyle = "white";
@@ -16,7 +15,7 @@ export const drawUserCursor = (roomUser: IRoomUserPos,roomUserId: string,ctx: Ca
   ctx.stroke(cursorPath);
 
   ctx.font = "12px sans-serif";
-  const textMetrics = ctx.measureText(displayName);
+  const textMetrics = ctx.measureText(user.displayName!);
   const textWidth = textMetrics.width;
 
   const tagWidth = textWidth + 24;
@@ -29,7 +28,7 @@ export const drawUserCursor = (roomUser: IRoomUserPos,roomUserId: string,ctx: Ca
   ctx.roundRect(tagX, tagY, tagWidth, tagHeight, 8);
   ctx.fill();
   ctx.fillStyle = "white";
-  ctx.fillText(displayName, tagX + 12, tagY + tagHeight / 2 + 4);
+  ctx.fillText(user.displayName!, tagX + 12, tagY + tagHeight / 2 + 4);
   ctx.closePath();
   ctx.restore();
 };
@@ -48,7 +47,7 @@ const getUserColour = (userId: string) => {
   return color;
 };
 
-const getUserDisplayName = (userId: string) => {
+export const getUserDisplayName = (userId: string) => {
   const names = ["Vector Vulture","Glitchy Gecko","Cyber Corgi","Neon Newt","Pixel Pigeon","Sketchy Lynx","Binary Bunny","Gradient Giraffe","Code Chameleon","Render Raccoon",];
 
   let hash = 0;

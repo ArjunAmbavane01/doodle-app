@@ -49,26 +49,28 @@ wss.on("connection", (ws: WebSocket, req) => {
       const user = users.find((x) => x.ws == ws);
       if (!user) return;
       user.rooms.push(roomId);
-      // const userData = await prisma.user.findFirst({where:{id:userId}});
-      // users.forEach((user) => {
-      //   if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "user_joined", userId, name:userData?.name }));
-      // });
+      const userData = await prisma.user.findFirst({where:{id:userId}});
+      users.forEach((user) => {
+        if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "collaborator_joined", userId, username:userData!.name }));
+      });
     } else if (msg.type === "leave_room") {
       const user = users.find((x) => x.ws == ws);
       if (!user) return;
       user.rooms.filter((x) => x != roomId);
+      users.forEach((user) => {
+        if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "collaborator_left", userId }));
+      });
     } else if (msg.type === "user_pos") {
       try {
         const { posX, posY } = msg;
         users.forEach((user) => {
-          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "room_user_pos", userId , posX, posY }));
+          if (user.userId != userId && user.rooms.includes(roomId)) user.ws.send(JSON.stringify({ type: "collaborator_pos", userId , posX, posY }));
         });
       } catch (e) {
         console.error("Error:", e);
         ws.send(JSON.stringify({ type: "error", message: "Error sending user position",}));
       }
-    } 
-    else if (msg.type === "chat") {
+    } else if (msg.type === "chat") {
       const { message } = msg;
       try {
         const shapeReceived = JSON.parse(message);
