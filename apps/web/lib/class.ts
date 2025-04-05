@@ -38,7 +38,7 @@ class DrawingEngine {
   private textStyle = { bold: false, italic: false };
 
   private currentShape: Shape | null = null;
-  private currentAiShape: Shape | null = null;
+  private currentAiGeneratedShape: Shape | null = null;
   private movedShape: RoomShape | null = null;
   private selectedRoomShape: RoomShape | null = null;
   private zoomChangeTimeout: number | null = null;
@@ -96,6 +96,7 @@ class DrawingEngine {
   private renderPersistentShapes = () => clearCanvas(this.roomShapes, this.offscreenCanvas, this.offscreenCtx);
 
   private render = () => {
+
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = "#0C0C0C";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -115,10 +116,15 @@ class DrawingEngine {
 
     // copy all shapes from bg canvas to main canvas
     this.ctx.drawImage(this.offscreenCanvas, 0, 0);
+
+    // draw collaborator cursors
     this.roomUsers.forEach((roomUser, roomUserId) => drawUserCursor(roomUser, roomUserId, this.ctx));
+    // draw selected shape 
     if (this.selectedRoomShape && !this.hasMovedSinceMouseDown) drawShape(this.currentShape as Shape, this.ctx, true);
+    // draw current shape that user is drawing
     else if (this.currentShape && this.hasMovedSinceMouseDown) drawShape(this.currentShape, this.ctx, this.selectedRoomShape != null);
-    if (this.highlightPoints.length !== 0) drawHighlightPoints(this.highlightPoints, this.ctx, this.socket);
+    // draw highlighter points that user is drawing
+    if (this.highlightPoints.length !== 0) drawHighlightPoints(this.highlightPoints, this.ctx, this.socket, this.userId);
     this.ctx.restore();
   };
 
@@ -179,13 +185,15 @@ class DrawingEngine {
         this.render();
         return;
       } else if (msg.type === "chat") {
-        const newShape: Shape = JSON.parse(msg.message);
-        if (newShape.type === "highlighter") {
-          const path = new Path2D(newShape.svgPath);
-          newShape.path = path;
-          drawShape(newShape, this.ctx);
+        const recievedShape: Shape = JSON.parse(msg.message);
+        if (recievedShape.type === "highlighter") {
+          const shapeWithUser = { userId: msg.userId, shape: recievedShape };
+          this.roomShapes.push(shapeWithUser);
+          this.renderPersistentShapes();
+          this.roomShapes.pop();
+          // drawShape(recievedShape, this.ctx);
         } else {
-          const shapeWithUser = { userId: msg.userId, shape: newShape };
+          const shapeWithUser = { userId: msg.userId, shape: recievedShape };
           this.roomShapes.push(shapeWithUser);
           this.renderPersistentShapes();
         }
@@ -432,24 +440,13 @@ class DrawingEngine {
         this.socket.send(JSON.stringify({ type: "chat", userId: this.userId, message: JSON.stringify(this.currentShape) }));
       } else if (this.selectedTool === "genAI") {
 
-        window.dispatchEvent(new CustomEvent("openPrompt", { detail: this.currentShape }));
-        this.currentAiShape = this.currentShape;
-        // generateAISvgPath(this.currentShape.startX,this.currentShape.startY,this.currentShape.width,this.currentShape.height);
-        // const shapeWithUser = { userId: this.userId, shape: this.currentShape };
-
-        // fetch('/api/genAI', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(this.currentShape),
-        // }).then((res)=>res.json()).then((data)=>{
-        //   if(data.svgPath){
-        //     shapeWithUser.shape.svgPath = data.svgPath
-        //     this.roomShapes.push(shapeWithUser);
-        //   }
-        // }).catch(error => console.error('Error generating AI drawing:', error));
-
+        if (this.currentShape) {
+          window.dispatchEvent(new CustomEvent("openPrompt", { detail: this.currentShape }));
+          this.currentAiGeneratedShape = this.currentShape;
+          const shapeWithUser = { userId: this.userId, shape: this.currentAiGeneratedShape };
+          this.roomShapes.push(shapeWithUser);
+        }
         // this.socket.send(JSON.stringify({ type: "genAI", userId: this.userId, message: JSON.stringify(this.currentShape), }));
-        // this.roomShapes.push(shapeWithUser);
         // this.undoStack.push({ type: "add", roomShape: shapeWithUser });
       } else {
         if (this.currentShape) {
@@ -697,11 +694,14 @@ class DrawingEngine {
   }
 
   private handleRenderSvg = (e: Event) => {
-    if (this.currentAiShape?.type == "genAI") {
-      this.currentAiShape.svgPath = (e as CustomEvent).detail;
-      const shapeWithUser = { userId: this.userId, shape: this.currentAiShape };
-      this.roomShapes.push(shapeWithUser);
+    if (this.currentAiGeneratedShape?.type == "genAI") {
+      this.currentAiGeneratedShape.svgPath = (e as CustomEvent).detail;
+      const shapeIdx = this.roomShapes.findIndex((roomShape) => roomShape.shape.type === "genAI");
+      if (this.roomShapes[shapeIdx]) {
+        this.roomShapes[shapeIdx].shape = this.currentAiGeneratedShape;
+      }
       console.log(this.roomShapes)
+      this.currentAiGeneratedShape = null;
       this.renderPersistentShapes();
       this.render();
     }

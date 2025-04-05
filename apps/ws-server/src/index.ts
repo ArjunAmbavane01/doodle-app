@@ -38,7 +38,6 @@ wss.on("connection", (ws: WebSocket, req) => {
     let parsedData;
     if (typeof data !== "string") parsedData = JSON.parse(data.toString());
     else parsedData = JSON.parse(data);
-
     const result = messageSchema.safeParse(parsedData);
     if(result.error){
       ws.send(`Invalid message format : ${result.error}`);

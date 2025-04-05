@@ -164,15 +164,16 @@ export const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBound
     }
   } else if (shape.type === "highlighter") {
     let pathObj;
-    if (shape.svgPath) pathObj = new Path2D(shape.svgPath);
-    else if (shape.path instanceof Path2D) pathObj = shape.path;
-    else if (typeof shape.path === "string") pathObj = new Path2D(shape.path);
-    if (!pathObj) {
-      console.error("No valid path found for highlighter", shape);
+    if (shape.path instanceof Path2D) {
+      pathObj = shape.path;
+    } else if (shape.svgPath) {
+      pathObj = new Path2D(shape.svgPath);
+    } else {
+      console.error("No valid path or svgPath found for highlighter", shape);
       return;
     }
 
-    // draw highlighter
+    // Draw highlighter
     ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
     ctx.shadowBlur = 8;
     ctx.lineWidth = 6;
@@ -190,8 +191,9 @@ export const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBound
     ctx.lineWidth = 1;
     ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
     ctx.stroke(pathObj);
+
   } else if (shape.type === "genAI") {
-    if ( shape.svgPath == ''){
+    if (shape.svgPath == '') {
       ctx.strokeStyle = "#A2D2FF";
       ctx.lineWidth = shape.strokeWidth;
       ctx.setLineDash([5, 6]);
@@ -388,7 +390,7 @@ export const strokeToSVG = (points: Point[]): string => {
   return path;
 };
 
-export const drawHighlightPoints = (highlightPoints: HighlightPoint[], ctx: CanvasRenderingContext2D, socket: WebSocket) => {
+export const drawHighlightPoints = (highlightPoints: HighlightPoint[], ctx: CanvasRenderingContext2D, socket: WebSocket, userId: string) => {
   const currentTime = Date.now();
   const maxAge = 2000;
   const fadeDuration = 1000;
@@ -435,11 +437,10 @@ export const drawHighlightPoints = (highlightPoints: HighlightPoint[], ctx: Canv
 
   drawShape({ type: "highlighter", path } as Shape, ctx);
 
-  // to send highlight stroke
+  // to send highlight stroke we convert it to svg because path is native to browser
   const svgPath = strokeToSVG(highlightPoints);
-  // drawShape({type: "highlighter", svgPath} as Shape,ctx);
   const highlighterShape = { type: "highlighter", svgPath };
-  socket.send(JSON.stringify({ type: "chat", message: JSON.stringify(highlighterShape) }));
+  socket.send(JSON.stringify({ type: "chat", userId, message: JSON.stringify(highlighterShape) }));
   ctx.restore();
 };
 
