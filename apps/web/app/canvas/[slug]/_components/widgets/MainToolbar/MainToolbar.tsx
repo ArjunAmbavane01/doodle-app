@@ -2,12 +2,12 @@
 
 import { Circle, Hand, Minus, MousePointer, MoveRight, Pen, Square, Triangle, TypeIcon as TypeOutline, Highlighter } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import type { SelectedToolType } from "../Canvas"
+import type { SelectedToolType } from "../../Canvas"
 import Image from "next/image"
 import type { genAI } from "@workspace/common/shapes"
 import axios from "axios"
-import PromptPanel from "./MainToolbar/PromptPanel"
-import ToolButton from "./MainToolbar/ToolButton"
+import PromptPanel from "./PromptPanel"
+import ToolButton from "./ToolButton"
 
 const tools = [
   { icon: Hand, name: "Pan", shortcut: "H", type: "pan" },
@@ -27,7 +27,7 @@ const MainToolbar = () => {
   const [activeTool, setActiveTool] = useState<SelectedToolType>("pen")
   const [genAiShape, setgenAiShape] = useState<genAI | null>(null)
   const [isPromptOpen, setIsPromptOpen] = useState<boolean>(false)
-  const [isAIDrawingLoading,setIsAIDrawingLoading] = useState<boolean>(false);
+  const [isAIDrawingLoading, setIsAIDrawingLoading] = useState<boolean>(false);
 
   const promptRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -39,18 +39,18 @@ const MainToolbar = () => {
   const generateAISvgPath = async () => {
     if (promptRef.current && genAiShape) {
       try {
-        setIsAIDrawingLoading((c)=>!c);
+        setIsAIDrawingLoading((c) => !c);
         const res = await axios.post('http://localhost:8000/api/generateSvg', {
           shape: genAiShape,
           prompt: promptRef.current.value
         }, {
           headers: { 'Content-Type': 'application/json' }
         })
-        const {svgPath } = res.data;
-        window.dispatchEvent(new CustomEvent('renderSvg',{detail:svgPath}));
-        setIsAIDrawingLoading((c)=>!c);
+        const { svgPath } = res.data;
+        window.dispatchEvent(new CustomEvent('renderSvg', { detail: svgPath }));
+        setIsAIDrawingLoading((c) => !c);
         promptRef.current.value = '';
-      } catch (e){
+      } catch (e) {
         console.error(e);
       }
     }
@@ -102,7 +102,7 @@ const MainToolbar = () => {
         </div>
       </div>
 
-      {isPromptOpen && <PromptPanel promptRef={promptRef} setIsPromptOpen={setIsPromptOpen} generateAISvgPath={generateAISvgPath} isAIDrawingLoading={isAIDrawingLoading}  />}
+      {isPromptOpen && <PromptPanel promptRef={promptRef} setIsPromptOpen={setIsPromptOpen} generateAISvgPath={generateAISvgPath} isAIDrawingLoading={isAIDrawingLoading} />}
     </div>
   )
 }

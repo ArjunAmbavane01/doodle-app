@@ -1,7 +1,7 @@
 'use client'
 import { IRoomChat } from "@workspace/common/messages";
 import { useEffect, useRef, useState } from "react";
-import MainToolbar from "./widgets/MainToolbar";
+import MainToolbar from "./widgets/MainToolbar/MainToolbar";
 import QuickActions from "./widgets/QuickActions";
 import StyleToolbar from "./widgets/StyleToolbar/StyleToolbar";
 import DrawingEngine from "@/lib/class";
@@ -9,7 +9,7 @@ import UtilityToolbar from "./widgets/UtilityToolbar/UtilityToolbar";
 
 export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter' | 'genAI';
 
-const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, roomMessages: IRoomChat[], userId: string }) => {
+const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket | null, roomMessages: IRoomChat[], userId: string, sessionId: string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [canvasGame, setCanvasGame] = useState<DrawingEngine>();
 
@@ -30,7 +30,7 @@ const Canvas = ({ socket, roomMessages, userId }: { socket: WebSocket | null, ro
             <MainToolbar />
             <StyleToolbar />
             <QuickActions />
-            <UtilityToolbar />
+            <UtilityToolbar sessionId={sessionId} />
         </div>
     );
 }

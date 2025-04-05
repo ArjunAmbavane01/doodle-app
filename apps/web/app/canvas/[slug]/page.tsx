@@ -13,7 +13,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     const roomMessages = data?.data?.roomMessages;
     const userId = session?.user?.id;
 
-    return <CanvasWrapper wsToken={wsToken} roomMessages={roomMessages} userId={userId as unknown as string}/>
+    return <CanvasWrapper wsToken={wsToken} roomMessages={roomMessages} userId={userId as unknown as string} sessionId={slug}/>
 }
 
 export default page;
