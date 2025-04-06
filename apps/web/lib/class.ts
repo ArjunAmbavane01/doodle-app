@@ -712,7 +712,6 @@ class DrawingEngine {
       if (this.roomShapes[shapeIdx]) {
         this.roomShapes[shapeIdx].shape = this.currentAiGeneratedShape;
       }
-      console.log(this.roomShapes)
       this.currentAiGeneratedShape = null;
       this.renderPersistentShapes();
       this.render();

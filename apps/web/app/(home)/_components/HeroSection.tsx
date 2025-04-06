@@ -8,26 +8,38 @@ import { Button } from "@workspace/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { useLoading } from "@/providers/LoadingProvider";
 import { FloatingShapes } from "./visuals/FloatingShapes";
+import { AnimatePresence } from 'motion/react'
+import Toast from "@/components/ui/Toast";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
     const router = useRouter();
-    const {setIsLoading} = useLoading();
+    const { setIsLoading } = useLoading();
     const inputRef = useRef<HTMLInputElement>(null);
     const [modalOpen, setModalopen] = useState(false);
+    const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
+
+    const showToast = (message: string, type = "success") => {
+        setToast({ visible: true, message, type });
+    };
+
+    const hideToast = () => {
+        setToast({ ...toast, visible: false });
+    };
 
     const createRoom = async () => {
         try {
-            setIsLoading(true);
             const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
-            if (data.type === 'error') {
-                console.log(data.error);
+            if (data.type === 'success') {
+                setIsLoading(true);
+                router.push(`/canvas/${data.data.slug}`);
+            } else {
                 setIsLoading(false);
-                return;
+                showToast("There was a problem creating your room. Please try again.", "error");
             }
-            router.push(`/canvas/${data.data.slug}`);
+            return;
         } catch (error) {
-            console.error("Error creating room:", error);
             setIsLoading(false);
+            showToast("There was a problem creating your room. Please try again.","error");
         }
     }
 
@@ -43,8 +55,8 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
             setModalopen((s) => !s);
             router.push(`/canvas/${roomSlug}`);
         } catch (error) {
-            console.error("Error joining room:", error);
             setIsLoading(false);
+            showToast("Error joining room. Please try again.", "error");
         }
     }
 
@@ -90,10 +102,20 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                         </Dialog>
                     </div>
                 </div>
-
             </div>
+            <AnimatePresence>
+                {toast.visible && (
+                    <Toast
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={hideToast}
+                    />
+                )}
+            </AnimatePresence>
         </section>
     );
 }
+
+
 
 export default HeroSection;

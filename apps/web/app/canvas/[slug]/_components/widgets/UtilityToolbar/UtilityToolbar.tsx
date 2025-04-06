@@ -14,7 +14,7 @@ const UtilityToolbar = ({ sessionId }: { sessionId: string }) => {
     const [animateJoin, setAnimatejoin] = useState(false);
 
     return (
-        <div className="flex gap-2 fixed bottom-7 sm:bottom-auto sm:top-7 right-5 z-10 font-body">
+        <div className="flex gap-2 fixed bottom-7 sm:bottom-auto sm:top-5 right-5 z-10 font-heading">
 
             <Popover open={openCollaborators} onOpenChange={setOpenCollaborators}>
                 <PopoverTrigger>

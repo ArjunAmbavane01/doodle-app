@@ -200,8 +200,6 @@ export const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBound
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
       ctx.setLineDash([]);
     } else {
-      console.log('here');
-      console.log(shape.svgPath)
       ctx.strokeStyle = shape.strokeColour;
       ctx.lineWidth = shape.strokeWidth;
       const path = new Path2D(shape.svgPath);
