@@ -58,14 +58,14 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
         console.error(e);
         return (
             <ErrorPage imageSrc="/error/404-cuate.svg" title="Connection Error" body=" We couldn't connect you to this drawing room. This might be due to a temporary issue.">
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" className="group">
                     <Link href="/">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all duration-300" />
                         Go Home
                     </Link>
                 </Button>
                 <Button onClick={() => window.location.reload()}>
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <RefreshCw className="size-4" />
                     Try Again
                 </Button>
             </ErrorPage>

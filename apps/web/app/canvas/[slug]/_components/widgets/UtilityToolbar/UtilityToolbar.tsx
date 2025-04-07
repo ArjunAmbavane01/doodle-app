@@ -19,7 +19,7 @@ const UtilityToolbar = ({ sessionId }: { sessionId: string }) => {
             <Popover open={openCollaborators} onOpenChange={setOpenCollaborators}>
                 <PopoverTrigger>
                     <motion.div
-                        className="flex justify-center items-center gap-2 rounded bg-white text-black size-full p-2 px-3 text-sm relative"
+                        className="flex justify-center items-center gap-2 rounded bg-white text-zinc-800 hover:bg-white/90 hover:text-zinc-800 size-full p-2 px-3 text-sm relative"
                         animate={animateJoin
                             ? {
                                 scale: [1, 1.1, 1],
@@ -52,7 +52,7 @@ const UtilityToolbar = ({ sessionId }: { sessionId: string }) => {
                         }} />
                 </PopoverContent>
             </Popover>
-            <Button variant="outline" className="rounded"><Plus className="size-4" /> New Canvas</Button>
+            <Button variant="outline" className="rounded bg-white text-zinc-800 hover:bg-white/90 hover:text-zinc-800"><Plus className="size-4" /> New Canvas</Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button variant="outline" className="p-2 rounded bg-red-500 text-white border-none hover:text-white hover:bg-red-500/80"> Clear Canvas</Button>
