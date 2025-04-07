@@ -12,6 +12,7 @@ import { AnimatePresence } from 'motion/react'
 import Toast from "@/components/ui/Toast";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
+
     const router = useRouter();
     const { setIsLoading } = useLoading();
     const inputRef = useRef<HTMLInputElement>(null);
@@ -46,14 +47,22 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const joinRoom = async () => {
         try {
             const roomSlug = inputRef.current?.value.trim();
+            if(!userToken){
+                showToast("Please log in to join a room.", "error");
+                setModalopen((c)=>!c);
+                return;
+            }
             if (!roomSlug) {
                 inputRef.current?.focus();
                 setIsLoading(false)
                 return;
             }
+            setModalopen((c)=>!c);
             setIsLoading(true);
-            setModalopen((s) => !s);
             router.push(`/canvas/${roomSlug}`);
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 8000);
         } catch (error) {
             setIsLoading(false);
             showToast("Error joining room. Please try again.", "error");
@@ -70,15 +79,15 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                         <span>Sketch, Collaborate, Innovate - All in One Place.</span>
                     </div>
                     <div className="flex gap-8 z-20 font-body">
-                        <Button className="flex items-center gap-3 px-4 py-5 md:p-6 text-md text-zinc-800 border-2 border-blue-200 bg-gradient-to-t from-blue-300 to-white hover:bg-gradient-to-t hover:from-blue-400 hover:via-blue-200 hover:to-white hover:text-zinc-800 transition-all duration-500">
+                        <Button onClick={createRoom} className="flex items-center gap-3 px-4 py-5 md:p-6 text-md text-zinc-800 border-2 border-blue-200 bg-gradient-to-t from-blue-200 to-white hover:bg-gradient-to-t hover:from-blue-300 hover:via-blue-100 hover:to-white hover:text-zinc-800 transition-all duration-500">
                             <span>Start Doodling</span>
                             <PencilLine className="size-3" />
                         </Button>
 
-                        <Dialog>
+                        <Dialog open={modalOpen} onOpenChange={setModalopen}>
                             <DialogTrigger asChild>
                                 <Button
-                                    className="flex items-center px-4 py-5 md:p-6 text-md bg-black text-white border border-white hover:bg-gradient-to-t hover:from-blue-300 hover:to-white transition-all duration-500 hover:text-zinc-800 group relative  overflow-hidden"
+                                    className="flex items-center px-4 py-5 md:p-6 text-md bg-black text-white border border-white hover:bg-gradient-to-t hover:from-blue-200 hover:to-white transition-all duration-500 hover:text-zinc-800 group relative  overflow-hidden"
                                     onClick={() => setModalopen((s) => !s)}
                                 >
                                     <span className="relative z-10">Join Room</span>
