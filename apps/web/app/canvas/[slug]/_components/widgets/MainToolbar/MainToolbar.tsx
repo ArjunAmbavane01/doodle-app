@@ -82,17 +82,17 @@ const MainToolbar = () => {
   }, [])
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 mx-auto w-fit p-0 sm:p-1.5 px-1.5 sm:px-3 rounded-lg md:rounded-xl bg-white inset-x-0 top-4 sm:top-5 relative">
+    <div className="flex items-center gap-1 sm:gap-1.5 mx-auto w-fit p-1 sm:p-1.5 px-1.5 sm:px-3 rounded-lg md:rounded-xl bg-white inset-x-0 sm:top-4 relative">
       {tools.map((tool) => <ToolButton key={tool.type} tool={tool} activeTool={activeTool} chooseTool={chooseTool} />)}
 
-      <div className="w-[0.5px] bg-blue-200 h-10" />
+      <div className="w-[0.5px] bg-blue-200 self-stretch" />
 
       <div
         key={"genAI"}
         onClick={() => chooseTool("genAI")}
         className={`relative rounded-lg p-1.5 sm:p-2 md:p-2.5 hover:bg-black/10 font-heading group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === "genAI" ? "bg-blue-100 hover:bg-blue-100" : "hover:bg-black/6"}`}
       >
-        <Image src={"/images/chatbot.png"} alt="Chatbot" width={100} height={100} className="size-4 md:size-5" />
+        <Image src={"/images/chatbot.png"} alt="Chatbot" width={100} height={100} className="size-3 sm:size-4 md:size-5" />
         <span
           className={`hidden md:block absolute bottom-0.5 right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool === "genAI" ? "text-black" : "text-muted-foreground"}`}
         >
