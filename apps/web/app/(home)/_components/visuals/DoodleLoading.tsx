@@ -22,10 +22,10 @@ const DoodleLoading = () => {
     const loadingMessages = [
         "Sharpening pencils...",
         "Mixing colors...",
-        "Preparing canvas...",
         "Gathering doodle ideas...",
         "Warming up creativity...",
-        "Connecting collaborators..."
+        "Connecting collaborators...",
+        "Preparing canvas...",
     ]
 
     const messageIndex = Math.min(Math.floor(progress / (100 / loadingMessages.length)), loadingMessages.length - 1)

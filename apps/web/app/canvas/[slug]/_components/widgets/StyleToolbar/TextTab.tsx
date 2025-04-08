@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import { motion } from "motion/react";
-import { Bold, Check, Italic, Minus, Plus } from "lucide-react";
 import { colorGroups, IColourGroup, isLightColor } from "./StyleToolbar";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
+import { Bold, Check, Italic, Minus, Plus } from "lucide-react";
 
 const fontFamilies: { name: string, value: string }[] = [
   { name: "Handwritten", value: "Caveat, Comic Sans MS, cursive" },

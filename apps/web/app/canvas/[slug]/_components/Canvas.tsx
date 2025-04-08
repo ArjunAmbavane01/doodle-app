@@ -1,10 +1,10 @@
 'use client'
-import { IRoomChat } from "@workspace/common/messages";
 import { useEffect, useRef, useState } from "react";
+import DrawingEngine from "@/lib/draw-engine";
+import { IRoomChat } from "@workspace/common/messages";
 import MainToolbar from "./widgets/MainToolbar/MainToolbar";
 import QuickActions from "./widgets/QuickActions";
 import StyleToolbar from "./widgets/StyleToolbar/StyleToolbar";
-import DrawingEngine from "@/lib/draw-engine";
 import UtilityToolbar from "./widgets/UtilityToolbar/UtilityToolbar";
 
 export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter' | 'genAI';

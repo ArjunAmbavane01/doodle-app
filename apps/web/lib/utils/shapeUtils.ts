@@ -175,20 +175,20 @@ export const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBound
 
     // Draw highlighter
     ctx.shadowColor = "rgba(255, 50, 50, 0.6)";
-    ctx.shadowBlur = 8;
-    ctx.lineWidth = 6;
+    ctx.shadowBlur = 10;
+    ctx.lineWidth = 8;
     ctx.strokeStyle = "rgba(255, 0, 0, 0.6)";
     ctx.stroke(pathObj);
 
     // Core highlight
-    ctx.shadowBlur = 3;
-    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 4;
+    ctx.lineWidth = 3.5;
     ctx.strokeStyle = "rgba(255, 80, 80, 0.9)";
     ctx.stroke(pathObj);
 
     // Bright center
     ctx.shadowBlur = 0;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 2;
     ctx.strokeStyle = "rgba(255, 220, 220, 0.6)";
     ctx.stroke(pathObj);
 

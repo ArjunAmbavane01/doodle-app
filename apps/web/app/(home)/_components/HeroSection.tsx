@@ -2,31 +2,29 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { Info, PencilLine, Users } from "lucide-react";
+import { AnimatePresence } from 'motion/react'
 import { CREATE_ROOM_URL } from "@/lib/apiEndPoints";
 import { Button } from "@workspace/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { useLoading } from "@/providers/LoadingProvider";
 import { FloatingShapes } from "./visuals/FloatingShapes";
-import { AnimatePresence } from 'motion/react'
 import Toast from "@/components/ui/Toast";
+import { Info, PencilLine, Users } from "lucide-react";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
 
     const router = useRouter();
     const { setIsLoading } = useLoading();
+
     const inputRef = useRef<HTMLInputElement>(null);
+
     const [modalOpen, setModalopen] = useState(false);
     const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
     const [loadingRoom, setLoadingRoom] = useState(false);
 
-    const showToast = (message: string, type = "success") => {
-        setToast({ visible: true, message, type });
-    };
+    const showToast = (message: string, type = "success") => setToast({ visible: true, message, type });
 
-    const hideToast = () => {
-        setToast({ ...toast, visible: false });
-    };
+    const hideToast = () => setToast({ ...toast, visible: false });
 
     const createRoom = async () => {
         try {

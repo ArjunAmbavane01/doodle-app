@@ -1,9 +1,9 @@
 "use client"
 
-import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
-import type { SelectedToolType } from "../../Canvas"
 import axios from "axios"
+import Image from "next/image"
+import type { SelectedToolType } from "../../Canvas"
 import type { genAI } from "@workspace/common/shapes"
 import PromptPanel from "./PromptPanel"
 import ToolButton from "./ToolButton"

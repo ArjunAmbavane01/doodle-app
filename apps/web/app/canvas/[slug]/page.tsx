@@ -2,8 +2,8 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions, ICustomSession } from "@/app/api/auth/[...nextauth]/options";
 import { JOIN_ROOM_URL } from "@/lib/apiEndPoints";
-import CanvasWrapper from "./_components/CanvasWrapper";
 import { Button } from "@workspace/ui/components/button";
+import CanvasWrapper from "./_components/CanvasWrapper";
 import ErrorPage from "@/components/ErrorPage";
 import { ArrowLeft, RefreshCw, } from "lucide-react";
 

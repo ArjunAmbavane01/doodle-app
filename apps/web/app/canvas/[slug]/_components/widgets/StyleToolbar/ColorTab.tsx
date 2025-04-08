@@ -1,7 +1,7 @@
-import { Check, CircleDashed, Paintbrush2, PaintBucket, Pipette } from "lucide-react";
 import { Dispatch, SetStateAction, useState } from "react";
-import { colorGroups, isLightColor } from "./StyleToolbar";
 import { motion } from "motion/react";
+import { colorGroups, isLightColor } from "./StyleToolbar";
+import { Check, CircleDashed, Paintbrush2, PaintBucket, Pipette } from "lucide-react";
 
 interface ColorTabProps {
   strokeColor: string,

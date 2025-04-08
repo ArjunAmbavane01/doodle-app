@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react";
+import { motion } from 'motion/react';
+import CollaboratorMenu from "./CollabPanel";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@workspace/ui/components/alert-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { Button } from "@workspace/ui/components/button";
-import CollaboratorMenu from "./CollabPanel";
-import { motion } from 'motion/react';
 import { Plus, Users } from "lucide-react";
 
 const UtilityToolbar = ({ sessionId }: { sessionId: string }) => {
