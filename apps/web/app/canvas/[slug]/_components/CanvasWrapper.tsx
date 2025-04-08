@@ -62,17 +62,17 @@ const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: 
     if (connectionError) {
         return (
             <ErrorPage imageSrc="/error/connection.png" title="Connection Error" body={connectionError} >
-                <Button asChild variant="outline" className="group">
-                    <Link href="/">
-                        <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all duration-300" />
-                        Go Home
-                    </Link>
-                </Button>
-                <Button onClick={() => window.location.reload()}>
-                    <RefreshCw className="size-4" />
-                    Try Again
-                </Button>
-            </ErrorPage>
+            <Button asChild variant="outline" className="group w-32">
+                <Link href="/">
+                    <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all duration-300" />
+                    Go Home
+                </Link>
+            </Button>
+            <Button onClick={() => window.location.reload()}>
+                <RefreshCw className="size-4" />
+                Try Again
+            </Button>
+        </ErrorPage>
         );
     }
 

@@ -5,24 +5,27 @@ import { motion } from "motion/react";
 
 interface ColorTabProps {
   strokeColor: string,
-  setStrokeColor: Dispatch<SetStateAction<string>>
+  setStrokeColor: Dispatch<SetStateAction<string>>,
+  selectStrokeColour:(strokeColor:string) => void,
+  selectFillColour: (fillColor:string) =>void,
 }
-const ColorTab = ({ strokeColor, setStrokeColor }: ColorTabProps) => {
+
+const ColorTab = ({ strokeColor, setStrokeColor, selectStrokeColour, selectFillColour }: ColorTabProps) => {
 
   const [colorSubTab, setColorSubTab] = useState<"stroke" | "bg">("stroke");
   const [recentColors, setRecentColors] = useState<string[]>([]);
-  const [bgColor, setBgColor] = useState("transparent");
+  const [fillColor, setFillColor] = useState("transparent");
 
   const handleColorClick = (color: string) => {
     if (colorSubTab === "stroke") {
       setStrokeColor(color)
-      window.dispatchEvent(new CustomEvent("strokeColourChange", { detail: color }))
+     selectStrokeColour(color);
       if (!recentColors.includes(color)) {
         setRecentColors((prev) => [color, ...prev.slice(0, 7)])
       }
     } else {
-      setBgColor(color);
-      window.dispatchEvent(new CustomEvent("bgColourChange", { detail: color }))
+      setFillColor(color);
+      selectFillColour(color);
       if (color !== "transparent" && !recentColors.includes(color)) {
         setRecentColors((prev) => [color, ...prev.slice(0, 7)])
       }
@@ -57,7 +60,7 @@ const ColorTab = ({ strokeColor, setStrokeColor }: ColorTabProps) => {
               {recentColors.map((color) => (
                 <button key={color} className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75 ease-out"
                   style={{ backgroundColor: color }} onClick={() => handleColorClick(color)} aria-label={`Select color ${color}`}>
-                  {((colorSubTab === "stroke" && strokeColor === color) || (colorSubTab === "bg" && bgColor === color)) &&
+                  {((colorSubTab === "stroke" && strokeColor === color) || (colorSubTab === "bg" && fillColor === color)) &&
                       <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }}/>
                   }
                 </button>
@@ -74,7 +77,7 @@ const ColorTab = ({ strokeColor, setStrokeColor }: ColorTabProps) => {
                 {group.colors.map((color) => (
                   <motion.button key={color} className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75 ease-out"
                     style={{ backgroundColor: color }} onClick={() => handleColorClick(color)} whileTap={{ scale: 0.95 }} aria-label={`Select color ${color}`}>
-                    {((colorSubTab === "stroke" && strokeColor === color) || (colorSubTab === "bg" && bgColor === color)) &&
+                    {((colorSubTab === "stroke" && strokeColor === color) || (colorSubTab === "bg" && fillColor === color)) &&
                       <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }} />
                     }
                   </motion.button>
@@ -89,7 +92,7 @@ const ColorTab = ({ strokeColor, setStrokeColor }: ColorTabProps) => {
             onClick={() => handleColorClick("transparent")}>
             <CircleDashed className="size-3" />
             Transparent{" "}
-            {bgColor === "transparent" && <Check className="ml-auto size-3 text-white" /> }
+            {fillColor === "transparent" && <Check className="ml-auto size-3 text-white" /> }
           </button>
         )}
       </div>
@@ -105,8 +108,8 @@ const ColorTab = ({ strokeColor, setStrokeColor }: ColorTabProps) => {
           <div className="size-6 rounded-sm border border-white hover:cursor-pointer"
           onClick={()=>setColorSubTab("bg")}
             style={{
-              backgroundColor: bgColor === "transparent" ? "transparent" : bgColor,
-              backgroundImage: bgColor === "transparent" ? "repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 8px 8px" : "none",
+              backgroundColor: fillColor === "transparent" ? "transparent" : fillColor,
+              backgroundImage: fillColor === "transparent" ? "repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 50% / 8px 8px" : "none",
             }}
           />
           Fill

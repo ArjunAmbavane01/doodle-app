@@ -1,27 +1,29 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { motion } from "motion/react";
-import { Minus, Plus, Check, } from "lucide-react"
 import { colorGroups, IColourGroup, isLightColor } from "./StyleToolbar";
+import { Minus, Plus, Check, } from "lucide-react"
 
 interface PenTabProps {
   strokeColor: string,
   setStrokeColor: Dispatch<SetStateAction<string>>,
+  selectStrokeColour: (strokeColor: string) => void,
+  selectPenWidth: (penWidth: number) => void
 }
 
-const PenTab = ({ strokeColor, setStrokeColor }: PenTabProps) => {
+const PenTab = ({ strokeColor, setStrokeColor, selectStrokeColour, selectPenWidth }: PenTabProps) => {
 
   const [penWidth, setPenWidth] = useState(2)
 
   const handlePenColorClick = (color: string) => {
     setStrokeColor(color)
-    window.dispatchEvent(new CustomEvent("strokeColourChange", { detail: color }))
+    selectStrokeColour(color)
   }
 
   const handlePenWidthClick = (type: "increase" | "decrease") => {
     const modifier = type === "increase" ? 1 : -1;
     const newSize = Math.min(20, Math.max(1, penWidth + modifier));
     setPenWidth(newSize)
-    window.dispatchEvent(new CustomEvent("penWidthChange", { detail: newSize }));
+    selectPenWidth(newSize)
   }
 
   return (

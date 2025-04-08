@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import MainToolbar from "./widgets/MainToolbar/MainToolbar";
 import QuickActions from "./widgets/QuickActions";
 import StyleToolbar from "./widgets/StyleToolbar/StyleToolbar";
-import DrawingEngine from "@/lib/class";
+import DrawingEngine from "@/lib/draw-engine";
 import UtilityToolbar from "./widgets/UtilityToolbar/UtilityToolbar";
 
 export type SelectedToolType = 'pan' | 'selection' | 'rectangle' | 'circle' | 'triangle' | 'pen' | 'line' | 'arrow' | 'text' | 'highlighter' | 'genAI';
@@ -21,16 +21,32 @@ const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket
                 game.destroy();
             }
         }
-    }, [socket, roomMessages, userId])
+    }, [socket, roomMessages, userId, canvasRef.current])
 
     return (
         <div className="w-screen h-screen relative overflow-hidden" id="canvas-container">
             <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000] absolute inset-0" />
             <div id="textarea-container" />
-            <MainToolbar />
-            <StyleToolbar />
-            <QuickActions />
-            <UtilityToolbar sessionId={sessionId} />
+            {canvasGame && <>
+                <MainToolbar selectTool={canvasGame.onToolSelect} />
+                <StyleToolbar
+                    selectStrokeColour={canvasGame.selectStrokeColour}
+                    selectFillColour={canvasGame.selectFillColour}
+                    selectTextColor={canvasGame.selectTextColor}
+                    selectTextStyle={canvasGame.selectTextStyle}
+                    selectFontFamily={canvasGame.selectFontFamily}
+                    selectFontSize={canvasGame.selectFontSize}
+                    selectPenWidth={canvasGame.selectPenWidth} />
+                <QuickActions
+                    handleZoomIn={canvasGame.handleZoomIn}
+                    handleZoomOut={canvasGame.handleZoomOut}
+                    handleZoomReset={canvasGame.handleZoomReset}
+                    handleRedo={canvasGame.handleRedo}
+                    handleUndo={canvasGame.handleUndo}
+                />
+                <UtilityToolbar sessionId={sessionId} />
+            </>}
+
         </div>
     );
 }

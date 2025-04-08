@@ -39,7 +39,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
         if (data.type === 'error') {
             console.error(data.message);
             return (
-                <ErrorPage imageSrc="/error/404-cuate.svg" title="Room Not Found" body="The drawing room you're looking for doesn't exist or you don't have permission to join it.">
+                <ErrorPage imageSrc="/error/404-cuate.svg" title={response.status === 500 ? 'Internal Server Error' : 'Room Not Found'} body={response.status === 500 ? "Failed to connect to room. Please try again." : "The drawing room you're looking for doesn't exist or you don't have permission to join it."}>
                     <Button asChild variant="outline" className="group">
                         <Link href="/">
                             <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all duration-300" />

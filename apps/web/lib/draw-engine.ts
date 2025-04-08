@@ -150,6 +150,7 @@ class DrawingEngine {
     const isTrackpadPinch = e.ctrlKey || Math.abs(e.deltaY) < 10 && (!Number.isInteger(e.deltaX) || !Number.isInteger(e.deltaY));
     if (isTrackpadPinch) {
       e.preventDefault();
+
       const zoomDirection = e.deltaY < 0 ? -1 : 1;
       const dampingFactor = 0.009;
       this.zoomScale *= 1 - dampingFactor * zoomDirection;
@@ -157,6 +158,48 @@ class DrawingEngine {
       if (!this.isPanning) requestAnimationFrame(() => this.render());
       if (this.zoomChangeTimeout) clearTimeout(this.zoomChangeTimeout);
       this.zoomChangeTimeout = window.setTimeout(() => this.notifyZoomComplete(), 10);
+
+
+      // NEW CODE
+      // const scaleAmount = -e.deltaY / 200;
+      // const newScale = this.scale * (1 + scaleAmount);
+
+      // const mouseX = e.clientX - this.canvas.offsetLeft;
+      // const mouseY = e.clientY - this.canvas.offsetTop;
+
+      // const canvasMouseX = (mouseX - this.panX) / this.scale;
+      // const canvasMouseY = (mouseY - this.panY) / this.scale;
+
+      // this.panX -= canvasMouseX * (newScale - this.scale);
+      // this.panY -= canvasMouseY * (newScale - this.scale);
+
+      // this.scale = newScale;
+
+
+
+
+      // const scaleAmount = -e.deltaY / 200;
+      // const newScale = this.zoomScale * (1 + scaleAmount);
+      // console.log(newScale)
+
+      // const rect = this.canvas.getBoundingClientRect();
+      // const mouseX = e.clientX - rect.left;
+      // const mouseY = e.clientY - rect.top;
+      // console.log('mouseX : ' + mouseX);
+      // console.log('mouseY : ' + mouseY);
+
+      // const canvasMouseX = (mouseX - this.panOffsetX) / this.zoomScale;
+      // const canvasMouseY = (mouseY - this.panOffsetY) / this.zoomScale;
+
+      // console.log('CanvasmouseX : ' + canvasMouseX);
+      // console.log('canvasmouseY : ' + canvasMouseY);
+
+      // this.panOffsetX += canvasMouseX * (this.zoomScale - newScale);
+      // this.panOffsetY += canvasMouseY * (this.zoomScale - newScale);
+      // this.zoomScale = newScale;
+      // if (!this.isPanning) requestAnimationFrame(() => this.render());
+      // if (this.zoomChangeTimeout) clearTimeout(this.zoomChangeTimeout);
+      // this.zoomChangeTimeout = window.setTimeout(() => this.notifyZoomComplete(), 10);
     }
     else {
       this.panOffsetX -= e.deltaX;
@@ -174,60 +217,73 @@ class DrawingEngine {
         return;
       }
       const msg = result.data;
-      if (msg.type === "collaborator_joined") {
-        const { userId, username } = msg;
-        const displayName = getUserDisplayName(userId) || "collaborator";
-        this.roomUsers.set(userId, { username, displayName, posX: 0, posY: 0 });
-        window.dispatchEvent(new CustomEvent('collaboratorJoined', { detail: { userId, username, displayName } }))
-        this.render();
-        return;
-      } else if (msg.type === "collaborator_left") {
-        const { userId } = msg;
-        this.roomUsers.delete(userId);
-        window.dispatchEvent(new CustomEvent('collaboratorLeft', { detail: { userId } }))
-        this.render();
-        return;
-      } else if (msg.type === "collaborator_pos") {
-        const { userId, posX, posY } = msg;
-        const roomUser = this.roomUsers.get(userId);
-        if (roomUser) {
-          roomUser.posX = posX;
-          roomUser.posY = posY;
-        }
-        this.render();
-        return;
-      } else if (msg.type === "chat") {
-        const recievedShape: Shape = JSON.parse(msg.message);
-        if (recievedShape.type === "highlighter") {
-          const shapeWithUser = { userId: msg.userId, shape: recievedShape };
-          this.roomShapes.push(shapeWithUser);
-          this.renderPersistentShapes();
-          this.roomShapes.pop();
-          // drawShape(recievedShape, this.ctx);
-        } else {
-          const shapeWithUser = { userId: msg.userId, shape: recievedShape };
-          this.roomShapes.push(shapeWithUser);
-          this.renderPersistentShapes();
-        }
-        this.render();
-      } else if (msg.type === "remove_shape") {
-        const shapeWithUser = { userId: msg.userId, shape: JSON.parse(msg.message) };
-        const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
-        if (index !== -1) {
-          this.roomShapes.splice(index, 1);
-          this.renderPersistentShapes();
+      switch (msg.type) {
+        case "collaborator_joined": {
+          const { userId, username } = msg;
+          const displayName = getUserDisplayName(userId) || "collaborator";
+          this.roomUsers.set(userId, { username, displayName, posX: 0, posY: 0 });
+          window.dispatchEvent(new CustomEvent('collaboratorJoined', { detail: { userId, username, displayName } }))
           this.render();
+          return;
+          break;
         }
-      } else if (msg.type === "move_shape") {
-        const { prevShape, newShape } = msg.message;
-        const shapeWithUser = { userId: msg.userId, shape: JSON.parse(prevShape) };
-        const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
-        if (index !== -1) {
-          this.roomShapes[index] = { userId: msg.userId, shape: JSON.parse(newShape) };
-          this.renderPersistentShapes();
+        case "collaborator_left": {
+          const { userId } = msg;
+          this.roomUsers.delete(userId);
+          window.dispatchEvent(new CustomEvent('collaboratorLeft', { detail: { userId } }))
           this.render();
+          return;
+          break;
+        }
+        case "collaborator_pos": {
+          const { userId, posX, posY } = msg;
+          const roomUser = this.roomUsers.get(userId);
+          if (roomUser) {
+            roomUser.posX = posX;
+            roomUser.posY = posY;
+          }
+          this.render();
+          return;
+          break;
+        }
+        case "chat": {
+          const recievedShape: Shape = JSON.parse(msg.message);
+          if (recievedShape.type === "highlighter") {
+            const shapeWithUser = { userId: msg.userId, shape: recievedShape };
+            this.roomShapes.push(shapeWithUser);
+            this.renderPersistentShapes();
+            this.roomShapes.pop();
+            // drawShape(recievedShape, this.ctx);
+          } else {
+            const shapeWithUser = { userId: msg.userId, shape: recievedShape };
+            this.roomShapes.push(shapeWithUser);
+            this.renderPersistentShapes();
+          }
+          this.render();
+          break;
+        }
+        case "remove_shape": {
+          const shapeWithUser = { userId: msg.userId, shape: JSON.parse(msg.message) };
+          const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
+          if (index !== -1) {
+            this.roomShapes.splice(index, 1);
+            this.renderPersistentShapes();
+            this.render();
+          }
+          break;
+        }
+        case "move_shape": {
+          const { prevShape, newShape } = msg.message;
+          const shapeWithUser = { userId: msg.userId, shape: JSON.parse(prevShape) };
+          const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeWithUser));
+          if (index !== -1) {
+            this.roomShapes[index] = { userId: msg.userId, shape: JSON.parse(newShape) };
+            this.renderPersistentShapes();
+            this.render();
+          }
         }
       }
+
     } catch (error) { console.error("Error parsing message:", error); }
   };
 
@@ -244,34 +300,49 @@ class DrawingEngine {
       if (boundingShape) {
         this.selectedRoomShape = boundingShape;
         this.currentShape = boundingShape.shape as Shape;
-        if (this.currentShape.type === "rectangle") {
-          this.shapeStartX = this.currentShape.startX;
-          this.shapeStartY = this.currentShape.startY;
-        } else if (this.currentShape.type === "triangle") {
-          this.shapeStartX = this.currentShape.startX;
-          this.shapeStartY = this.currentShape.startY;
-        } else if (this.currentShape.type === "circle") {
-          this.shapeStartX = this.currentShape.centerX;
-          this.shapeStartY = this.currentShape.centerY;
-        } else if (this.currentShape.type === "line") {
-          this.shapeStartX = this.currentShape.startX;
-          this.shapeStartY = this.currentShape.startY;
-          this.shapeEndX = this.currentShape.endX;
-          this.shapeEndY = this.currentShape.endY;
-        } else if (this.currentShape.type === "arrow") {
-          this.shapeStartX = this.currentShape.startX;
-          this.shapeStartY = this.currentShape.startY;
-          this.shapeEndX = this.currentShape.endX;
-          this.shapeEndY = this.currentShape.endY;
-        } else if (this.currentShape.type === "text") {
-          this.shapeStartX = this.currentShape.startX;
-          this.shapeStartY = this.currentShape.startY;
-        } else if (this.currentShape.type === "pen") {
-          this.originalShapePath = this.currentShape.path;
-          const match = this.originalShapePath.match(/M\s+(\d+\.?\d*)\s+(\d+\.?\d*)/);
-          if (match) {
-            this.shapeStartX = parseFloat(match[1] as string);
-            this.shapeStartY = parseFloat(match[2] as string);
+        switch (this.currentShape.type) {
+          case "rectangle": {
+            this.shapeStartX = this.currentShape.startX;
+            this.shapeStartY = this.currentShape.startY;
+            break;
+          }
+          case "triangle": {
+            this.shapeStartX = this.currentShape.startX;
+            this.shapeStartY = this.currentShape.startY;
+            break;
+          }
+          case "circle": {
+            this.shapeStartX = this.currentShape.centerX;
+            this.shapeStartY = this.currentShape.centerY;
+            break;
+          }
+          case "line": {
+            this.shapeStartX = this.currentShape.startX;
+            this.shapeStartY = this.currentShape.startY;
+            this.shapeEndX = this.currentShape.endX;
+            this.shapeEndY = this.currentShape.endY;
+            break;
+          }
+          case "arrow": {
+            this.shapeStartX = this.currentShape.startX;
+            this.shapeStartY = this.currentShape.startY;
+            this.shapeEndX = this.currentShape.endX;
+            this.shapeEndY = this.currentShape.endY;
+            break;
+          }
+          case "text": {
+            this.shapeStartX = this.currentShape.startX;
+            this.shapeStartY = this.currentShape.startY;
+            break;
+          }
+          case "pen": {
+            this.originalShapePath = this.currentShape.path;
+            const match = this.originalShapePath.match(/M\s+(\d+\.?\d*)\s+(\d+\.?\d*)/);
+            if (match) {
+              this.shapeStartX = parseFloat(match[1] as string);
+              this.shapeStartY = parseFloat(match[2] as string);
+            }
+            break;
           }
         }
         if (index !== -1) this.roomShapes.splice(index, 1);
@@ -508,7 +579,226 @@ class DrawingEngine {
     if (textAreaContainer) textAreaContainer.removeChild(textAreaElem);
   };
 
-  private handleUndo = () => {
+  // private handleKeyDown = (e: KeyboardEvent) => {
+  //   if ((e.ctrlKey || e.metaKey) && e.key === "+") {
+  //     e.preventDefault();
+  //     this.handleZoomIn();
+  //     this.render();
+  //   } else if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+  //     e.preventDefault();
+  //     this.handleZoomOut();
+  //     this.render();
+  //   }
+  //   if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+  //     e.preventDefault();
+  //     this.handleUndo();
+  //   } else if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+  //     e.preventDefault();
+  //     this.handleRedo();
+  //   } else if (e.key === "Delete") {
+  //     if (this.selectedRoomShape == null) return;
+  //     const shapeToDelete = this.selectedRoomShape;
+  //     this.selectedRoomShape = null;
+  //     this.currentShape = null;
+  //     const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeToDelete));
+  //     if (index !== -1) {
+  //       this.roomShapes.splice(index, 1);
+  //       this.undoStack.push({ type: "delete", roomShape: { userId: shapeToDelete.userId, shape: shapeToDelete.shape } });
+  //     }
+  //     this.renderPersistentShapes();
+  //     this.render();
+  //     this.socket.send(JSON.stringify({ type: "delete_shape", message: JSON.stringify(shapeToDelete.shape), }));
+  //   } else if (e.key === "h") {
+  //     this.selectedTool = "pan";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pan" }));
+  //   } else if (e.key === "s") {
+  //     this.selectedTool = "selection";
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "selection" }));
+  //   } else if (e.key === "r") {
+  //     this.selectedTool = "rectangle";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" }));
+  //   } else if (e.key === "c") {
+  //     this.selectedTool = "circle";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "circle" }));
+  //   } else if (e.key === "t") {
+  //     this.selectedTool = "triangle";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" }));
+  //   } else if (e.key === "p") {
+  //     this.selectedTool = "pen";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pen" }));
+  //   } else if (e.key === "l") {
+  //     this.selectedTool = "line";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "line" }));
+  //   } else if (e.key === "a") {
+  //     this.selectedTool = "arrow";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" }));
+  //   } else if (e.key === "w") {
+  //     this.selectedTool = "text";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "text" }));
+  //   } else if (e.key === "m") {
+  //     this.selectedTool = "highlighter";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" }));
+  //   } else if (e.key === "d") {
+  //     this.selectedTool = "genAI";
+  //     this.selectedRoomShape = null;
+  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "ai" }));
+  //   }
+  //   this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
+  // };
+  private handleKeyDown = (e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "+") {
+      e.preventDefault();
+      this.handleZoomIn();
+      this.render();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+      e.preventDefault();
+      this.handleZoomOut();
+      this.render();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      e.preventDefault();
+      this.handleUndo();
+    } else if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+      e.preventDefault();
+      this.handleRedo();
+    } else {
+      switch (e.key) {
+        case "Delete": {
+          if (this.selectedRoomShape == null) return;
+          const shapeToDelete = this.selectedRoomShape;
+          this.selectedRoomShape = null;
+          this.currentShape = null;
+          const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeToDelete));
+          if (index !== -1) {
+            this.roomShapes.splice(index, 1);
+            this.undoStack.push({ type: "delete", roomShape: { userId: shapeToDelete.userId, shape: shapeToDelete.shape } });
+          }
+          this.renderPersistentShapes();
+          this.render();
+          this.socket.send(JSON.stringify({ type: "delete_shape", message: JSON.stringify(shapeToDelete.shape), }));
+          break;
+        }
+        case "h": {
+          this.selectedTool = "pan";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pan" }));
+          break;
+        }
+        case "s": {
+          this.selectedTool = "selection";
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "selection" }));
+          break;
+        }
+        case "r": {
+          this.selectedTool = "rectangle";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" }));
+          break;
+        }
+        case "c": {
+          this.selectedTool = "circle";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "circle" }));
+          break;
+        }
+        case "t": {
+          this.selectedTool = "triangle";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" }));
+          break;
+        }
+        case "p": {
+          this.selectedTool = "pen";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pen" }));
+          break;
+        }
+        case "l": {
+          this.selectedTool = "line";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "line" }));
+          break;
+        }
+        case "a": {
+          this.selectedTool = "arrow";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" }));
+          break;
+        }
+        case "w": {
+          this.selectedTool = "text";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "text" }));
+          break;
+        }
+        case "m": {
+          this.selectedTool = "highlighter";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" }));
+          break;
+        }
+        case "d": {
+          this.selectedTool = "genAI";
+          this.selectedRoomShape = null;
+          window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "ai" }));
+          break;
+        }
+      }
+    }
+
+    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
+  };
+
+  private notifyZoomComplete = () => {
+    window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
+  };
+
+  private handleRenderSvg = (e: Event) => {
+    if (this.currentAiGeneratedShape?.type == "genAI") {
+      this.currentAiGeneratedShape.svgPath = (e as CustomEvent).detail;
+      const shapeIdx = this.roomShapes.findIndex((roomShape) => roomShape.shape.type === "genAI");
+      if (this.roomShapes[shapeIdx]) {
+        this.roomShapes[shapeIdx].shape = this.currentAiGeneratedShape;
+      }
+      this.currentAiGeneratedShape = null;
+      this.renderPersistentShapes();
+      this.render();
+    }
+  }
+
+  private initHandlers() {
+    this.canvas.addEventListener("mousedown", this.handleMouseDown);
+    this.canvas.addEventListener("mousemove", this.handleMouseMove);
+    this.canvas.addEventListener("mouseup", this.handleMouseUp);
+    this.canvas.addEventListener("mouseleave", this.handleMouseLeave);
+    this.canvas.addEventListener("wheel", this.handleCanvasScroll);
+    this.socket.addEventListener("message", this.handleMessage);
+    window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("redo", this.handleRedo);
+    window.addEventListener("undo", this.handleUndo);
+    window.addEventListener("zoomIn", this.handleZoomIn);
+    window.addEventListener("zoomOut", this.handleZoomOut);
+    window.addEventListener("zoomReset", this.handleZoomReset);
+    window.addEventListener("renderSvg", this.handleRenderSvg);
+  }
+
+  // Public Handlers
+
+  public onToolSelect = (tool: SelectedToolType) => {
+    this.selectedTool = tool;
+    this.selectedRoomShape = null;
+    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
+  }
+
+  public handleUndo = () => {
     if (this.undoStack.length === 0) return;
     try {
       const lastAction = this.undoStack.pop();
@@ -547,7 +837,7 @@ class DrawingEngine {
     }
   };
 
-  private handleRedo = () => {
+  public handleRedo = () => {
     if (this.redoStack.length === 0) return;
     try {
       const lastAction = this.redoStack.pop();
@@ -587,160 +877,37 @@ class DrawingEngine {
     }
   };
 
-  private handleKeyDown = (e: KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "+") {
-      e.preventDefault();
-      this.handleZoomIn();
-      this.render();
-    } else if ((e.ctrlKey || e.metaKey) && e.key === "-") {
-      e.preventDefault();
-      this.handleZoomOut();
-      this.render();
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
-      e.preventDefault();
-      this.handleUndo();
-    } else if ((e.ctrlKey || e.metaKey) && e.key === "y") {
-      e.preventDefault();
-      this.handleRedo();
-    } else if (e.key === "Delete") {
-      if (this.selectedRoomShape == null) return;
-      const shapeToDelete = this.selectedRoomShape;
-      this.selectedRoomShape = null;
-      this.currentShape = null;
-      const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeToDelete));
-      if (index !== -1) {
-        this.roomShapes.splice(index, 1);
-        this.undoStack.push({ type: "delete", roomShape: { userId: shapeToDelete.userId, shape: shapeToDelete.shape } });
-      }
-      this.renderPersistentShapes();
-      this.render();
-      this.socket.send(JSON.stringify({ type: "delete_shape", message: JSON.stringify(shapeToDelete.shape), }));
-    } else if (e.key === "h") {
-      this.selectedTool = "pan";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pan" }));
-    } else if (e.key === "s") {
-      this.selectedTool = "selection";
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "selection" }));
-    } else if (e.key === "r") {
-      this.selectedTool = "rectangle";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" }));
-    } else if (e.key === "c") {
-      this.selectedTool = "circle";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "circle" }));
-    } else if (e.key === "t") {
-      this.selectedTool = "triangle";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" }));
-    } else if (e.key === "p") {
-      this.selectedTool = "pen";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pen" }));
-    } else if (e.key === "l") {
-      this.selectedTool = "line";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "line" }));
-    } else if (e.key === "a") {
-      this.selectedTool = "arrow";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" }));
-    } else if (e.key === "w") {
-      this.selectedTool = "text";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "text" }));
-    } else if (e.key === "m") {
-      this.selectedTool = "highlighter";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" }));
-    } else if (e.key === "d") {
-      this.selectedTool = "genAI";
-      this.selectedRoomShape = null;
-      window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "ai" }));
-    }
-    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
-  };
-
-  private handleZoomIn = () => {
+  public handleZoomIn = () => {
     this.zoomScale = Math.min(this.zoomScale * (this.zoomFactor + 0.02), 10);
     this.notifyZoomComplete();
     this.render();
   };
 
-  private handleZoomOut = () => {
+  public handleZoomOut = () => {
     this.zoomScale = Math.max(this.zoomScale / (this.zoomFactor + 0.02), 0.1);
     this.notifyZoomComplete();
     this.render();
   };
 
-  private handleZoomReset = () => {
+  public handleZoomReset = () => {
     this.zoomScale = 1;
     this.notifyZoomComplete();
     this.render();
   }
 
-  private handleStrokeColourChange = (e: Event) => { this.strokeColour = (e as CustomEvent).detail }
+  public selectStrokeColour = (strokeColor: string) => this.strokeColour = strokeColor
 
-  private handleBGColourChange = (e: Event) => { this.fillColour = (e as CustomEvent).detail }
+  public selectFillColour = (fillColor: string) => this.fillColour = fillColor
 
-  private handleFontFamilyChange = (e: Event) => { this.fontFamily = (e as CustomEvent).detail }
+  public selectFontFamily = (fontFamily: string) => this.fontFamily = fontFamily
 
-  private handleFontSizeChange = (e: Event) => { this.fontSize = (e as CustomEvent).detail }
+  public selectFontSize = (fontSize: number) => this.fontSize = fontSize
 
-  private handleTextColorChange = (e: Event) => { this.textColour = (e as CustomEvent).detail }
+  public selectTextColor = (textColor: string) => this.textColour = textColor
 
-  private handleTextStyleChange = (e: Event) => { this.textStyle = (e as CustomEvent).detail }
+  public selectTextStyle = (textStyle: { bold: boolean, italic: boolean }) => this.textStyle = textStyle
 
-  private handlePenWidthChange = (e: Event) => { this.strokeWidth = (e as CustomEvent).detail }
-
-  private notifyZoomComplete = () => {
-    window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
-  };
-
-  private handleToolChange = (e: Event) => {
-    this.selectedTool = (e as CustomEvent).detail as SelectedToolType;
-    this.selectedRoomShape = null;
-    this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
-  }
-
-  private handleRenderSvg = (e: Event) => {
-    if (this.currentAiGeneratedShape?.type == "genAI") {
-      this.currentAiGeneratedShape.svgPath = (e as CustomEvent).detail;
-      const shapeIdx = this.roomShapes.findIndex((roomShape) => roomShape.shape.type === "genAI");
-      if (this.roomShapes[shapeIdx]) {
-        this.roomShapes[shapeIdx].shape = this.currentAiGeneratedShape;
-      }
-      this.currentAiGeneratedShape = null;
-      this.renderPersistentShapes();
-      this.render();
-    }
-  }
-
-  private initHandlers() {
-    this.canvas.addEventListener("mousedown", this.handleMouseDown);
-    this.canvas.addEventListener("mousemove", this.handleMouseMove);
-    this.canvas.addEventListener("mouseup", this.handleMouseUp);
-    this.canvas.addEventListener("mouseleave", this.handleMouseLeave);
-    this.canvas.addEventListener("wheel", this.handleCanvasScroll);
-    this.socket.addEventListener("message", this.handleMessage);
-    window.addEventListener("keydown", this.handleKeyDown);
-    window.addEventListener("redo", this.handleRedo);
-    window.addEventListener("undo", this.handleUndo);
-    window.addEventListener("zoomIn", this.handleZoomIn);
-    window.addEventListener("zoomOut", this.handleZoomOut);
-    window.addEventListener("zoomReset", this.handleZoomReset);
-    window.addEventListener("toolChange", this.handleToolChange);
-    window.addEventListener("strokeColourChange", this.handleStrokeColourChange);
-    window.addEventListener("bgColourChange", this.handleBGColourChange);
-    window.addEventListener("fontFamilyChange", this.handleFontFamilyChange);
-    window.addEventListener("fontSizeChange", this.handleFontSizeChange);
-    window.addEventListener("textColorChange", this.handleTextColorChange);
-    window.addEventListener("textStyleChange", this.handleTextStyleChange);
-    window.addEventListener("penWidthChange", this.handlePenWidthChange);
-    window.addEventListener("renderSvg", this.handleRenderSvg);
-  }
+  public selectPenWidth = (penWidth: number) => this.strokeWidth = penWidth
 
   destroy() {
     this.canvas.removeEventListener("mousedown", this.handleMouseDown);
@@ -755,14 +922,6 @@ class DrawingEngine {
     window.removeEventListener("zoomIn", this.handleZoomIn);
     window.removeEventListener("zoomOut", this.handleZoomOut);
     window.removeEventListener("zoomReset", this.handleZoomReset);
-    window.removeEventListener("toolChange", this.handleToolChange);
-    window.removeEventListener("strokeColourChange", this.handleStrokeColourChange);
-    window.removeEventListener("bgColourChange", this.handleBGColourChange);
-    window.removeEventListener("fontFamilyChange", this.handleFontFamilyChange);
-    window.removeEventListener("fontSizeChange", this.handleFontSizeChange);
-    window.removeEventListener("textColorChange", this.handleTextColorChange);
-    window.removeEventListener("textStyleChange", this.handleTextStyleChange);
-    window.removeEventListener("penWidthChange", this.handlePenWidthChange);
     window.removeEventListener("renderSvg", this.handleRenderSvg);
   }
 }

@@ -1,13 +1,13 @@
 "use client"
 
-import { Circle, Hand, Minus, MousePointer, MoveRight, Pen, Square, Triangle, TypeIcon as TypeOutline, Highlighter } from "lucide-react"
+import Image from "next/image"
 import { useEffect, useRef, useState } from "react"
 import type { SelectedToolType } from "../../Canvas"
-import Image from "next/image"
-import type { genAI } from "@workspace/common/shapes"
 import axios from "axios"
+import type { genAI } from "@workspace/common/shapes"
 import PromptPanel from "./PromptPanel"
 import ToolButton from "./ToolButton"
+import { Circle, Hand, Minus, MousePointer, MoveRight, Pen, Square, Triangle, TypeIcon as TypeOutline, Highlighter } from "lucide-react"
 
 const tools = [
   { icon: Hand, name: "Pan", shortcut: "H", type: "pan" },
@@ -22,7 +22,7 @@ const tools = [
   { icon: Highlighter, name: "Highlighter", shortcut: "M", type: "highlighter" },
 ] as const
 
-const MainToolbar = () => {
+const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => void) }) => {
 
   const [activeTool, setActiveTool] = useState<SelectedToolType>("pen")
   const [genAiShape, setgenAiShape] = useState<genAI | null>(null)
@@ -33,7 +33,7 @@ const MainToolbar = () => {
 
   const chooseTool = (type: SelectedToolType) => {
     setActiveTool(type)
-    window.dispatchEvent(new CustomEvent("toolChange", { detail: type }))
+    selectTool(type);
   }
 
   const generateAISvgPath = async () => {

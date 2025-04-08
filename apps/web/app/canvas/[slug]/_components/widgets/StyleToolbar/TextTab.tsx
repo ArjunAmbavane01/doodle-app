@@ -11,7 +11,15 @@ const fontFamilies: { name: string, value: string }[] = [
   { name: "Elegant", value: "Garamond, Times New Roman, serif" },
 ]
 
-const TextTab = () => {
+interface TextTabProps {
+  selectFontFamily: (fontFamily: string) => void,
+  selectFontSize: (fontSize: number) => void,
+  selectTextColor: (textColor: string) => void,
+  selectTextStyle: (textStyle: { bold: boolean, italic: boolean }) => void,
+}
+
+
+const TextTab = ({ selectFontFamily, selectFontSize, selectTextColor, selectTextStyle }:TextTabProps) => {
 
   const [fontFamily, setFontFamily] = useState((fontFamilies[0]!).value);
   const [fontSize, setFontSize] = useState(24);
@@ -22,23 +30,23 @@ const TextTab = () => {
     const modifier = type === "increase" ? 1 : -1;
     const newSize = Math.min(72, Math.max(8, fontSize + modifier));
     setFontSize(newSize)
-    window.dispatchEvent(new CustomEvent("fontSizeChange", { detail: newSize }));
+    selectFontSize(newSize);
   }
 
   const handleTextColorClick = (color: string) => {
     setTextColor(color);
-    window.dispatchEvent(new CustomEvent("textColorChange", { detail: color }));
+    selectTextColor(color);
   }
 
   const handleFontFamilyClick = (fontFamily: string) => {
     setFontFamily(fontFamily);
-    window.dispatchEvent(new CustomEvent("fontFamilyChange", { detail: fontFamily }));
+    selectFontFamily(fontFamily);
   }
 
   const toggleTextStyle = (style: keyof typeof textStyle) => {
     const updatedTextStyle = { ...textStyle, [style]: !textStyle[style], };
     setTextStyle(updatedTextStyle);
-    window.dispatchEvent(new CustomEvent("textStyleChange", { detail: updatedTextStyle }));
+    selectTextStyle(updatedTextStyle);
   }
 
   return (

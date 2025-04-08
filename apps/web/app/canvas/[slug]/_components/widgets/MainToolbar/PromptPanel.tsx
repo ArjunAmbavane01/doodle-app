@@ -1,6 +1,6 @@
+import { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Sparkles, X } from "lucide-react";
-import { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 interface PromptPanelProps {
     promptRef:MutableRefObject<HTMLTextAreaElement | null>,

@@ -18,6 +18,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const inputRef = useRef<HTMLInputElement>(null);
     const [modalOpen, setModalopen] = useState(false);
     const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
+    const [loadingRoom, setLoadingRoom] = useState(false);
 
     const showToast = (message: string, type = "success") => {
         setToast({ visible: true, message, type });
@@ -29,6 +30,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
 
     const createRoom = async () => {
         try {
+            setLoadingRoom(true);
             const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
             if (data.type === 'success') {
                 setIsLoading(true);
@@ -37,8 +39,10 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                 setIsLoading(false);
                 showToast("There was a problem creating your room. Please try again.", "error");
             }
+            setLoadingRoom(false);
             return;
         } catch (error) {
+            setLoadingRoom(false);
             setIsLoading(false);
             showToast("There was a problem creating your room. Please try again.", "error");
         }
@@ -80,7 +84,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                     </div>
                     <div className="flex gap-8 z-20 font-body">
                         <Button onClick={createRoom} className="flex items-center gap-3 px-4 py-5 md:p-6 text-md text-zinc-800 border-2 border-blue-200 bg-gradient-to-t from-blue-200 to-white hover:bg-gradient-to-t hover:from-blue-300 hover:via-blue-100 hover:to-white hover:text-zinc-800 transition-all duration-500">
-                            <span>Start Doodling</span>
+                            <span>{loadingRoom ? 'Doodling...' : 'Start Doodling'}</span>
                             <PencilLine className="size-3" />
                         </Button>
 

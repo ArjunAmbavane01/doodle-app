@@ -1,6 +1,6 @@
-import { IRoomUserPos } from "../class";
+import { IRoomUserPos } from "../draw-engine";
 
-export const drawUserCursor = (user: IRoomUserPos, userId: string,ctx: CanvasRenderingContext2D) => {
+export const drawUserCursor = (user: IRoomUserPos, userId: string, ctx: CanvasRenderingContext2D) => {
   if (!ctx || !user) return;
 
   const colour = getUserColour(userId);
@@ -48,7 +48,7 @@ const getUserColour = (userId: string) => {
 };
 
 export const getUserDisplayName = (userId: string) => {
-  const names = ["Vector Vulture","Glitchy Gecko","Cyber Corgi","Neon Newt","Pixel Pigeon","Sketchy Lynx","Binary Bunny","Gradient Giraffe","Code Chameleon","Render Raccoon",];
+  const names = ["Vector Vulture", "Glitchy Gecko", "Cyber Corgi", "Neon Newt", "Pixel Pigeon", "Sketchy Lynx", "Binary Bunny", "Gradient Giraffe", "Code Chameleon", "Render Raccoon",];
 
   let hash = 0;
   for (let i = 0; i < userId.length; i++) hash = userId.charCodeAt(i) + ((hash << 5) - hash);

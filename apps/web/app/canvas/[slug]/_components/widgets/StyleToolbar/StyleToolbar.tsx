@@ -33,7 +33,17 @@ export function isLightColor(color: string): boolean {
   return color === "#ffffff" || color === "#ffff00" || color === "#ffffcc"
 }
 
-const StyleToolbar = () => {
+interface StyleToolbarProps {
+  selectStrokeColour: (strokeColor: string) => void,
+  selectFillColour: (bgColor: string) => void,
+  selectFontFamily: (fontFamily: string) => void,
+  selectFontSize: (fontSize: number) => void,
+  selectTextColor: (textColor: string) => void,
+  selectTextStyle: (textStyle: { bold: boolean, italic: boolean }) => void,
+  selectPenWidth: (penWidth: number) => void
+}
+
+const StyleToolbar = ({ selectStrokeColour, selectFillColour, selectFontFamily, selectFontSize, selectTextColor, selectTextStyle, selectPenWidth }: StyleToolbarProps) => {
 
   const [isOpen, setIsOpen] = useState(false);
   const [menuExpanded, setMenuExpanded] = useState(false);
@@ -125,12 +135,12 @@ const StyleToolbar = () => {
               </button>
             </div>
 
-            {activeTab === "color" && <ColorTab strokeColor={strokeColor} setStrokeColor={setStrokeColor} />}
+            {activeTab === "color" && <ColorTab strokeColor={strokeColor} setStrokeColor={setStrokeColor} selectStrokeColour={selectStrokeColour} selectFillColour={selectFillColour} />}
 
-            {activeTab === "text" && <TextTab />}
+            {activeTab === "text" && <TextTab selectFontFamily={selectFontFamily} selectFontSize={selectFontSize} selectTextColor={selectTextColor} selectTextStyle={selectTextStyle} />}
 
-            {activeTab === "pen" && <PenTab strokeColor={strokeColor} setStrokeColor={setStrokeColor} />}
-            
+            {activeTab === "pen" && <PenTab strokeColor={strokeColor} setStrokeColor={setStrokeColor} selectStrokeColour={selectStrokeColour} selectPenWidth={selectPenWidth} />}
+
           </motion.div>
         )}
       </AnimatePresence>
