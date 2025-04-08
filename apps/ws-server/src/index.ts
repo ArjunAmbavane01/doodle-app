@@ -17,10 +17,15 @@ const users: IUser[] = [];
 const wss = new WebSocketServer({ port: 8080 });
 
 const checkToken = (token: string | null) => {
-  if (!token) return null;
-  const payload = verify(token, WS_JWT_SECRET as string);
-  if (!payload || typeof payload === "string") return;
-  return { userId: payload.userId, roomId: payload.roomId };
+  try {
+
+    if (!token) return { type: "error", msg: "Token not present" };
+    const payload = verify(token, WS_JWT_SECRET as string);
+    if (!payload || typeof payload === "string") return { type: "error", msg: "Token payload not present" };
+    return { type: "success", userId: payload.userId, roomId: payload.roomId };
+  } catch (e) {
+    return { type: "error", msg: "JWT token expired" }
+  }
 };
 
 
@@ -29,9 +34,14 @@ wss.on("connection", (ws: WebSocket, req) => {
   if (!reqURL) return;
   const params = new URLSearchParams(reqURL.split("?")[1]);
   const token = params.get("token");
-  const payload = checkToken(token);
-  if (!payload || !payload.userId || !payload.roomId) return;
-  const { userId, roomId } = payload;
+  const res = checkToken(token);
+  if(res.type === "error"){
+    if(res.msg === "JWT token expired") ws.send(JSON.stringify({ type: "error", message: "Your session has expired. Please log in again." }));
+    ws.close();
+    console.error(res.msg);
+  } 
+  if (!res || !res.userId || !res.roomId) return;
+  const { userId, roomId } = res;
   users.push({ userId, rooms: [], ws } as IUser);
 
   ws.on("message", async (data) => {

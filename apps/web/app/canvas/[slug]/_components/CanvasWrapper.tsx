@@ -10,7 +10,9 @@ import { Button } from "@workspace/ui/components/button";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
 const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: string, roomMessages: IRoomChat[], userId: string, sessionId: string }) => {
+    
     const { setIsLoading } = useLoading();
+
     const socketRef = useRef<WebSocket | null>(null);
     const [connectionError, setConnectionError] = useState<string | null>(null);
 

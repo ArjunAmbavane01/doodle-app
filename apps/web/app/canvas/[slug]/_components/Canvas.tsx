@@ -27,7 +27,7 @@ const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket
         <div className="w-screen h-screen relative overflow-hidden" id="canvas-container">
             <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000] absolute inset-0" />
             <div id="textarea-container" />
-            {canvasGame && <>
+            {canvasGame && socket && <>
                 <MainToolbar selectTool={canvasGame.onToolSelect} />
                 <StyleToolbar
                     selectStrokeColour={canvasGame.selectStrokeColour}
@@ -44,7 +44,7 @@ const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket
                     handleRedo={canvasGame.handleRedo}
                     handleUndo={canvasGame.handleUndo}
                 />
-                <UtilityToolbar sessionId={sessionId} />
+                <UtilityToolbar sessionId={sessionId} socket={socket} />
             </>}
 
         </div>

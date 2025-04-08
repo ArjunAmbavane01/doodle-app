@@ -2,16 +2,24 @@
 
 import { useState } from "react";
 import { motion } from 'motion/react';
+import { useRouter } from 'next/navigation'
 import CollaboratorMenu from "./CollabPanel";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@workspace/ui/components/alert-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@workspace/ui/components/popover"
 import { Button } from "@workspace/ui/components/button";
-import { Plus, Users } from "lucide-react";
+import { Users } from "lucide-react";
 
-const UtilityToolbar = ({ sessionId }: { sessionId: string }) => {
+const UtilityToolbar = ({ sessionId, socket }: { sessionId: string, socket: WebSocket }) => {
+
+    const router = useRouter()
 
     const [openCollaborators, setOpenCollaborators] = useState(false);
     const [animateJoin, setAnimatejoin] = useState(false);
+
+    const leaveRoom = () => {
+        socket.send(JSON.stringify({ type: 'leave_room' }));
+        router.push('/');
+    }
 
     return (
         <div className="flex gap-2 fixed bottom-7 sm:bottom-auto sm:top-6 right-5 z-10 font-heading">
@@ -51,10 +59,9 @@ const UtilityToolbar = ({ sessionId }: { sessionId: string }) => {
                         }} />
                 </PopoverContent>
             </Popover>
-            <Button variant="outline" className="rounded bg-white text-zinc-800 hover:bg-white/90 hover:text-zinc-800"><Plus className="size-4" /> New Canvas</Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="outline" className="p-2 rounded bg-red-500 text-white border-none hover:text-white hover:bg-red-500/80"> Clear Canvas</Button>
+                    <Button variant="outline" className="p-2 rounded bg-red-500 text-white border-none hover:text-white hover:bg-red-500/80">Leave Room</Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -66,7 +73,7 @@ const UtilityToolbar = ({ sessionId }: { sessionId: string }) => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction>Continue</AlertDialogAction>
+                        <AlertDialogAction onClick={leaveRoom}>Continue</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
