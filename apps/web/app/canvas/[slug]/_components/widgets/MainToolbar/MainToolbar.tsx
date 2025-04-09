@@ -25,7 +25,7 @@ const tools = [
 const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => void) }) => {
 
   const [activeTool, setActiveTool] = useState<SelectedToolType>("pen")
-  const [genAiShape, setgenAiShape] = useState<genAI | null>(null)
+  const [genAIShape, setgenAIShape] = useState<genAI | null>(null)
   const [isPromptOpen, setIsPromptOpen] = useState<boolean>(false)
   const [isAIDrawingLoading, setIsAIDrawingLoading] = useState<boolean>(false);
 
@@ -37,11 +37,11 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
   }
 
   const generateAISvgPath = async () => {
-    if (promptRef.current && genAiShape) {
+    if (promptRef.current && genAIShape) {
       try {
         setIsAIDrawingLoading((c) => !c);
         const res = await axios.post('http://localhost:8000/api/generateSvg', {
-          shape: genAiShape,
+          shape: genAIShape,
           prompt: promptRef.current.value
         }, {
           headers: { 'Content-Type': 'application/json' }
@@ -67,7 +67,7 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
     const handleOpenPrompt = (e: Event) => {
       const customEvent = e as CustomEvent
       if (customEvent.detail) {
-        setgenAiShape(customEvent.detail)
+        setgenAIShape(customEvent.detail)
         setIsPromptOpen((c) => !c)
       }
     }

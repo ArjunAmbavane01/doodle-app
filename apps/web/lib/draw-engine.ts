@@ -158,48 +158,6 @@ class DrawingEngine {
       if (!this.isPanning) requestAnimationFrame(() => this.render());
       if (this.zoomChangeTimeout) clearTimeout(this.zoomChangeTimeout);
       this.zoomChangeTimeout = window.setTimeout(() => this.notifyZoomComplete(), 10);
-
-
-      // NEW CODE
-      // const scaleAmount = -e.deltaY / 200;
-      // const newScale = this.scale * (1 + scaleAmount);
-
-      // const mouseX = e.clientX - this.canvas.offsetLeft;
-      // const mouseY = e.clientY - this.canvas.offsetTop;
-
-      // const canvasMouseX = (mouseX - this.panX) / this.scale;
-      // const canvasMouseY = (mouseY - this.panY) / this.scale;
-
-      // this.panX -= canvasMouseX * (newScale - this.scale);
-      // this.panY -= canvasMouseY * (newScale - this.scale);
-
-      // this.scale = newScale;
-
-
-
-
-      // const scaleAmount = -e.deltaY / 200;
-      // const newScale = this.zoomScale * (1 + scaleAmount);
-      // console.log(newScale)
-
-      // const rect = this.canvas.getBoundingClientRect();
-      // const mouseX = e.clientX - rect.left;
-      // const mouseY = e.clientY - rect.top;
-      // console.log('mouseX : ' + mouseX);
-      // console.log('mouseY : ' + mouseY);
-
-      // const canvasMouseX = (mouseX - this.panOffsetX) / this.zoomScale;
-      // const canvasMouseY = (mouseY - this.panOffsetY) / this.zoomScale;
-
-      // console.log('CanvasmouseX : ' + canvasMouseX);
-      // console.log('canvasmouseY : ' + canvasMouseY);
-
-      // this.panOffsetX += canvasMouseX * (this.zoomScale - newScale);
-      // this.panOffsetY += canvasMouseY * (this.zoomScale - newScale);
-      // this.zoomScale = newScale;
-      // if (!this.isPanning) requestAnimationFrame(() => this.render());
-      // if (this.zoomChangeTimeout) clearTimeout(this.zoomChangeTimeout);
-      // this.zoomChangeTimeout = window.setTimeout(() => this.notifyZoomComplete(), 10);
     }
     else {
       this.panOffsetX -= e.deltaX;
@@ -225,7 +183,6 @@ class DrawingEngine {
           window.dispatchEvent(new CustomEvent('collaboratorJoined', { detail: { userId, username, displayName } }))
           this.render();
           return;
-          break;
         }
         case "collaborator_left": {
           const { userId } = msg;
@@ -233,7 +190,6 @@ class DrawingEngine {
           window.dispatchEvent(new CustomEvent('collaboratorLeft', { detail: { userId } }))
           this.render();
           return;
-          break;
         }
         case "collaborator_pos": {
           const { userId, posX, posY } = msg;
@@ -244,7 +200,6 @@ class DrawingEngine {
           }
           this.render();
           return;
-          break;
         }
         case "chat": {
           const recievedShape: Shape = JSON.parse(msg.message);
@@ -253,7 +208,6 @@ class DrawingEngine {
             this.roomShapes.push(shapeWithUser);
             this.renderPersistentShapes();
             this.roomShapes.pop();
-            // drawShape(recievedShape, this.ctx);
           } else {
             const shapeWithUser = { userId: msg.userId, shape: recievedShape };
             this.roomShapes.push(shapeWithUser);
@@ -522,15 +476,12 @@ class DrawingEngine {
         this.undoStack.push({ type: "add", roomShape: shapeWithUser });
         this.socket.send(JSON.stringify({ type: "chat", userId: this.userId, message: JSON.stringify(this.currentShape) }));
       } else if (this.selectedTool === "genAI") {
-
         if (this.currentShape) {
           window.dispatchEvent(new CustomEvent("openPrompt", { detail: this.currentShape }));
           this.currentAiGeneratedShape = this.currentShape;
           const shapeWithUser = { userId: this.userId, shape: this.currentAiGeneratedShape };
           this.roomShapes.push(shapeWithUser);
         }
-        // this.socket.send(JSON.stringify({ type: "genAI", userId: this.userId, message: JSON.stringify(this.currentShape), }));
-        // this.undoStack.push({ type: "add", roomShape: shapeWithUser });
       } else {
         if (this.currentShape) {
           const shapeWithUser = { userId: this.userId, shape: this.currentShape };
@@ -763,11 +714,17 @@ class DrawingEngine {
 
   private handleRenderSvg = (e: Event) => {
     if (this.currentAiGeneratedShape?.type == "genAI") {
-      this.currentAiGeneratedShape.svgPath = (e as CustomEvent).detail;
-      const shapeIdx = this.roomShapes.findIndex((roomShape) => roomShape.shape.type === "genAI");
-      if (this.roomShapes[shapeIdx]) {
-        this.roomShapes[shapeIdx].shape = this.currentAiGeneratedShape;
+      const svgPathRecieved = (e as CustomEvent).detail;
+      const shapeIndex = this.roomShapes.findIndex((roomShape) => {
+        return (roomShape.shape.type === "genAI") && roomShape.shape.svgPath == "";
+      });
+      const roomShape = this.roomShapes[shapeIndex];
+      if (roomShape && roomShape.shape.type === "genAI") {
+        roomShape.shape.svgPath = svgPathRecieved;
+        this.socket.send(JSON.stringify({ type: "chat", userId: roomShape.userId, message: JSON.stringify(roomShape.shape), }));
+        this.undoStack.push({ type: "add", roomShape });
       }
+      this.roomShapes = this.roomShapes.filter(roomShape => roomShape.shape.type === "genAI" && roomShape.shape.svgPath !== "");
       this.currentAiGeneratedShape = null;
       this.renderPersistentShapes();
       this.render();

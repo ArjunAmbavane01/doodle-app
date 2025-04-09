@@ -63,17 +63,16 @@ const UtilityToolbar = ({ sessionId, socket }: { sessionId: string, socket: WebS
                 <AlertDialogTrigger asChild>
                     <Button variant="outline" className="p-2 rounded bg-red-500 text-white border-none hover:text-white hover:bg-red-500/80">Leave Room</Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete your
-                            account and remove your data from our servers.
+                <AlertDialogContent className="bg-white">
+                    <AlertDialogHeader className="flex flex-col gap-2">
+                        <AlertDialogTitle className="font-heading text-xl text-zinc-800">Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="font-body text-md text-zinc-800">
+                        You will be disconnected from this session. You can rejoin later with the session link if it’s still active.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={leaveRoom}>Continue</AlertDialogAction>
+                        <AlertDialogAction onClick={leaveRoom} className="bg-red-500 text-white border-none hover:text-white hover:bg-red-500/80">Continue</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
