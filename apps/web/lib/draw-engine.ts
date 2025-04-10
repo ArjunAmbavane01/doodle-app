@@ -1,10 +1,10 @@
-import { HighlightPoint, Point, RoomShape, Shape } from "@workspace/common/shapes";
 import { clearCanvas, getShapesFromMessages, setupContext } from "./utils/canvasUtils";
-import { IRoomChat, messageSchema } from "@workspace/common/messages";
-import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
+import { createTextArea } from "./utils/textUtils";
 import { drawUserCursor, getUserDisplayName } from "./utils/cursorUtils";
 import { drawHighlightPoints, drawShape, getBoundingShape, strokeToSVG, translateSVGPath } from "./utils/shapeUtils";
-import { createTextArea } from "./utils/textUtils";
+import { HighlightPoint, Point, RoomShape, Shape } from "@workspace/common/shapes";
+import { IRoomChat, messageSchema } from "@workspace/common/messages";
+import { SelectedToolType } from "@/app/canvas/[slug]/_components/Canvas";
 
 export interface IRoomUserPos {
   posX: number;
@@ -147,10 +147,9 @@ class DrawingEngine {
 
   private handleCanvasScroll = (e: WheelEvent) => {
     e.preventDefault();
-    const isTrackpadPinch = e.ctrlKey || Math.abs(e.deltaY) < 10 && (!Number.isInteger(e.deltaX) || !Number.isInteger(e.deltaY));
+    const isTrackpadPinch = e.ctrlKey || e.metaKey;
     if (isTrackpadPinch) {
       e.preventDefault();
-
       const zoomDirection = e.deltaY < 0 ? -1 : 1;
       const dampingFactor = 0.009;
       this.zoomScale *= 1 - dampingFactor * zoomDirection;
@@ -530,81 +529,6 @@ class DrawingEngine {
     if (textAreaContainer) textAreaContainer.removeChild(textAreaElem);
   };
 
-  // private handleKeyDown = (e: KeyboardEvent) => {
-  //   if ((e.ctrlKey || e.metaKey) && e.key === "+") {
-  //     e.preventDefault();
-  //     this.handleZoomIn();
-  //     this.render();
-  //   } else if ((e.ctrlKey || e.metaKey) && e.key === "-") {
-  //     e.preventDefault();
-  //     this.handleZoomOut();
-  //     this.render();
-  //   }
-  //   if ((e.ctrlKey || e.metaKey) && e.key === "z") {
-  //     e.preventDefault();
-  //     this.handleUndo();
-  //   } else if ((e.ctrlKey || e.metaKey) && e.key === "y") {
-  //     e.preventDefault();
-  //     this.handleRedo();
-  //   } else if (e.key === "Delete") {
-  //     if (this.selectedRoomShape == null) return;
-  //     const shapeToDelete = this.selectedRoomShape;
-  //     this.selectedRoomShape = null;
-  //     this.currentShape = null;
-  //     const index = this.roomShapes.findIndex((roomShape: RoomShape) => JSON.stringify(roomShape) === JSON.stringify(shapeToDelete));
-  //     if (index !== -1) {
-  //       this.roomShapes.splice(index, 1);
-  //       this.undoStack.push({ type: "delete", roomShape: { userId: shapeToDelete.userId, shape: shapeToDelete.shape } });
-  //     }
-  //     this.renderPersistentShapes();
-  //     this.render();
-  //     this.socket.send(JSON.stringify({ type: "delete_shape", message: JSON.stringify(shapeToDelete.shape), }));
-  //   } else if (e.key === "h") {
-  //     this.selectedTool = "pan";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pan" }));
-  //   } else if (e.key === "s") {
-  //     this.selectedTool = "selection";
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "selection" }));
-  //   } else if (e.key === "r") {
-  //     this.selectedTool = "rectangle";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "rectangle" }));
-  //   } else if (e.key === "c") {
-  //     this.selectedTool = "circle";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "circle" }));
-  //   } else if (e.key === "t") {
-  //     this.selectedTool = "triangle";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "triangle" }));
-  //   } else if (e.key === "p") {
-  //     this.selectedTool = "pen";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "pen" }));
-  //   } else if (e.key === "l") {
-  //     this.selectedTool = "line";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "line" }));
-  //   } else if (e.key === "a") {
-  //     this.selectedTool = "arrow";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "arrow" }));
-  //   } else if (e.key === "w") {
-  //     this.selectedTool = "text";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "text" }));
-  //   } else if (e.key === "m") {
-  //     this.selectedTool = "highlighter";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "highlighter" }));
-  //   } else if (e.key === "d") {
-  //     this.selectedTool = "genAI";
-  //     this.selectedRoomShape = null;
-  //     window.dispatchEvent(new CustomEvent("toolChangeFromKeyboard", { detail: "ai" }));
-  //   }
-  //   this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
-  // };
   private handleKeyDown = (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "+") {
       e.preventDefault();

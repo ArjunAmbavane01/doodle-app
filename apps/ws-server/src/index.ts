@@ -92,11 +92,9 @@ wss.on("connection", (ws: WebSocket, req) => {
       }
     } else if (msg.type === "chat") {
       const { message } = msg;
-      console.log(message);
       try {
         const shapeReceived = JSON.parse(message);
         const shapeResult = shapeSchema.safeParse(shapeReceived);
-        console.log(shapeResult)
         if (shapeResult.error) {
           console.error(`Invalid shape format : ${shapeResult.error}`);
           ws.send('Invalid shape format');
