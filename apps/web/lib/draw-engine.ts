@@ -97,6 +97,7 @@ class DrawingEngine {
 
   private render = () => {
 
+    console.log(this.roomShapes)
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = "#0C0C0C";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -278,6 +279,7 @@ class DrawingEngine {
             break;
           }
           case "genAI": {
+            this.originalShapePath = this.currentShape.svgPath;
             this.shapeStartX = this.currentShape.startX;
             this.shapeStartY = this.currentShape.startY;
             break;
@@ -382,7 +384,7 @@ class DrawingEngine {
         this.currentShape = { ...this.currentShape, path: translateSVGPath(this.originalShapePath as string, deltaX, deltaY) };
       }
       else if (this.currentShape && this.currentShape.type === "genAI") {
-        this.currentShape = { ...this.currentShape, startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY, svgPath: translateSVGPath(this.currentShape.svgPath, deltaX, deltaY) };
+        this.currentShape = { ...this.currentShape, startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY, svgPath: translateSVGPath(this.originalShapePath as string, deltaX, deltaY) };
       }
     } else if (this.isDrawing) {
       switch (this.selectedTool) {
