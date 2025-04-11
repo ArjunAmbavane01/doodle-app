@@ -14,7 +14,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
 
         if (!session?.user?.token) {
             return (
-                <ErrorPage imageSrc="/error/connection.png" title="Authentication Required" body=" Please log in to your account to join this collaborative drawing room.">
+                <ErrorPage imageSrc="/error/google-auth.svg" title="Authentication Required" body=" Please log in to your account to join this collaborative drawing room.">
                     <Button asChild variant="outline" className="group">
                         <Link href="/">
                             <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all duration-300" />
@@ -39,7 +39,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
         if (data.type === 'error') {
             console.error(data.message);
             return (
-                <ErrorPage imageSrc="/error/404-cuate.svg" title={response.status === 500 ? 'Internal Server Error' : 'Room Not Found'} body={response.status === 500 ? "Failed to connect to room. Please try again." : "The drawing room you're looking for doesn't exist or you don't have permission to join it."}>
+                <ErrorPage imageSrc={response.status=== 500 ? "/error/505-dog.jpg" : "/error/404-cuate.svg"} title={response.status === 500 ? 'Internal Server Error' : 'Room Not Found'} body={response.status === 500 ? "Failed to connect to room. Please try again." : "The drawing room you're looking for doesn't exist or you don't have permission to join it."}>
                     <Button asChild variant="outline" className="group">
                         <Link href="/">
                             <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all duration-300" />
@@ -57,7 +57,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     } catch (e) {
         console.error(e);
         return (
-            <ErrorPage imageSrc="/error/404-cuate.svg" title="Connection Error" body=" We couldn't connect you to this drawing room. This might be due to a temporary issue.">
+            <ErrorPage imageSrc="/error/connection.png" title="Connection Error" body=" We couldn't connect you to this drawing room. This might be due to a temporary issue.">
                 <Button asChild variant="outline" className="group">
                     <Link href="/">
                         <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-all duration-300" />

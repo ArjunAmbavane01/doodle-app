@@ -145,26 +145,6 @@ class DrawingEngine {
     return { x, y };
   };
 
-  private handleCanvasScroll = (e: WheelEvent) => {
-    e.preventDefault();
-    const isTrackpadPinch = e.ctrlKey || e.metaKey;
-    if (isTrackpadPinch) {
-      e.preventDefault();
-      const zoomDirection = e.deltaY < 0 ? -1 : 1;
-      const dampingFactor = 0.009;
-      this.zoomScale *= 1 - dampingFactor * zoomDirection;
-      this.zoomScale = Math.max(0.1, Math.min(this.zoomScale, 10));
-      if (!this.isPanning) requestAnimationFrame(() => this.render());
-      if (this.zoomChangeTimeout) clearTimeout(this.zoomChangeTimeout);
-      this.zoomChangeTimeout = window.setTimeout(() => this.notifyZoomComplete(), 10);
-    }
-    else {
-      this.panOffsetX -= e.deltaX;
-      this.panOffsetY -= e.deltaY;
-      this.render();
-    }
-  };
-
   private handleMessage = (event: MessageEvent) => {
     try {
       const receivedData = JSON.parse(event.data);
@@ -297,6 +277,11 @@ class DrawingEngine {
             }
             break;
           }
+          case "genAI": {
+            this.shapeStartX = this.currentShape.startX;
+            this.shapeStartY = this.currentShape.startY;
+            break;
+          }
         }
         if (index !== -1) this.roomShapes.splice(index, 1);
         this.movedShape = boundingShape;
@@ -395,6 +380,9 @@ class DrawingEngine {
       }
       else if (this.currentShape && this.currentShape.type === "pen") {
         this.currentShape = { ...this.currentShape, path: translateSVGPath(this.originalShapePath as string, deltaX, deltaY) };
+      }
+      else if (this.currentShape && this.currentShape.type === "genAI") {
+        this.currentShape = { ...this.currentShape, startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY, svgPath: translateSVGPath(this.currentShape.svgPath, deltaX, deltaY) };
       }
     } else if (this.isDrawing) {
       switch (this.selectedTool) {
@@ -510,25 +498,6 @@ class DrawingEngine {
     this.isPanning = false;
   };
 
-  private handleBlur = (textAreaElem: HTMLTextAreaElement) => {
-    const text = textAreaElem.value.trim();
-    if (text) {
-      const canvasX = parseFloat(textAreaElem.dataset.canvasX || "0");
-      const canvasY = parseFloat(textAreaElem.dataset.canvasY || "0");
-
-      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text, textColour: this.textColour, fontSize: this.fontSize, textStyle: this.textStyle, fontFamily: this.fontFamily };
-      const shapeWithUser: RoomShape = { userId: this.userId, shape: newShape };
-      this.roomShapes.push(shapeWithUser);
-      this.undoStack.push({ type: "add", roomShape: shapeWithUser });
-      this.socket.send(JSON.stringify({ type: "chat", userId: this.userId, message: JSON.stringify(newShape) }));
-
-      this.renderPersistentShapes();
-      this.render();
-    }
-    const textAreaContainer = document.getElementById('textarea-container');
-    if (textAreaContainer) textAreaContainer.removeChild(textAreaElem);
-  };
-
   private handleKeyDown = (e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === "+") {
       e.preventDefault();
@@ -632,10 +601,45 @@ class DrawingEngine {
     this.canvas.style.cursor = this.selectedTool === "pan" ? "grab" : this.selectedTool === "genAI" ? "crosshair" : "default";
   };
 
-  private notifyZoomComplete = () => {
-    window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
+  private handleCanvasScroll = (e: WheelEvent) => {
+    e.preventDefault();
+    const isTrackpadPinch = e.ctrlKey || e.metaKey;
+    if (isTrackpadPinch) {
+      e.preventDefault();
+      const zoomDirection = e.deltaY < 0 ? -1 : 1;
+      const dampingFactor = 0.009;
+      this.zoomScale *= 1 - dampingFactor * zoomDirection;
+      this.zoomScale = Math.max(0.1, Math.min(this.zoomScale, 10));
+      if (!this.isPanning) requestAnimationFrame(() => this.render());
+      if (this.zoomChangeTimeout) clearTimeout(this.zoomChangeTimeout);
+      this.zoomChangeTimeout = window.setTimeout(() => this.notifyZoomComplete(), 10);
+    }
+    else {
+      this.panOffsetX -= e.deltaX;
+      this.panOffsetY -= e.deltaY;
+      this.render();
+    }
   };
+  
+  private handleBlur = (textAreaElem: HTMLTextAreaElement) => {
+    const text = textAreaElem.value.trim();
+    if (text) {
+      const canvasX = parseFloat(textAreaElem.dataset.canvasX || "0");
+      const canvasY = parseFloat(textAreaElem.dataset.canvasY || "0");
 
+      const newShape: Shape = { type: "text", startX: canvasX, startY: canvasY, text, textColour: this.textColour, fontSize: this.fontSize, textStyle: this.textStyle, fontFamily: this.fontFamily };
+      const shapeWithUser: RoomShape = { userId: this.userId, shape: newShape };
+      this.roomShapes.push(shapeWithUser);
+      this.undoStack.push({ type: "add", roomShape: shapeWithUser });
+      this.socket.send(JSON.stringify({ type: "chat", userId: this.userId, message: JSON.stringify(newShape) }));
+
+      this.renderPersistentShapes();
+      this.render();
+    }
+    const textAreaContainer = document.getElementById('textarea-container');
+    if (textAreaContainer) textAreaContainer.removeChild(textAreaElem);
+  };
+  
   private handleRenderSvg = (e: Event) => {
     if (this.currentAiGeneratedShape?.type == "genAI") {
       const svgPathRecieved = (e as CustomEvent).detail;
@@ -654,6 +658,10 @@ class DrawingEngine {
       this.render();
     }
   }
+
+  private notifyZoomComplete = () => {
+    window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
+  };
 
   private initHandlers() {
     this.canvas.addEventListener("mousedown", this.handleMouseDown);
@@ -805,6 +813,7 @@ class DrawingEngine {
     window.removeEventListener("zoomReset", this.handleZoomReset);
     window.removeEventListener("renderSvg", this.handleRenderSvg);
   }
+
 }
 
 export default DrawingEngine;

@@ -1,11 +1,10 @@
 export const cleanupTextArea = () => {
   const existingTextarea = document.querySelector(".canvas-text-input");
-  if (existingTextarea) {
-    existingTextarea.remove();
-  }
+  if (existingTextarea) existingTextarea.remove();
 };
 
 export const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSize: Number, fontFamily:string, textColor:string, textStyle:{ bold: boolean, italic: boolean }) => {
+
   const textAreaElem = document.createElement("textarea");
   const fontStyle = textStyle.italic ? "italic" : "normal";
   const fontWeight = textStyle.bold ? "bold" : "normal";
@@ -42,5 +41,6 @@ export const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, 
 
   textAreaElem.addEventListener("input", adjustSize);
   adjustSize();
+  
   return textAreaElem;
 };

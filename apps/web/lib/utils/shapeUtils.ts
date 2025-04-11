@@ -193,17 +193,29 @@ export const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBound
     ctx.stroke(pathObj);
 
   } else if (shape.type === "genAI") {
-    if (shape.svgPath == '') {
+    if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
       ctx.lineWidth = shape.strokeWidth;
       ctx.setLineDash([5, 6]);
       ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
       ctx.setLineDash([]);
-    } else {
       ctx.strokeStyle = shape.strokeColour;
       ctx.lineWidth = shape.strokeWidth;
       const path = new Path2D(shape.svgPath);
       ctx.stroke(path);
+    } else {
+      if (shape.svgPath == '') {
+        ctx.strokeStyle = "#A2D2FF";
+        ctx.lineWidth = shape.strokeWidth;
+        ctx.setLineDash([5, 6]);
+        ctx.strokeRect(shape.startX, shape.startY, shape.width, shape.height);
+        ctx.setLineDash([]);
+      } else {
+        ctx.strokeStyle = shape.strokeColour;
+        ctx.lineWidth = shape.strokeWidth;
+        const path = new Path2D(shape.svgPath);
+        ctx.stroke(path);
+      }
     }
   }
   ctx.restore();
@@ -297,6 +309,14 @@ export const getBoundingShape = (clickedX: number, clickedY: number, roomShapes:
       ctx.closePath();
       ctx.restore();
       if (value) return { roomShape: roomShapes[i], index: i };
+    } else if (roomShape.type === "genAI") {
+      ctx.beginPath();
+      ctx.rect(roomShape.startX, roomShape.startY, roomShape.width, roomShape.height);
+      ctx.fill();
+      const value = ctx.isPointInPath(clickedX, clickedY);
+      ctx.closePath();
+      ctx.restore();
+      if (value) return { roomShape: roomShapes[i], index: i };
     }
   }
   return { roomShape: undefined, index: -1 };
@@ -324,40 +344,40 @@ export const getBoundingBoxFromPath = (path: string): { width: number; height: n
 };
 
 export const translateSVGPath = (pathString: string, deltaX: number, deltaY: number): string => {
-  const validCommands: Array<{ cmd: string; points: number[] }> = [];
+  return pathString.replace(/([MLQC])([^MLQCZ]*)/g, (match, command, coords) => {
+    const numbers = coords.trim().split(/[\s,]+/).map(parseFloat);
+    let newCoords: number[] = [];
 
-  const segments = pathString.match(/[MLQ]\s+[-\d.]+\s+[-\d.]+(?:\s*,\s*[-\d.]+\s+[-\d.]+)?/g) || [];
-
-  for (const segment of segments) {
-    const parts = segment.trim().split(/[\s,]+/);
-    const command = parts[0];
-    const points: number[] = [];
-
-    for (let i = 1; i < parts.length; i++) {
-      const num = parseFloat(parts[i] as string);
-      if (!isNaN(num)) points.push(num);
+    if (command === "M" || command === "L") {
+      for (let i = 0; i < numbers.length; i += 2) {
+        newCoords.push(numbers[i] + deltaX, numbers[i + 1] + deltaY);
+      }
+    } else if (command === "Q") {
+      for (let i = 0; i < numbers.length; i += 4) {
+        newCoords.push(
+          numbers[i] + deltaX,
+          numbers[i + 1] + deltaY,
+          numbers[i + 2] + deltaX,
+          numbers[i + 3] + deltaY
+        );
+      }
+    } else if (command === "C") {
+      for (let i = 0; i < numbers.length; i += 6) {
+        newCoords.push(
+          numbers[i] + deltaX,
+          numbers[i + 1] + deltaY,
+          numbers[i + 2] + deltaX,
+          numbers[i + 3] + deltaY,
+          numbers[i + 4] + deltaX,
+          numbers[i + 5] + deltaY
+        );
+      }
+    } else {
+      return match;
     }
 
-    if ((command === "M" || command === "L") && points.length >= 2) {
-      validCommands.push({
-        cmd: command,
-        points: [(points[0] as number) + deltaX, (points[1] as number) + deltaY,],
-      });
-    } else if (command === "Q" && points.length >= 4) {
-      validCommands.push({
-        cmd: command,
-        points: [(points[0] as number) + deltaX, (points[1] as number) + deltaY, (points[2] as number) + deltaX, (points[3] as number) + deltaY,],
-      });
-    }
-  }
-
-  let newPath = "";
-  for (const cmd of validCommands) {
-    if (cmd.cmd === "M" || cmd.cmd === "L") newPath += `${cmd.cmd} ${cmd.points[0]} ${cmd.points[1]} `;
-    else if (cmd.cmd === "Q") newPath += `${cmd.cmd} ${cmd.points[0]} ${cmd.points[1]}, ${cmd.points[2]} ${cmd.points[3]} `;
-  }
-
-  return newPath.trim();
+    return `${command} ${newCoords.join(' ')}`;
+  });
 };
 
 export const strokeToSVG = (points: Point[]): string => {
