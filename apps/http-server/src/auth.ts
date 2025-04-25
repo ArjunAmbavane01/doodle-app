@@ -1,6 +1,6 @@
-import { JWT_SECRET } from "@workspace/backend-common/config";
 import { NextFunction, Request, Response } from "express";
-import { JwtPayload, verify } from "jsonwebtoken";
+import { verify } from "jsonwebtoken";
+import { JWT_SECRET } from "@workspace/backend-common/config";
 
 export interface ICustomRequest extends Request{ userId?:string }
 

@@ -15,7 +15,7 @@ const fontMono = Geist_Mono({
   variable: "--font-mono",
 })
 
-export const metaData: Metadata = {
+export const metadata: Metadata = {
   title: "Doodle app",
   description: "A collaborative drawing app that lets teams brainstorm, sketch, and share ideas in real time on an interactive canvas."
 }

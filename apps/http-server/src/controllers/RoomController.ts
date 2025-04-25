@@ -1,9 +1,9 @@
-import prisma from "@workspace/db/client";
 import { Response } from "express";
 import { v4 as uuidv4 } from "uuid";
-import { ICustomRequest } from "../auth";
-import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import { sign } from "jsonwebtoken";
+import { ICustomRequest } from "../auth";
+import prisma from "@workspace/db/client";
+import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import { roomJoinSchema } from "@workspace/backend-common/schemas";
 
 export const createRoom = async (req: ICustomRequest, res: Response) => {

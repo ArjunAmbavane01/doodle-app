@@ -3,7 +3,7 @@ export const cleanupTextArea = () => {
   if (existingTextarea) existingTextarea.remove();
 };
 
-export const createTextArea = (e: MouseEvent, canvasX: Number, canvasY: Number, fontSize: Number, fontFamily:string, textColor:string, textStyle:{ bold: boolean, italic: boolean }) => {
+export const createTextArea = (e: MouseEvent, canvasX: number, canvasY: number, fontSize: number, fontFamily:string, textColor:string, textStyle:{ bold: boolean, italic: boolean }) => {
 
   const textAreaElem = document.createElement("textarea");
   const fontStyle = textStyle.italic ? "italic" : "normal";

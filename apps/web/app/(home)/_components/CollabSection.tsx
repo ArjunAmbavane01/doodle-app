@@ -57,7 +57,7 @@ const CollabSection = () => {
               Made Simple
             </span>
           </h2>
-          <p className=" max-w-[550px] font-body text-md md:text-lg tracking-wide text-white/80 text-center lg:text-left">
+          <p className="max-w-[550px] font-body text-md md:text-lg tracking-wide text-white/80 text-center lg:text-left">
             A powerful whiteboarding tool that brings your team's ideas to life. Sketch, design, and collaborate in
             real-time—all in one seamless experience.
           </p>

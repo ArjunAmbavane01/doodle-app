@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import OpenAI from "openai";
 import { Request, Response } from "express";
+import OpenAI from "openai";
 import { generateSvgSchema } from "@workspace/backend-common/schemas";
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

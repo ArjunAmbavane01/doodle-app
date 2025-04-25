@@ -346,7 +346,7 @@ export const getBoundingBoxFromPath = (path: string): { width: number; height: n
 export const translateSVGPath = (pathString: string, deltaX: number, deltaY: number): string => {
   return pathString.replace(/([MLQC])([^MLQCZ]*)/g, (match, command, coords) => {
     const numbers = coords.trim().split(/[\s,]+/).map(parseFloat);
-    let newCoords: number[] = [];
+    const newCoords: number[] = [];
 
     if (command === "M" || command === "L") {
       for (let i = 0; i < numbers.length; i += 2) {

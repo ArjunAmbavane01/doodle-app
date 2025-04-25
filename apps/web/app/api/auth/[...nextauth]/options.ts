@@ -52,7 +52,7 @@ export const authOptions: AuthOptions = {
       session.user = token.user as ICustomUser;
       return session;
     },
-    async redirect({ url, baseUrl }) {
+    async redirect({ baseUrl }) {
       return baseUrl; 
     },
   },

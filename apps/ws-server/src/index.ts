@@ -18,7 +18,6 @@ const wss = new WebSocketServer({ port: 8080 });
 
 const checkToken = (token: string | null) => {
   try {
-
     if (!token) return { type: "error", msg: "Token not present" };
     const payload = verify(token, WS_JWT_SECRET as string);
     if (!payload || typeof payload === "string") return { type: "error", msg: "Token payload not present" };

@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from "motion/react"
 import { CheckCircle2, Copy, Users, X } from "lucide-react"
 
 interface ICollaborator {
-  userId: String,
+  userId: string,
   username: string,
   displayName: string
 }
