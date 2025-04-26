@@ -221,12 +221,14 @@ class DrawingEngine {
     } catch (error) { console.error("Error parsing message:", error); }
   };
 
-  private handleMouseDown = (e: MouseEvent) => {
-    const { x, y } = this.getCanvasPoint(e.clientX, e.clientY);
+  private handleMouseDown = (e: MouseEvent | TouchEvent) => {
+    const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
+    const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
+    const { x, y } = this.getCanvasPoint(clientX, clientY);
     if (this.selectedTool === "pan") {
       this.isPanning = true;
-      this.lastMouseX = e.clientX;
-      this.lastMouseY = e.clientY;
+      this.lastMouseX = clientX;
+      this.lastMouseY = clientY;
       this.canvas.style.cursor = "grabbing";
       return;
     } else if (this.selectedTool === "selection") {
@@ -622,7 +624,7 @@ class DrawingEngine {
       this.render();
     }
   };
-  
+
   private handleBlur = (textAreaElem: HTMLTextAreaElement) => {
     const text = textAreaElem.value.trim();
     if (text) {
@@ -641,7 +643,7 @@ class DrawingEngine {
     const textAreaContainer = document.getElementById('textarea-container');
     if (textAreaContainer) textAreaContainer.removeChild(textAreaElem);
   };
-  
+
   private handleRenderSvg = (e: Event) => {
     if (this.currentAiGeneratedShape?.type == "genAI") {
       const svgPathRecieved = (e as CustomEvent).detail;
@@ -671,7 +673,9 @@ class DrawingEngine {
     this.canvas.addEventListener("mouseup", this.handleMouseUp);
     this.canvas.addEventListener("mouseleave", this.handleMouseLeave);
     this.canvas.addEventListener("wheel", this.handleCanvasScroll);
+
     this.socket.addEventListener("message", this.handleMessage);
+
     window.addEventListener("keydown", this.handleKeyDown);
     window.addEventListener("redo", this.handleRedo);
     window.addEventListener("undo", this.handleUndo);
@@ -679,6 +683,9 @@ class DrawingEngine {
     window.addEventListener("zoomOut", this.handleZoomOut);
     window.addEventListener("zoomReset", this.handleZoomReset);
     window.addEventListener("renderSvg", this.handleRenderSvg);
+
+    // events for mobile
+    this.canvas.addEventListener('touchstart', this.handleMouseDown);
   }
 
   // Public Handlers

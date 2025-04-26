@@ -3,7 +3,11 @@ export const cleanupTextArea = () => {
   if (existingTextarea) existingTextarea.remove();
 };
 
-export const createTextArea = (e: MouseEvent, canvasX: number, canvasY: number, fontSize: number, fontFamily:string, textColor:string, textStyle:{ bold: boolean, italic: boolean }) => {
+export const createTextArea = (e: MouseEvent | TouchEvent, canvasX: number, canvasY: number, fontSize: number, fontFamily:string, textColor:string, textStyle:{ bold: boolean, italic: boolean }) => {
+
+  
+  const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
+  const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
 
   const textAreaElem = document.createElement("textarea");
   const fontStyle = textStyle.italic ? "italic" : "normal";
@@ -11,8 +15,8 @@ export const createTextArea = (e: MouseEvent, canvasX: number, canvasY: number, 
 
   textAreaElem.className = "canvas-text-input";
   textAreaElem.style.position = "absolute";
-  textAreaElem.style.top = `${e.clientY}px`;
-  textAreaElem.style.left = `${e.clientX}px`;
+  textAreaElem.style.top = `${clientY}px`;
+  textAreaElem.style.left = `${clientX}px`;
   textAreaElem.style.fontSize = `${fontSize}px`;
   textAreaElem.style.fontWeight = fontWeight;
   textAreaElem.style.fontStyle = fontStyle; 
