@@ -10,8 +10,7 @@ router.post('/auth/login',login)
 router.post('/rooms/createRoom',auth ,createRoom)
 router.post('/rooms/joinRoom',auth, joinRoom)
 
-// ADD SOME TYPE OF AUTH PROTECTION
-
-router.post('/generateSvg', generateSvg)
+// router.post('/generateSvg', generateSvg)
+router.post('/generateSvg',auth, generateSvg)
 
 export default router;
