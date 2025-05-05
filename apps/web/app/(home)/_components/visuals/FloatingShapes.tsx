@@ -1,123 +1,136 @@
 "use client"
 
-import React, { useCallback, useEffect, useMemo, useState } from "react"
-import { useSpring, animated } from "react-spring"
+import { useEffect, useRef } from "react"
+import { gsap } from "gsap"
 
-const SHAPES = [
-  { type: "circle", size: [50, 50], color: "#FF3D00" },
-  { type: "circle", size: [35, 35], color: "#9C27B0" },
-  { type: "square", size: [40, 40], color: "#00E676" },
-  { type: "square", size: [45, 45], color: "#2979FF" },
-  { type: "pentagon", size: [55, 55], color: "#FFC400" },
-  { type: "hexagon", size: [45, 45], color: "#D500F9" },
-  { type: "hexagon", size: [65, 65], color: "#FFD54F" },
-  { type: "triangle", size: [50, 50], color: "#00B8D4" },
-  { type: "triangle", size: [40, 40], color: "#FF4081" },
-  { type: "cross", size: [35, 35], color: "#76FF03" },
-  { type: "donut", size: [50, 50], color: "#F50057" },
-  { type: "donut", size: [50, 50], color: "#FFAB40" },
-  { type: "star", size: [50, 50], color: "#6200EA" },
-  { type: "star", size: [50, 50], color: "#FF1744" },
-];
-
-interface Position { x: number; y: number }
-
-const getRandomPosition = (section: number) => {
-  let minX = 0, maxX = 50, minY = 0, maxY = 50;
-
-  switch (section) {
-    case 0:
-      minX = 0; maxX = 50;
-      minY = 0; maxY = 50;
-      break;
-    case 1:
-      minX = 50; maxX = 100;
-      minY = 0; maxY = 50;
-      break;
-    case 2:
-      minX = 0; maxX = 50;
-      minY = 50; maxY = 100;
-      break;
-    case 3:
-      minX = 50; maxX = 100;
-      minY = 50; maxY = 100;
-      break;
-  }
-
-  return { x: Math.random() * (maxX - minX) + minX, y: Math.random() * (maxY - minY) + minY, };
-};
-
-const Shape = React.memo(({ shape, position, mousePos, isHovering }: any) => {
-  const distance = Math.hypot(mousePos.x - position.x, mousePos.y - position.y)
-  const repelStrength = Math.min(Math.max(0, 20 - distance), 15)
-  const angle = Math.atan2(position.y - mousePos.y, position.x - mousePos.x)
-  const maxDistance = 30;
-  const brightnessFactor = Math.max(0, 1 - distance / maxDistance);
-
-  const repelX = isHovering ? Math.cos(angle) * repelStrength : 0
-  const repelY = isHovering ? Math.sin(angle) * repelStrength : 0
-
-  const springProps = useSpring({
-    left: `${position.x + repelX}%`,
-    top: `${position.y + repelY}%`,
-    rotate: `${Math.sin(Date.now() / 2000 + position.x) * 15}deg`,
-    opacity: 1,
-    config: { mass: 1, tension: 40, friction: 18 },
-  })
-
-  return (
-    <animated.div style={{
-      ...springProps, position: "absolute", width: shape.size[0], height: shape.size[1],
-      transform: springProps.rotate.to((r) => `translate(-50%, -50%) rotate(${r})`),
-    }}>
-      <div className="w-full h-full transition-all duration-300" style={{
-        backgroundColor: shape.color,
-        filter: `brightness(${1 + brightnessFactor})`,
-        borderRadius: shape.type === "circle" ? "50%" : shape.type === "square" ? "4px" : shape.type === "triangle" ? "0" : "40% 60% 70% 30%",
-        clipPath:
-          shape.type === "triangle"
-            ? "polygon(50% 0%, 0% 100%, 100% 100%)"
-            : shape.type === "pentagon"
-              ? "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)"
-              : shape.type === "hexagon"
-                ? "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)"
-                : shape.type === "star"
-                  ? "polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"
-                  : shape.type === "donut"
-                    ? "circle(50% at 50% 50%)"
-                    : shape.type === "cross"
-                      ? "polygon(25% 0%, 75% 0%, 75% 25%, 100% 25%, 100% 75%, 75% 75%, 75% 100%, 25% 100%, 25% 75%, 0% 75%, 0% 25%, 25% 25%)"
-                      : undefined,
-      }} />
-    </animated.div>
-  )
-})
-
-export const FloatingShapes = () => {
-  const [mousePos, setMousePos] = useState<Position>({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-  const initialPositions = useMemo(() => SHAPES.map((_, i) => getRandomPosition(i % 4)), []);
-
-  const [positions, setPositions] = useState(initialPositions);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setMousePos({ x, y });
-  }, []);
+export function FloatingShapes() {
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setPositions((prevPositions) => prevPositions.map((pos) => ({ x: pos.x + (Math.random() - 0.5) * 0.5, y: pos.y + (Math.random() - 0.5) * 0.5, })));
-    }, 50);
+    if (!containerRef.current) return
 
-    return () => clearInterval(interval);
-  }, []);
+    // Import GSAP
+    const ctx = gsap.context(() => {
+      const shapes = []
 
-  return (
-    <div className="absolute inset-0 opacity-25 overflow-hidden" onMouseMove={handleMouseMove} onMouseEnter={() => setIsHovering(true)} onMouseLeave={() => setIsHovering(false)}>
-      {SHAPES.map((shape, i) => (<Shape key={i} shape={shape} position={positions[i]} mousePos={mousePos} isHovering={isHovering} />))}
-    </div>
-  );
-};
+      // Create shaped elements
+      for (let i = 0; i < 13; i++) {
+        const imageNumber = i + 1;
+        const cols = 4
+        const rows = 4
+        const col = i % cols
+        const row = Math.floor(i / cols)
+        const x = (col + Math.random() * 0.6 + 0.2) * (100 / cols)
+        const y = (row + Math.random() * 0.6 + 0.2) * (100 / rows)
+        shapes.push(createImageShape(imageNumber, 60 + Math.random() * 20, x, y))
+
+      }
+
+      // Add shapes to container
+      shapes.forEach((shape) => {
+        if (containerRef.current) {
+          containerRef.current.appendChild(shape)
+        }
+      })
+
+      // Animate each shape with GSAP - more subtle movement around spawn point
+      shapes.forEach((shape) => {
+        // Get the initial position data from the element
+        const initialX = parseFloat(shape.style.left);
+        const initialY = parseFloat(shape.style.top);
+
+        // Random slow duration for more subtle movement
+        const duration = 3 + Math.random() * 10;
+
+        // Smaller movement range (5-15% of viewport)
+        const moveRangeX = 2 + Math.random() * 4;
+        const moveRangeY = 2 + Math.random() * 4;
+
+        // Gentle rotation
+        gsap.to(shape, {
+          rotation: `+=${Math.random() > 0.5 ? 10 : -10}`,
+          duration: duration * 2,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true
+        })
+
+        // Create random subtle movement
+        // Instead of a fixed pattern, create random waypoints
+        const randomMovement = () => {
+          // Create a timeline for this single movement
+          const tl = gsap.timeline({
+            onComplete: () => { randomMovement(); }, // When complete, start a new random movement
+            ease: "sine.inOut"
+          });
+
+          // Random direction within the confined range
+          const randomX = initialX + (Math.random() * moveRangeX * 2 - moveRangeX);
+          const randomY = initialY + (Math.random() * moveRangeY * 2 - moveRangeY);
+
+          // Random duration for this movement
+          const moveDuration = 2 + Math.random() * 3;
+
+          // Animate to the random point
+          tl.to(shape, {
+            left: `${randomX}%`,
+            top: `${randomY}%`,
+            duration: moveDuration,
+            ease: "sine.inOut",
+          });
+
+          return tl;
+        };
+
+        // Start the random movement
+        randomMovement();
+
+        // Add hover interactivity
+        shape.style.cursor = "pointer"
+        shape.addEventListener("mouseenter", () => {
+          gsap.to(shape, {
+            scale: 1.1,
+            filter: "brightness(1.3)",
+            duration: 0.3,
+          })
+        })
+
+        shape.addEventListener("mouseleave", () => {
+          gsap.to(shape, {
+            scale: 1,
+            filter: "brightness(1)",
+            duration: 0.3,
+          })
+        })
+      })
+    }, containerRef)
+
+    // Cleanup
+    return () => ctx.revert()
+  }, [])
+
+  // Function to create an image shape
+  function createImageShape(imageNumber: number, size: number, x: number, y: number) {
+    const element = document.createElement("div")
+    element.className = "absolute pointer-events-auto transition-transform"
+    element.style.width = `${size}px`
+    element.style.height = `${size}px`
+    element.style.left = `${x}%`
+    element.style.top = `${y}%`
+    element.style.transform = `translate(-50%, -50%)`
+
+    // Create image element
+    const img = document.createElement("img")
+    img.src = `/images/floatingShapes/flair-${imageNumber}.png`
+    img.alt = `Shape ${imageNumber}`
+    img.className = "w-full h-full"
+    img.dataset.shapeId = imageNumber.toString()
+
+    // Add image to container
+    element.appendChild(img)
+
+    return element
+  }
+
+  return <div ref={containerRef} className="absolute inset-0 overflow-hidden" />
+}

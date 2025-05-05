@@ -22,6 +22,7 @@
     "@workspace/backend-common": "workspace:^",
     "@workspace/ui": "workspace:*",
     "axios": "^1.7.9",
+    "gsap": "^3.13.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "0.456.0",
     "motion": "^12.4.7",

@@ -10,7 +10,7 @@ router.post('/auth/login',login)
 router.post('/rooms/createRoom',auth ,createRoom)
 router.post('/rooms/joinRoom',auth, joinRoom)
 
-// router.post('/generateSvg', generateSvg)
-router.post('/generateSvg',auth, generateSvg)
+// add auth protection to sgvRoute
+router.post('/generateSvg', generateSvg)
 
 export default router;
