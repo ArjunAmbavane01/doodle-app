@@ -14,6 +14,7 @@ const config = {
         logo: ['Caveat', 'cursive'],
         heading: ['Quicksand', 'sans-serif'],
         body: ['Nunito', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

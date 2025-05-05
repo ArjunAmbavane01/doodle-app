@@ -5,19 +5,18 @@ import { Button } from "@workspace/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 
 const LoginModal = () => {
-  const handleLogin = () => {signIn("google", { redirect: true, callbackUrl: '/' })}
+  const handleLogin = () => { signIn("google", { redirect: true, callbackUrl: '/' }) }
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="rounded-full text-xs md:text-md px-3 md:px-5 bg-blue-200 border-blue-400 text-zinc-800 border hover:bg-blue-100 transition-colors duration-200">
-        Get Started
+        <Button className="bg-white text-black hover:bg-white/90 rounded-full text-sm p-5">
+          Get Started
         </Button>
-        
       </DialogTrigger>
       <DialogContent className="rounded-lg bg-white">
         <DialogHeader>
-          <DialogTitle className="text-zinc-800 font-heading">Welcome to Doodle</DialogTitle>
-          <DialogDescription className="py-5 text-md text-zinc-600 font-body">
+          <DialogTitle className="text-zinc-800 font-heading font-bold tracking-tight">Welcome to Doodle</DialogTitle>
+          <DialogDescription className="py-5 text-md text-zinc-900 font-semibold font-body">
             A collaborative drawing app that lets teams brainstorm, sketch, and share ideas in real time on an interactive canvas.
           </DialogDescription>
         </DialogHeader>

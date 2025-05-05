@@ -136,6 +136,9 @@ importers:
       axios:
         specifier: ^1.7.9
         version: 1.7.9
+      gsap:
+        specifier: ^3.13.0
+        version: 3.13.0
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -302,6 +305,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@radix-ui/react-alert-dialog':
+        specifier: ^1.1.5
+        version: 1.1.5(@types/react-dom@18.3.1)(@types/react@18.3.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-avatar':
         specifier: ^1.1.2
         version: 1.1.2(@types/react-dom@18.3.1)(@types/react@18.3.0)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -3289,6 +3295,9 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
+
+  gsap@3.13.0:
+    resolution: {integrity: sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw==}
 
   handlebars@4.7.8:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
@@ -9001,6 +9010,8 @@ snapshots:
       tinygradient: 1.1.5
 
   graphemer@1.4.0: {}
+
+  gsap@3.13.0: {}
 
   handlebars@4.7.8:
     dependencies:

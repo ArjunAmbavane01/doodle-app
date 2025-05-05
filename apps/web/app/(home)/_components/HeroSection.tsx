@@ -1,5 +1,6 @@
 "use client"
-import { useRef, useState } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { AnimatePresence } from 'motion/react'
@@ -10,6 +11,8 @@ import { useLoading } from "@/providers/LoadingProvider";
 import { FloatingShapes } from "./visuals/FloatingShapes";
 import Toast from "@/components/ui/Toast";
 import { Info, PencilLine, Users } from "lucide-react";
+import { gsap } from "gsap"
+import HoverButton from "@/components/ui/GooeyButton";
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
 
@@ -17,10 +20,13 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const { setIsLoading } = useLoading();
 
     const inputRef = useRef<HTMLInputElement>(null);
+    const headingRef = useRef<HTMLHeadingElement>(null);
+    const buttonsRef = useRef<HTMLDivElement>(null);
 
     const [modalOpen, setModalopen] = useState(false);
     const [toast, setToast] = useState({ visible: false, message: "", type: "success" });
     const [loadingRoom, setLoadingRoom] = useState(false);
+    const [shapeNum, setShapeNum] = useState<number>(13);
 
     const showToast = (message: string, type = "success") => setToast({ visible: true, message, type });
 
@@ -29,7 +35,9 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const createRoom = async () => {
         try {
             setLoadingRoom(true);
+            console.log('here')
             const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
+            console.log(data)
             if (data.type === 'success') {
                 setIsLoading(true);
                 router.push(`/canvas/${data.data.slug}`);
@@ -49,9 +57,9 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const joinRoom = async () => {
         try {
             const roomSlug = inputRef.current?.value.trim();
-            if(!userToken){
+            if (!userToken) {
                 showToast("Please log in to join a room.", "error");
-                setModalopen((c)=>!c);
+                setModalopen((c) => !c);
                 return;
             }
             if (!roomSlug) {
@@ -59,7 +67,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                 setIsLoading(false)
                 return;
             }
-            setModalopen((c)=>!c);
+            setModalopen((c) => !c);
             setIsLoading(true);
             router.push(`/canvas/${roomSlug}`);
             setTimeout(() => {
@@ -71,17 +79,113 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
         }
     }
 
+    useEffect(() => {
+        const ctx = gsap.context(() => {
+            gsap.from(headingRef.current, {
+                y: 50,
+                opacity: 0,
+                duration: 1.2,
+                ease: "power3.out",
+            })
+
+            gsap.from(buttonsRef.current?.children || [], {
+                y: 30,
+                opacity: 0,
+                stagger: 0.2,
+                duration: 0.8,
+                delay: 0.6,
+                ease: "back.out(1.7)",
+            })
+
+            gsap.from(".triangle", {
+                rotate: "0deg",
+                scale: 0.5,
+                opacity: 0,
+                duration: 1.5,
+                ease: "elastic.out(1, 0.3)",
+                stagger: 0.2,
+            })
+        })
+
+        return () => ctx.revert()
+    }, [])
+
+    useEffect(() => {
+
+        const handleResize = () => {
+
+        }
+        window.addEventListener('resize', handleResize);
+
+        return () => window.removeEventListener('resize', handleResize);
+    }, [])
+
     return (
-        <section className="flex w-full min-h-[100vh] p-20 py-24 bg-black">
-            <div className="flex flex-col justify-center items-center gap-20 max-w-screen-8xl w-full mx-auto relative">
+        <section className="relative w-full min-h-screen overflow-hidden bg-black flex items-center justify-center">
+
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="triangle absolute -top-10 right-0 size-40 bg-pink-400 rotate-45 opacity-80"></div>
+
+                <div className="triangle absolute -bottom-20 left-0 size-40 bg-green-400 rotate-45"></div>
+
                 <FloatingShapes />
-                <div className="flex flex-col justify-center items-center gap-10 bg-black/40 z-20 rounded-xl">
-                    <div className="flex flex-col gap-12 p-3 md:p-0 text-md md:text-xl text-center font-heading font-semibold text-white z-20">
-                        <span className="font-logo text-6xl md:text-8xl font-bold bg-gradient-to-r from-blue-300 to-pink-300 text-transparent bg-clip-text">Doodle</span>
-                        <span>Sketch, Collaborate, Innovate - All in One Place.</span>
-                    </div>
-                    <div className="flex gap-8 z-20 font-body">
-                        <Button onClick={createRoom} className="flex items-center gap-3 px-4 py-5 md:p-6 text-md text-zinc-800 border-2 border-blue-200 bg-gradient-to-t from-blue-200 to-white hover:bg-gradient-to-t hover:from-blue-300 hover:via-blue-100 hover:to-white hover:text-zinc-800 transition-all duration-500">
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center justify-center gap-5 text-center w-fit">
+                <h1 ref={headingRef}
+                    className="text-7xl lg:text-9xl font-bold font-heading tracking-tight px-3 bg-gradient-to-b from-[#8be9fd] to-white text-transparent bg-clip-text"
+                >
+                    Doodle
+                </h1>
+
+
+                <div ref={buttonsRef} className="mt-8 flex flex-col md:flex-row gap-8">
+                    <Button onClick={createRoom} className="flex items-center gap-3 px-4 py-5 md:p-6 rounded-full text-md text-zinc-800 border-2 border-[#037f9a] bg-gradient-to-tl from-white via-[#9bedff] to-[#20a1bdcb]  hover:bg-gradient-to-t hover:from-[#8be9fd] hover:to-white hover:text-zinc-800 transition-colors duration-500">
+                        <span>{loadingRoom ? 'Doodling...' : 'Start Doodling'}</span>
+                        <PencilLine className="size-3" />
+                    </Button>
+
+                    <Dialog open={modalOpen} onOpenChange={setModalopen}>
+                        <DialogTrigger asChild>
+                            <Button
+                                variant="outline"
+                                className="rounded-full border-2 border-white p-6 text-white font-semibold text-lg bg-black"
+                                onClick={() => setModalopen(true)}
+                            >
+                                Join Room
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="rounded-lg bg-white text-zinc-800">
+                            <DialogHeader className="flex flex-col gap-5 md:gap-8">
+                                <DialogTitle className="text-left font-heading text-zinc-800">Join Room</DialogTitle>
+                                <DialogDescription className="flex flex-col gap-5 md:gap-8 text-md">
+                                    <div className="flex rounded border border-blue-300">
+                                        <span className="p-2 bg-blue-100 text-zinc-800 border-r border-blue-300">
+                                            <Users className="w-4 h-4" />
+                                        </span>
+                                        <input
+                                            type="text"
+                                            placeholder="Enter Room Code"
+                                            className="bg-white text-zinc-800 pl-2 w-full h-full outline-none"
+                                        />
+                                    </div>
+                                    <Button
+                                        className="flex items-center gap-3 p-5 bg-blue-100 border border-blue-400 text-zinc-800 hover:bg-blue-50 hover:text-zinc-800 transition-colors duration-200 font-medium"
+                                        onClick={() => { }}
+                                    >
+                                        Join Room
+                                    </Button>
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter className="flex flex-row items-start gap-1 text-sm p-2 rounded bg-blue-50 text-zinc-800">
+                                <Info className="w-4 h-4" />
+                                <span>Don't have a room code? Ask your team member to share it with you or create a new room.</span>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
+
+                    {/* <Button onClick={createRoom} className="flex items-center gap-3 px-4 py-5 md:p-6 text-md text-zinc-800 border-2 border-blue-200 bg-gradient-to-t from-blue-200 to-white hover:bg-gradient-to-t hover:from-blue-300 hover:via-blue-100 hover:to-white hover:text-zinc-800 transition-all duration-500">
                             <span>{loadingRoom ? 'Doodling...' : 'Start Doodling'}</span>
                             <PencilLine className="size-3" />
                         </Button>
@@ -118,19 +222,11 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                                     <Info /> <span>Don't have a room code? Ask your team member to share it with you or create a new room.</span>
                                 </DialogFooter>
                             </DialogContent>
-                        </Dialog>
-                    </div>
+                        </Dialog> */}
+
+
                 </div>
             </div>
-            <AnimatePresence>
-                {toast.visible && (
-                    <Toast
-                        message={toast.message}
-                        type={toast.type}
-                        onClose={hideToast}
-                    />
-                )}
-            </AnimatePresence>
         </section>
     );
 }
