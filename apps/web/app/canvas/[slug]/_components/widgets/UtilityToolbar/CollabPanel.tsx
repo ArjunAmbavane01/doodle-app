@@ -67,7 +67,7 @@ const CollabPanel = ({ sessionId, setOpen, onCollaboratorJoin }: { sessionId: st
       className="flex flex-col bg-white font-body rounded-lg shadow-xl border border-zinc-600 overflow-hidden"
     >
       <div className="flex justify-between items-center p-4 py-2 border-b border-zinc-800">
-        <h3 className="flex items-center gap-2 text-md text-zinc-900">
+        <h3 className="flex items-center gap-2 text-base text-zinc-900">
           <Users className="size-4 text-blue-600" />
           <span>Collaboration</span>
         </h3>
