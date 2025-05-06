@@ -12,8 +12,8 @@ const LoadingProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     return (
         <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
-          {isLoading && <DoodleLoading />}
-          {children}
+          {isLoading ? <DoodleLoading /> : children}
+          {/* {children} */}
         </LoadingContext.Provider>
     );
 }

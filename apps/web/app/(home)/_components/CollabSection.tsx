@@ -13,7 +13,7 @@ const CollabSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="absolute inset-x-0 bottom-0 h-[60%] md:h-[80%] z-10 bg-gradient-to-t from-black via-black/80 to black/80" />
+          <div className="absolute inset-x-0 bottom-0 h-[60%] md:h-[70%] z-10 bg-gradient-to-t from-black via-black/80 to black/80" />
 
           <div className="aspect-[16/9] p-3 md:p-1 relative">
             <div className="flex items-center justify-center h-full rounded-lg relative overflow-hidden">

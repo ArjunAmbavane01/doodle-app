@@ -46,6 +46,7 @@ export const drawShape = (shape: Shape, ctx: CanvasRenderingContext2D, drawBound
   } else if (shape.type === "line") {
     if (drawBoundary) {
       ctx.strokeStyle = "#A2D2FF";
+      ctx.lineWidth = shape.strokeWidth;
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
       ctx.moveTo(shape.startX, shape.startY);

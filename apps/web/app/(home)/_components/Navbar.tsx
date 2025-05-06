@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { gsap } from "gsap"
-import { Button } from "@workspace/ui/components/button";
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
     const navRef = useRef<HTMLElement>(null)

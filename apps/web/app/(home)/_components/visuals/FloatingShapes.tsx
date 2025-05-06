@@ -14,13 +14,9 @@ export function FloatingShapes() {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setTotalShapes(13);
-      } else if (window.innerWidth < 1024 && window.innerWidth >= 640) {
-        setTotalShapes(9);
-      } else if (window.innerWidth < 640) {
-        setTotalShapes(6);
-      }
+      if (window.innerWidth >= 1024) setTotalShapes(12);
+      else if (window.innerWidth < 1024 && window.innerWidth >= 640) setTotalShapes(9);
+      else if (window.innerWidth < 640) setTotalShapes(6);
     }
     window.addEventListener('resize', handleResize);
 

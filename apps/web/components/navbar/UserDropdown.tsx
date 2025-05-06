@@ -17,9 +17,9 @@ const UserDropdown = ({ user }: { user: ICustomUser | undefined }) => {
             <DropdownMenu>
                 <DropdownMenuTrigger className="outline-none focus:ring-0" asChild>
                     <Button className="flex items-center justify-between gap-2 md:gap-3 px-2 md:px-3 md:py-5 bg-white text-black rounded-full">
-                        <Avatar className="size-5 md:size-8 rounded-full">
+                        <Avatar className="size-5 md:size-8 rounded-full p-0">
                             <AvatarImage src={user?.image as string} />
-                            <AvatarFallback className="">{(user?.name as string).split(' ').map((w) => w[0])}</AvatarFallback>
+                            <AvatarFallback className="bg-[#33691e] text-white">{(user?.name as string).split(' ').map((w) => w[0])}</AvatarFallback>
                         </Avatar>
                         <span className="font-body font-semibold text-xs md:text-sm">Hey, {user?.name?.split(' ')[0]}</span>
                     </Button>

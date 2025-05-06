@@ -74,7 +74,7 @@ const CollabPanel = ({ sessionId, setOpen, onCollaboratorJoin }: { sessionId: st
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200"
+          className="size-8 rounded-full text-zinc-900 hover:text-zinc-900 hover:bg-zinc-200"
           onClick={() => setOpen(false)}
         >
           <X className="size-4" />

@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/button";
 import { ArrowLeft, RefreshCw } from "lucide-react";
 
 const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: string, roomMessages: IRoomChat[], userId: string, sessionId: string }) => {
-    
+
     const { setIsLoading } = useLoading();
 
     const socketRef = useRef<WebSocket | null>(null);
@@ -63,6 +63,7 @@ const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: 
     }, [wsToken])
 
     if (connectionError) {
+        setIsLoading(false);
         return (
             <ErrorPage imageSrc="/error/connection.png" title="Connection Error" body={connectionError} >
                 <Button asChild variant="outline" className="group w-32">
