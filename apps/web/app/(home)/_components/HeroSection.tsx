@@ -29,8 +29,11 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const createRoom = async () => {
         try {
             setLoadingRoom(true);
+            if (!userToken) {
+                errorToast({ title: 'Please log in to create new room.' });
+                return;
+            }
             const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
-            console.log(data)
             if (data.type === 'success') {
                 setIsLoading(true);
                 router.push(`/canvas/${data.data.slug}`);
@@ -110,16 +113,6 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
         })
 
         return () => ctx.revert()
-    }, [])
-
-    useEffect(() => {
-
-        const handleResize = () => {
-
-        }
-        window.addEventListener('resize', handleResize);
-
-        return () => window.removeEventListener('resize', handleResize);
     }, [])
 
     return (

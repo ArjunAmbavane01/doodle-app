@@ -66,8 +66,8 @@ const UtilityToolbar = ({ sessionId, socket }: { sessionId: string, socket: WebS
                 <AlertDialogContent className="bg-white">
                     <AlertDialogHeader className="flex flex-col gap-2">
                         <AlertDialogTitle className="font-heading text-xl text-zinc-800">Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription className="font-body text-md text-zinc-800">
-                        You will be disconnected from this session. You can rejoin later with the session link if it’s still active.
+                        <AlertDialogDescription className="font-body text-base text-zinc-800">
+                            You will be disconnected from this session. You can rejoin later with the session link if it’s still active.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

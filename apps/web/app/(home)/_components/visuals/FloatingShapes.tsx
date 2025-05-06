@@ -1,19 +1,47 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { gsap } from "gsap"
+import { useEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+
+
+const getInitialShapes = (window: Window): number => (window.innerWidth >= 1024) ? 13 : (window.innerWidth < 1024 && window.innerWidth >= 640) ? 9 : 6;
+
 
 export function FloatingShapes() {
+
+  const [totalShapes, setTotalShapes] = useState<number>(getInitialShapes(window));
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (!containerRef.current) return
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setTotalShapes(13);
+      } else if (window.innerWidth < 1024 && window.innerWidth >= 640) {
+        setTotalShapes(9);
+      } else if (window.innerWidth < 640) {
+        setTotalShapes(6);
+      }
+    }
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [])
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    if (containerRef.current.children.length > 0) {
+      while (containerRef.current.firstChild) {
+        containerRef.current.removeChild(containerRef.current.firstChild);
+      }
+    }
 
     const ctx = gsap.context(() => {
-      const shapes = []
 
-      for (let i = 0; i < 11; i++) {
-        const imageNumber = i%10 + 1;
+      const shapes: HTMLDivElement[] = [];
+
+      for (let i = 0; i < totalShapes; i++) {
+        const imageNumber = i % 10 + 1;
         const cols = 4
         const rows = 4
         const col = i % cols
@@ -49,7 +77,7 @@ export function FloatingShapes() {
 
         const randomMovement = () => {
           const tl = gsap.timeline({
-            onComplete: () => { randomMovement(); }, 
+            onComplete: () => { randomMovement(); },
             ease: "sine.inOut"
           });
 
@@ -90,7 +118,7 @@ export function FloatingShapes() {
     }, containerRef)
 
     return () => ctx.revert()
-  }, [])
+  }, [totalShapes])
 
   function createImageShape(imageNumber: number, size: number, x: number, y: number) {
     const element = document.createElement("div")

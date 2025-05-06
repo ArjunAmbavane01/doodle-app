@@ -9,14 +9,14 @@ const LoginModal = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="bg-white text-black hover:bg-white/90 rounded-full text-sm p-5">
+        <Button className="bg-white text-black rounded-full text-xs md:text-sm p-1 px-3 md:p-5">
           Get Started
         </Button>
       </DialogTrigger>
       <DialogContent className="rounded-lg bg-white">
         <DialogHeader>
-          <DialogTitle className="text-zinc-800 font-heading font-bold tracking-tight">Welcome to Doodle</DialogTitle>
-          <DialogDescription className="py-5 text-md text-zinc-900 font-semibold font-body">
+          <DialogTitle className="text-zinc-900 text-xl font-heading font-bold tracking-tight">Welcome to Doodle</DialogTitle>
+          <DialogDescription className="py-5 text-base text-zinc-800 font-semibold font-body">
             A collaborative drawing app that lets teams brainstorm, sketch, and share ideas in real time on an interactive canvas.
           </DialogDescription>
         </DialogHeader>

@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { motion } from "motion/react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Code } from "lucide-react"
-import Image from "next/image"
 
 const technologies = [
   {
@@ -51,7 +51,7 @@ const technologies = [
   },
   {
     name: "Docker",
-    icon: "/images/logos/typescript.png",
+    icon: "/images/logos/docker.png",
     reason: "To ensure consistent development and deployment",
     category: "DevOps",
   },
@@ -61,7 +61,7 @@ const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
   const [isFlipped, setIsFlipped] = useState(false)
 
   return (
-    <motion.div className="relative place-items-center mx-auto size-48 xl:size-52"
+    <motion.div className="relative place-items-center mx-auto size-36 md:size-48 xl:size-52"
       initial={{ opacity: 0, scale: 0.8 }} viewport={{ once: true }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
       onMouseEnter={() => setIsFlipped(true)} onMouseLeave={() => setIsFlipped(false)}
     >
@@ -72,7 +72,7 @@ const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
           <Badge className="absolute top-3 right-3 bg-white/15 text-xs font-body text-white">
             {tech.category}
           </Badge>
-          <Image src={tech.icon || "/placeholder.svg"} alt={tech.name} width={30} height={30} quality={100} className="size-16 drop-shadow-lg" />
+          <Image src={tech.icon || "/placeholder.svg"} alt={tech.name} width={30} height={30} quality={100} className="size-8 md:size-16 drop-shadow-lg" />
           <h3 className="text-lg font-semibold text-white text-center">{tech.name}</h3>
         </div>
 
@@ -94,14 +94,14 @@ const TechStack = () => {
         <motion.div className="flex flex-col items-center gap-4 text-white text-center"
           initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }}
         >
-          <Badge className="flex items-center gap-2 p-1 px-3 font-body bg-white/15 text-white">
+          <Badge className="flex items-center gap-2 p-1 px-3 font-body bg-gradient-to-b from-[#9be7f8] to-white text-black">
             <Code className="size-3" />
             Tech Stack
           </Badge>
-          <h2 className="font-heading text-center text-3xl md:text-4xl">
+          <h2 className="font-heading text-center text-2xl sm:text-3xl md:text-4xl">
             The Stack Powering This Project
           </h2>
-          <motion.p className="max-w-2xl font-body text-md md:text-lg text-gray-400"
+          <motion.p className="max-w-2xl font-body text-sm sm:text-base md:text-lg text-gray-200"
             initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
             Built with modern, efficient, and scalable tools.
           </motion.p>

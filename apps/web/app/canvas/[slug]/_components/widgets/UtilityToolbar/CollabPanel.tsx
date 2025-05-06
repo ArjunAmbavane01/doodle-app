@@ -90,7 +90,7 @@ const CollabPanel = ({ sessionId, setOpen, onCollaboratorJoin }: { sessionId: st
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleCopyClick}
-            className="flex items-center justify-center size-8 rounded-md bg-zinc-200/90 hover:bg-zinc-300 transition-colors"
+            className={`flex items-center justify-center size-8 rounded-md ${isCopied ? 'bg-green-400':'bg-zinc-200/90 hover:bg-zinc-300'}   transition-colors`}
           >
             <AnimatePresence mode="wait">
               {isCopied ? (
@@ -101,7 +101,7 @@ const CollabPanel = ({ sessionId, setOpen, onCollaboratorJoin }: { sessionId: st
                   exit={{ scale: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <CheckCircle2 className="size-4 text-green-600" />
+                  <CheckCircle2 className="size-4 text-white" />
                 </motion.div>
               ) : (
                 <motion.div
