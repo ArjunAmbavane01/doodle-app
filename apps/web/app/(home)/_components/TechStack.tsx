@@ -1,123 +1,314 @@
 "use client"
 
-import { useState } from "react"
-import Image from "next/image"
-import { motion } from "motion/react"
-import { Badge } from "@workspace/ui/components/badge"
-import { Code } from "lucide-react"
+import type React from "react"
+import { useState, useEffect } from "react"
+import Image from "next/image";
+import { motion } from "framer-motion"
+import { cn } from "@workspace/ui/lib/utils";
 
-const technologies = [
-  {
-    name: "Next.js",
-    icon: "/images/logos/next.png",
-    reason: "For server-side rendering and optimal performance",
-    category: "Frontend",
-  },
-  {
-    name: "TypeScript",
-    icon: "/images/logos/typescript.png",
-    reason: "To ensure type safety and improve code quality",
-    category: "Language",
-  },
-  {
-    name: "Tailwind CSS",
-    icon: "/images/logos/tailwind.png",
-    reason: "For rapid UI development with utility classes",
-    category: "Styling",
-  },
-  {
-    name: "PostgreSQL",
-    icon: "/images/logos/postgresql.png",
-    reason: "Used as the primary database for data persistence",
-    category: "Database",
-  },
-  {
-    name: "Prisma",
-    icon: "/images/logos/prisma.png",
-    reason: "For type-safe database queries and migrations",
-    category: "ORM",
-  },
-  {
-    name: "Web Sockets",
-    icon: "/images/logos/websocket.png",
-    reason: "To enable real-time collaboration features",
-    category: "Real-time",
-  },
-  {
-    name: "Redis",
-    icon: "/images/logos/redis.png",
-    reason: "For caching and improving application speed",
-    category: "Cache",
-  },
-  {
-    name: "Docker",
-    icon: "/images/logos/docker.png",
-    reason: "To ensure consistent development and deployment",
-    category: "DevOps",
-  },
+function useScreenSize() {
+    const [screenSize, setScreenSize] = useState('desktop');
+
+    useEffect(() => {
+        const updateScreenSize = () => {
+            if (window.innerWidth < 640) {
+                setScreenSize('mobile');
+            } else {
+                setScreenSize('desktop');
+            }
+        };
+
+        updateScreenSize();
+        window.addEventListener('resize', updateScreenSize);
+        return () => window.removeEventListener('resize', updateScreenSize);
+    }, []);
+
+    return screenSize;
+}
+
+interface Technology {
+    name: string
+    icon: React.ReactNode
+    color: string
+    animation: {
+        y: number[]
+        duration: number
+        delay: number
+    }
+    position: {
+        desktop: {
+            left: string
+            top: string
+        }
+        mobile?: {
+            left: string
+            top: string
+        }
+    }
+}
+
+const technologies: Technology[] = [
+    {
+        name: "Next.js",
+        icon: <span className="text-lg sm:text-2xl">▲</span>,
+        color: "bg-zinc-800 text-white",
+        animation: {
+            y: [0, -15, 0],
+            duration: 4,
+            delay: 0,
+        },
+        position: {
+            desktop: {
+                left: "20%",
+                top: "35%",
+            },
+            mobile: {
+                left: "10%",
+                top: "10%",
+            }
+        },
+    },
+    {
+        name: "TypeScript",
+        icon: <span className="text-lg sm:text-2xl">TS</span>,
+        color: "bg-blue-100 text-blue-800",
+        animation: {
+            y: [0, -20, 0],
+            duration: 5,
+            delay: 1,
+        },
+        position: {
+            desktop: {
+                left: "60%",
+                top: "24%",
+            },
+            mobile: {
+                left: "65%",
+                top: "20%",
+            }
+        },
+    },
+    {
+        name: "Tailwind CSS",
+        icon: <Image src={'/images/logos/tailwind.png'} alt={'tailwind'} width={12} height={12} quality={100} className="size-4 sm:size-6"></Image>,
+        color: "bg-teal-100 text-teal-800",
+        animation: {
+            y: [0, -12, 0],
+            duration: 4.5,
+            delay: 0.5,
+        },
+        position: {
+            desktop: {
+                left: "16%",
+                top: "72%",
+            },
+            mobile: {
+                left: "5%",
+                top: "40%",
+            }
+        },
+    },
+    {
+        name: "PostgreSQL",
+        icon: <Image src={'/images/logos/postgresql.png'} alt={'postgres'} width={12} height={12} quality={100} className="size-4 sm:size-6"></Image>,
+        color: "bg-[#336791] text-blue-800",
+        animation: {
+            y: [0, -18, 0],
+            duration: 6,
+            delay: 2,
+        },
+        position: {
+            desktop: {
+                left: "34%",
+                top: "64%",
+            },
+
+            mobile: {
+                left: "40%",
+                top: "60%",
+            }
+        },
+    },
+    {
+        name: "Prisma",
+        icon: <span className="text-lg sm:text-2xl">◭</span>,
+        color: "bg-[#187367] text-white",
+        animation: {
+            y: [0, -15, 0],
+            duration: 5.5,
+            delay: 1.5,
+        },
+        position: {
+            desktop: {
+                left: "71%",
+                top: "15%",
+            },
+            mobile: {
+                left: "70%",
+                top: "45%",
+            }
+        },
+    },
+    {
+        name: "Express",
+        icon: <Image src={'/images/logos/express.png'} alt={'express'} width={12} height={12} quality={100} className="size-4 sm:size-6"></Image>,
+        color: "bg-white",
+        animation: {
+            y: [0, -10, 0],
+            duration: 3.5,
+            delay: 0.7,
+        },
+        position: {
+            desktop: {
+                left: "70%",
+                top: "55%",
+            },
+            mobile: {
+                left: "40%",
+                top: "30%",
+            }
+        },
+    },
+    {
+        name: "Web Sockets",
+        icon: <Image src={'/images/logos/websocket.png'} alt={'web sockets'} width={12} height={12} quality={100} className="size-4 sm:size-6"></Image>,
+        color: "bg-orange-500 text-white",
+        animation: {
+            y: [0, -10, 0],
+            duration: 3.5,
+            delay: 0.7,
+        },
+        position: {
+            desktop: {
+                left: "30%",
+                top: "10%",
+            },
+            mobile: {
+                left: "70%",
+                top: "75%",
+            }
+        },
+    },
+    {
+        name: "Redis",
+        icon: <Image src={'/images/logos/redis.png'} alt={'redis'} width={12} height={12} quality={100} className="size-4 sm:size-6"></Image>,
+        color: "bg-red-300 text-red-800",
+        animation: {
+            y: [0, -15, 0],
+            duration: 5,
+            delay: 2.2,
+        },
+        position: {
+            desktop: {
+                left: "50%",
+                top: "0%",
+            },
+            mobile: {
+                left: "30%",
+                top: "85%",
+            }
+        },
+    },
+    {
+        name: "Docker",
+        icon: <span className="text-lg sm:text-2xl">🐳</span>,
+        color: "bg-[#1d63ed] text-blue-800",
+        animation: {
+            y: [0, -15, 0],
+            duration: 4.8,
+            delay: 1.8,
+        },
+        position: {
+            desktop: {
+                left: "60%",
+                top: "80%",
+            },
+            mobile: {
+                left: "8%",
+                top: "70%",
+            }
+        },
+    },
 ]
 
-const TechCard = ({ tech }: { tech: (typeof technologies)[0] }) => {
-  const [isFlipped, setIsFlipped] = useState(false)
+export default function TechStackShowcase() {
+    const screenSize = useScreenSize();
 
-  return (
-    <motion.div className="relative place-items-center mx-auto size-36 md:size-48 xl:size-52"
-      initial={{ opacity: 0, scale: 0.8 }} viewport={{ once: true }} whileInView={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
-      onMouseEnter={() => setIsFlipped(true)} onMouseLeave={() => setIsFlipped(false)}
-    >
-      <motion.div className="absolute inset-0 cursor-pointer" initial={false} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.6, animationDirection: "normal" }} style={{ transformStyle: "preserve-3d" }}
-      >
-        {/* front of card */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 rounded-xl bg-white/10 backdrop-blur-xl backface-hidden border border-white/10 hover:border-white/20 transition-colors">
-          <Badge className="absolute top-3 right-3 bg-white/15 text-xs font-body text-white">
-            {tech.category}
-          </Badge>
-          <Image src={tech.icon || "/placeholder.svg"} alt={tech.name} width={30} height={30} quality={100} className="size-8 md:size-16 drop-shadow-lg" />
-          <h3 className="text-lg font-semibold text-white text-center">{tech.name}</h3>
-        </div>
+    const getPosition = (tech: Technology) => {
+        if (screenSize === 'mobile' && tech.position.mobile) return tech.position.mobile;
+        else return tech.position.desktop;
+    };
 
-        {/* back of card */}
-        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/10 p-5 text-center backdrop-blur-xl backface-hidden border border-white/10 [transform:rotateY(180deg)]">
-          <p className="font-body text-sm text-white">{tech.reason}</p>
+    return (
+        <div className="w-full p-5 md:p-10 lg:p-20 bg-black overflow-hidden relative">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,164,228,0.06),transparent_30%)] z-20" />
+
+            <div className="flex flex-col gap-16 w-full h-[500px] max-w-screen-8xl mx-auto relative">
+
+                <div className="relative flex h-[50rem] w-full items-center justify-center bg-white dark:bg-black">
+                    <div
+                        className={cn(
+                            "absolute inset-0",
+                            "[background-size:40px_40px]",
+                            "[background-image:linear-gradient(to_right,#f0f0f0_1px,transparent_1px),linear-gradient(to_bottom,#f0f0f0_1px,transparent_1px)]",
+                            "dark:[background-image:linear-gradient(to_right,#3a3a3a_1px,transparent_1px),linear-gradient(to_bottom,#3a3a3a_1px,transparent_1px)]",
+                        )}
+                    />
+
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute inset-0 bg-white dark:bg-black [mask-image:radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.3)_40%,rgba(0,0,0,0.7)_70%,black_100%)]"></div>
+
+                        <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white dark:from-black dark:via-transparent dark:to-black opacity-80"></div>
+
+                        <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white dark:from-black dark:via-transparent dark:to-black opacity-80"></div>
+                    </div>
+
+                    <p className="relative z-20 bg-gradient-to-b from-white via-neutral-300 to-neutral-500 bg-clip-text py-4 sm:py-6 md:py-8 text-3xl sm:text-5xl md:text-7xl font-bold text-transparent">
+                        Tech Stack
+                    </p>
+                </div>
+
+                <div className="absolute inset-0">
+                    {technologies.map((tech, index) => (
+                        <div key={tech.name} className="absolute transition-all duration-500" style={{ left: getPosition(tech).left, top: getPosition(tech).top }}>
+                            <motion.div className="relative"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0, transition: { delay: index * 0.2, duration: 0.6 } }}
+                            >
+                                <motion.div className="flex flex-col items-center"
+                                    whileHover="hovered"
+                                    initial="initial"
+                                    animate={{ y: tech.animation.y }}
+                                    transition={{
+                                        duration: tech.animation.duration,
+                                        repeat: Number.POSITIVE_INFINITY,
+                                        repeatType: "reverse",
+                                        ease: "easeInOut",
+                                        delay: tech.animation.delay,
+                                    }}
+                                >
+                                    <motion.div className={`size-10 sm:size-14 md:size-16 ${tech.color} rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold mb-2 sm:mb-3 shadow-lg sm:shadow-xl shadow-blue-500/30`}
+                                        whileHover={{ scale: 1.1, rotate: [0, -5, 5, -5, 0] }}
+                                        transition={{ duration: 0.5 }}
+                                    >
+                                        {tech.icon}
+                                    </motion.div>
+                                    <motion.div className="bg-white text-black px-3 py-1 rounded-full"
+                                        variants={{
+                                            initial: { opacity: 0, y: -10 },
+                                            hovered: { opacity: 1, y: 0 },
+                                        }}
+                                        transition={{ duration: 0.5 }}
+                                    >
+                                        <p className="text-xs">{tech.name}</p>
+                                    </motion.div>
+                                </motion.div>
+                            </motion.div>
+                        </div>
+                    ))}
+                </div>
+
+            </div>
         </div>
-      </motion.div>
-    </motion.div>
-  )
+    )
 }
-
-const TechStack = () => {
-  return (
-    <section className="flex w-full bg-black px-5 md:px-10 lg:p-20 py-24 relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,164,228,0.06),transparent_40%)]" />
-
-      <div className="flex flex-col gap-16 md:gap-20 max-w-screen-8xl w-full mx-auto">
-        <motion.div className="flex flex-col items-center gap-4 text-white text-center"
-          initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }}
-        >
-          <Badge className="flex items-center gap-2 p-1 px-3 font-body bg-gradient-to-b from-[#9be7f8] to-white text-black">
-            <Code className="size-3" />
-            Tech Stack
-          </Badge>
-          <h2 className="font-heading text-center text-2xl sm:text-3xl md:text-4xl">
-            The Stack Powering This Project
-          </h2>
-          <motion.p className="max-w-2xl font-body text-sm sm:text-base md:text-lg text-gray-200"
-            initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            Built with modern, efficient, and scalable tools.
-          </motion.p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 md:gap-16 w-full mx-auto">
-          {technologies.map((tech, index) => (
-            <motion.div key={tech.name} initial={{ opacity: 0, y: 20 }} viewport={{ once: true }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}>
-              <TechCard tech={tech} />
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-export default TechStack
-

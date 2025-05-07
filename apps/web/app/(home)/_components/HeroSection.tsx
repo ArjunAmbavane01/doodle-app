@@ -32,15 +32,14 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                 errorToast({ title: 'Please log in to create new room.' });
                 return;
             }
-            // const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
-            // if (data.type === 'success') {
+            const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
+            if (data.type === 'success') {
                 setIsLoading(true);
-                router.push(`/canvas/123`);
-                // router.push(`/canvas/${data.data.slug}`);
-            // } else {
-                // setIsLoading(false);
-                // errorToast({ title: 'There was a problem creating your room. Please try again.' });
-            // }
+                router.push(`/canvas/${data.data.slug}`);
+            } else {
+                setIsLoading(false);
+                errorToast({ title: 'There was a problem creating your room. Please try again.' });
+            }
             setLoadingRoom(false);
             return;
         } catch (error: unknown) {

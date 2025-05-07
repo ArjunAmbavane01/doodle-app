@@ -6,8 +6,8 @@ import Navbar from "./_components/Navbar"
 import HeroSection from "./_components/HeroSection"
 import CollabSection from "./_components/CollabSection";
 import ShortcutsSection from "./_components/Shortcuts";
-import TechStack from "./_components/TechStack";
 import Footer from "./_components/Footer";
+import TechStack from "./_components/TechStack";
 
 const Page = async () => {
   const session: ICustomSession | null = await getServerSession(authOptions);
