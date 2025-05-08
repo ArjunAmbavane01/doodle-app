@@ -1,21 +1,12 @@
 "use client"
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { gsap } from "gsap"
 
 const Navbar = ({ children }: { children: React.ReactNode }) => {
     const navRef = useRef<HTMLElement>(null)
 
-    useEffect(() => {
-        gsap.from(navRef.current, {
-            y: -20,
-            opacity: 0,
-            duration: 1,
-            ease: "power2.out",
-        })
-    }, [])
     return (
         <>
             <section className="flex w-full sticky top-0 inset-x-0 backdrop-blur-sm z-40">

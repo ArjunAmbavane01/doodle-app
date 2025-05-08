@@ -236,16 +236,16 @@ export default function TechStackShowcase() {
 
     const getPosition = (tech: Technology) => {
         if (screenSize === 'mobile' && tech.position.mobile) return tech.position.mobile;
-        else return tech.position.desktop;
+        return tech.position.desktop;
     };
 
     return (
         <div className="w-full p-5 md:p-10 lg:p-20 bg-black overflow-hidden relative">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,164,228,0.06),transparent_30%)] z-20" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(255,164,228,0.06),transparent_30%)] z-10" />
 
             <div className="flex flex-col gap-16 w-full h-[500px] max-w-screen-8xl mx-auto relative">
 
-                <div className="relative flex h-[50rem] w-full items-center justify-center bg-white dark:bg-black">
+                <div className="relative flex h-[50rem] w-full items-center justify-center bg-white dark:bg-black z-5">
                     <div
                         className={cn(
                             "absolute inset-0",
@@ -268,7 +268,7 @@ export default function TechStackShowcase() {
                     </p>
                 </div>
 
-                <div className="absolute inset-0">
+                <div className="absolute inset-0 z-20">
                     {technologies.map((tech, index) => (
                         <div key={tech.name} className="absolute transition-all duration-500" style={{ left: getPosition(tech).left, top: getPosition(tech).top }}>
                             <motion.div className="relative"
@@ -287,7 +287,7 @@ export default function TechStackShowcase() {
                                         delay: tech.animation.delay,
                                     }}
                                 >
-                                    <motion.div className={`size-10 sm:size-14 md:size-16 ${tech.color} rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold mb-2 sm:mb-3 shadow-lg sm:shadow-xl shadow-blue-500/30`}
+                                    <motion.div className={`flex items-center justify-center size-10 sm:size-14 md:size-16 ${tech.color} rounded-xl sm:rounded-2xl text-lg sm:text-xl font-bold mb-2 sm:mb-3 shadow-lg sm:shadow-xl shadow-blue-500/30`}
                                         whileHover={{ scale: 1.1, rotate: [0, -5, 5, -5, 0] }}
                                         transition={{ duration: 0.5 }}
                                     >

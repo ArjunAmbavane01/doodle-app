@@ -58,7 +58,7 @@ const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: 
         };
 
         setIsLoading(true);
-        if (!socketRef.current) connectWebSocket()
+        if (!socketRef.current) connectWebSocket();
 
     }, [wsToken])
 

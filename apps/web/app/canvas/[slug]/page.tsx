@@ -11,7 +11,6 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     try {
         const session: ICustomSession | null = await getServerSession(authOptions);
         const { slug } = await params;
-
         if (!session?.user?.token) {
             return (
                 <ErrorPage imageSrc="/error/google-auth.svg" title="Authentication Required" body=" Please log in to your account to join this collaborative drawing room.">

@@ -72,7 +72,7 @@ const UtilityToolbar = ({ sessionId, socket }: { sessionId: string, socket: WebS
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel asChild><Button variant={'outline'} className="bg-white shadow-xl hover:bg-gray-100/80 hover:text-black border-gray-300 text-black">Cancel</Button></AlertDialogCancel>
-                        <AlertDialogAction onClick={leaveRoom} className="bg-red-500 text-white border-none hover:text-white hover:bg-red-600">Continue</AlertDialogAction>
+                        <AlertDialogAction onClick={leaveRoom} className="bg-red-500 text-white border-none hover:text-white hover:bg-red-600">Leave</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
