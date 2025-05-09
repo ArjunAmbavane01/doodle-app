@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import Image from "next/image"
+import { CREATE_SVG_URL } from "@/lib/apiEndPoints"
 import type { SelectedToolType } from "../../Canvas"
 import type { genAI } from "@workspace/common/shapes"
 import PromptPanel from "./PromptPanel"
@@ -40,7 +41,7 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
     if (promptRef.current && genAIShape) {
       try {
         setIsAIDrawingLoading((c) => !c);
-        const res = await axios.post('http://localhost:8000/api/generateSvg', {
+        const res = await axios.post(CREATE_SVG_URL, {
           shape: genAIShape,
           prompt: promptRef.current.value
         }, {
@@ -59,9 +60,7 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
   useEffect(() => {
     const handleToolChange = (e: Event) => {
       const customEvent = e as CustomEvent
-      if (customEvent.detail) {
-        setActiveTool(customEvent.detail)
-      }
+      if (customEvent.detail) setActiveTool(customEvent.detail)
     }
 
     const handleOpenPrompt = (e: Event) => {

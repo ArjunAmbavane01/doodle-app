@@ -124,18 +124,20 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
 
             <div className="flex flex-col items-center justify-center gap-14 md:gap-12 max-w-screen-8xl w-full z-10">
                 <h1 ref={headingRef}
-                    className="text-7xl lg:text-9xl font-bold font-heading tracking-tight bg-gradient-to-b from-[#8be9fd] to-white text-transparent bg-clip-text [text-shadow:_0_4px_12px_rgb(99_102_241_/_0.2)]"
+                    className="text-7xl lg:text-9xl font-bold font-heading tracking-tight bg-gradient-to-b from-[#6ae4ff] to-white text-transparent bg-clip-text [text-shadow:_0_2px_5px_rgb(99_102_241_/_0.4)]"
                 >
                     Doodle
                 </h1>
 
 
                 <div ref={buttonsRef} className="flex flex-col md:flex-row gap-5">
-                    <Button onClick={createRoom} className="p-5 md:p-6 rounded-full text-blue-950 bg-gradient-to-br from-blue-400 via-blue-200 shadow-sm shadow-blue-300">
+                    
+                     <Button onClick={createRoom} className="p-5 md:p-6 rounded-full bg-blue-600 hover:bg-blue-800 text-white  focus:ring-blue-100 border border-white shadow-sm shadow-blue-200">
                         <span className="flex items-center gap-2 font-semibold font-body text-base md:text-lg">{loadingRoom ? 'Doodling...' : 'Start Doodling'}
                             <PencilLine className="size-3" />
                         </span>
                     </Button>
+                     
 
                     <Dialog open={modalOpen} onOpenChange={setModalopen}>
                         <DialogTrigger asChild>
@@ -165,7 +167,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                                             />
                                         </div>
                                         <Button
-                                            className="flex items-center gap-3 p-3 md:p-5 text-sm md:text-base tracking-wide text-white [text-shadow:_0_2px_4px_rgb(23_37_84_/_0.9)] bg-gradient-to-br from-blue-500 via-blue-300 to-blue-200 shadow-sm shadow-blue-600 transition-colors duration-200 font-medium"
+                                            className="flex items-center gap-3 p-3 md:p-5 text-sm md:text-base tracking-wide text-white [text-shadow:_0_2px_4px_rgb(23_37_84_/_0.9)] bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 shadow-sm shadow-blue-600 transition-colors duration-200 font-medium"
                                             onClick={joinRoom}
                                         >
                                             Join Room

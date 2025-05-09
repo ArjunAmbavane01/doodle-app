@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
-
 const getInitialShapes = (window: Window): number => (window.innerWidth >= 1024) ? 13 : (window.innerWidth < 1024 && window.innerWidth >= 640) ? 9 : 6;
-
 
 export function FloatingShapes() {
 
@@ -37,7 +35,7 @@ export function FloatingShapes() {
       const shapes: HTMLDivElement[] = [];
 
       for (let i = 0; i < totalShapes; i++) {
-        const imageNumber = i % 10 + 1;
+        const imageNumber = i % 9 + 1;
         const cols = 4
         const rows = 4
         const col = i % cols
@@ -132,7 +130,6 @@ export function FloatingShapes() {
     img.dataset.shapeId = imageNumber.toString()
 
     element.appendChild(img)
-
     return element
   }
 

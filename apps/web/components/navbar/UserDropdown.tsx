@@ -4,8 +4,8 @@ import dynamic from 'next/dynamic'
 import { ICustomUser } from "@/app/api/auth/[...nextauth]/options";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar";
-import { LogOut } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
+import { LogOut } from "lucide-react";
 
 const LogoutModal = dynamic(() => import('@/components/auth/LogoutModal'))
 

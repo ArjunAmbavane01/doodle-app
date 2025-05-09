@@ -293,7 +293,7 @@ export default function TechStackShowcase() {
                                     >
                                         {tech.icon}
                                     </motion.div>
-                                    <motion.div className="bg-white text-black px-3 py-1 rounded-full"
+                                    <motion.div className="bg-black/10 text-white border border-white px-3 py-1 rounded-full"
                                         variants={{
                                             initial: { opacity: 0, y: -10 },
                                             hovered: { opacity: 1, y: 0 },

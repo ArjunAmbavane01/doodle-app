@@ -1,5 +1,5 @@
-import { verify } from "jsonwebtoken";
 import { WebSocketServer, WebSocket } from "ws";
+import { verify } from "jsonwebtoken";
 import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import prisma from "@workspace/db/client";
 import { messageSchema } from "@workspace/common/messages";
@@ -8,7 +8,6 @@ import { shapeSchema } from "@workspace/common/shapes";
 // Auto-delete empty rooms
 // If all users leave a room, remove it from the WebSocket state.
 // Optionally, delete it from the DB after a timeout.
-
 
 interface IUser { userId: string; rooms: number[]; ws: WebSocket; }
 
@@ -27,18 +26,17 @@ const checkToken = (token: string | null) => {
   }
 };
 
-
 wss.on("connection", (ws: WebSocket, req) => {
   const reqURL = req.url;
   if (!reqURL) return;
   const params = new URLSearchParams(reqURL.split("?")[1]);
   const token = params.get("token");
   const res = checkToken(token);
-  if(res.type === "error"){
-    if(res.msg === "JWT token expired") ws.send(JSON.stringify({ type: "error", message: "Your session has expired. Please log in again." }));
+  if (res.type === "error") {
+    if (res.msg === "JWT token expired") ws.send(JSON.stringify({ type: "error", message: "Your session has expired. Please log in again." }));
     ws.close();
     console.error(res.msg);
-  } 
+  }
   if (!res || !res.userId || !res.roomId) return;
   const { userId, roomId } = res;
   users.push({ userId, rooms: [], ws } as IUser);
@@ -136,6 +134,9 @@ wss.on("connection", (ws: WebSocket, req) => {
         console.error("Database error:", e);
         ws.send(JSON.stringify({ type: "error", message: "Error moving shape, please try again later.", }));
       }
+    } else {
+        ws.send(JSON.stringify({ type: "error", message: "Invalid message type", }));
+
     }
   });
 });

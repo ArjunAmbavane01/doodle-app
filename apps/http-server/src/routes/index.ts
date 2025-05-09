@@ -9,8 +9,6 @@ const router:Router = Router()
 router.post('/auth/login',login)
 router.post('/rooms/createRoom',auth ,createRoom)
 router.post('/rooms/joinRoom',auth, joinRoom)
-
-// add auth protection to sgvRoute
-router.post('/generateSvg', generateSvg)
+router.post('/canvas/generateSvg', generateSvg)
 
 export default router;
