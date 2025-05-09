@@ -7,7 +7,6 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 async function promptToSVG(startX: number, startY: number, width: number, height: number, promptText: string) {
   try {
-    console.log(promptText);
     const userPrompt = `
     You are an SVG generator.
     
@@ -48,7 +47,6 @@ async function promptToSVG(startX: number, startY: number, width: number, height
     });
 
     const svg = response.choices[0] && response.choices[0].message.content?.trim() || '';
-    console.log(svg)
     return svg;
   } catch (error: any) {
     console.error('Error generating SVG:', error.message);

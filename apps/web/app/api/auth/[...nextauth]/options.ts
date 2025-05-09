@@ -40,7 +40,8 @@ export const authOptions: AuthOptions = {
           return true;
         }
         return false;
-      } catch (e) {
+      } catch (err) {
+        console.error(err);
         return false;
       }
     },
@@ -48,12 +49,12 @@ export const authOptions: AuthOptions = {
       if (user) token.user = user;
       return token;
     },
-    async session({ session, token,}: { session: ICustomSession; token: JWT;}) {
+    async session({ session, token, }: { session: ICustomSession; token: JWT; }) {
       session.user = token.user as ICustomUser;
       return session;
     },
     async redirect({ baseUrl }) {
-      return baseUrl; 
+      return baseUrl;
     },
   },
   providers: [

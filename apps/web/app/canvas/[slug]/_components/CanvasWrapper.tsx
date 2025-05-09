@@ -33,10 +33,8 @@ const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: 
                 };
 
                 socketRef.current.onclose = (e) => {
-                    console.log("WebSocket closed:", e);
                     if (!e.wasClean && retryCount < maxRetries) {
                         retryCount++;
-                        console.log(`Retry attempt ${retryCount}...`);
                         setTimeout(connectWebSocket, 1000);
                     } else {
                         socketRef.current = null;
@@ -50,6 +48,13 @@ const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: 
                 socketRef.current.onerror = (error) => {
                     console.error("WebSocket error:", error);
                 };
+
+                return () => {
+                    if (socketRef.current) {
+                        socketRef.current.close();
+                        socketRef.current = null;
+                    }
+                }
             } catch (error) {
                 console.error("Error creating WebSocket:", error);
                 setIsLoading(false);
@@ -60,10 +65,9 @@ const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: 
         setIsLoading(true);
         if (!socketRef.current) connectWebSocket();
 
-    }, [wsToken])
+    }, [wsToken, setIsLoading])
 
     if (connectionError) {
-        setIsLoading(false);
         return (
             <ErrorPage imageSrc="/error/connection.png" title="Connection Error" body={connectionError} >
                 <Button asChild variant="outline" className="group w-32">

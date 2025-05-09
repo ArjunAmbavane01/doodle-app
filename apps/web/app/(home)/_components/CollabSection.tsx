@@ -42,7 +42,7 @@ const CollabSection = () => {
             </span>
           </h2>
           <p className="px-3 max-w-md md:max-w-2xl font-body text-sm md:text-base lg:text-lg tracking-wide text-gray-200 text-center">
-            A powerful whiteboarding tool that brings your team's ideas to life. Sketch, design, and collaborate in
+            A powerful whiteboarding tool that brings your team&apos;s ideas to life. Sketch, design, and collaborate in
             real-time—all in one seamless experience.
           </p>
         </motion.div>

@@ -66,7 +66,6 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                 setIsLoading(false);
                 return;
             }
-            console.log('here')
             setModalopen((c) => !c);
             setIsLoading(true);
             router.push(`/canvas/${roomSlug}`);
@@ -177,7 +176,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                             </DialogHeader>
                             <DialogFooter className="flex flex-row items-start gap-1 text-sm p-2 rounded bg-blue-50 border border-blue-200 text-zinc-800">
                                 <Info className="size-5 text-zinc-800" />
-                                <span className="text-xs md:text-sm">Don't have a room code? Ask your team member to share it with you or create a new room.</span>
+                                <span className="text-xs md:text-sm">Don&apos;t have a room code? Ask your team member to share it with you or create a new room.</span>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>

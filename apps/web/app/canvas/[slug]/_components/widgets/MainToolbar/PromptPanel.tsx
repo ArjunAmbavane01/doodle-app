@@ -37,7 +37,7 @@ const PromptPanel = ({promptRef, setIsPromptOpen, generateAISvgPath, isAIDrawing
                         id="prompt"
                         maxLength={100}
                         placeholder="Describe the illustration you want to generate..."
-                        className="resize-none w-full h-28 p-3 text-sm rounded border border-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all"
+                        className="resize-none w-full h-28 p-3 text-sm rounded border bg-white font-body text-black border-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all"
                     />
                 </div>
 

@@ -29,12 +29,12 @@ class DrawingEngine {
   private roomShapes: RoomShape[];
 
   private selectedTool: SelectedToolType = "pen";
-  private strokeColour = "#ffffff";
-  private strokeWidth = 2;
-  private fillColour = "transparent";
-  private fontSize = 24;
-  private fontFamily = "Caveat";
-  private textColour = "#ffffff";
+  private strokeColour: string = "#ffffff";
+  private strokeWidth: number = 2;
+  private fillColour: string = "transparent";
+  private fontSize: number = 24;
+  private fontFamily: string = "Caveat";
+  private textColour: string = "#ffffff";
   private textStyle = { bold: false, italic: false };
 
   private currentShape: Shape | null = null;
@@ -44,25 +44,25 @@ class DrawingEngine {
   private zoomChangeTimeout: number | null = null;
   private originalShapePath: string | null = null;
 
-  private isDrawing = false;
-  private isPanning = false;
-  private isDragging = false;
-  private hasMovedSinceMouseDown = false;
+  private isDrawing: boolean = false;
+  private isPanning: boolean = false;
+  private isDragging: boolean = false;
+  private hasMovedSinceMouseDown: boolean = false;
 
-  private startX = 0;
-  private startY = 0;
-  private lastMouseX = 0;
-  private lastMouseY = 0;
-  private panOffsetX = -2500;
-  private panOffsetY = -2500;
-  private zoomScale = 1;
-  private zoomFactor = 1.01;
-  private zoomOffsetX = 0;
-  private zoomOffsetY = 0;
-  private shapeStartX = 0;
+  private startX: number = 0;
+  private startY: number = 0;
+  private lastMouseX: number = 0;
+  private lastMouseY: number = 0;
+  private panOffsetX: number = -2500;
+  private panOffsetY: number = -2500;
+  private zoomScale: number = 1;
+  private zoomFactor: number = 1.01;
+  private zoomOffsetX: number = 0;
+  private zoomOffsetY: number = 0;
+  private shapeStartX: number = 0;
   private shapeStartY = 0;
-  private shapeEndX = 0;
-  private shapeEndY = 0;
+  private shapeEndX: number = 0;
+  private shapeEndY: number = 0;
 
   private strokePoints: Point[] = [];
   private highlightPoints: HighlightPoint[] = [];
@@ -97,7 +97,6 @@ class DrawingEngine {
 
   private render = () => {
 
-    console.log(this.roomShapes)
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.fillStyle = "#0C0C0C";
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -414,12 +413,13 @@ class DrawingEngine {
         case "triangle":
           this.currentShape = { type: "triangle", startX: this.startX, startY: this.startY, width, height, strokeColour: this.strokeColour, fillColour: this.fillColour, strokeWidth: this.strokeWidth };
           break;
-        case "circle":
+        case "circle": {
           const centerX = this.startX + width / 2;
           const centerY = this.startY + height / 2;
           const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
           this.currentShape = { type: "circle", centerX, centerY, radius, strokeColour: this.strokeColour, fillColour: this.fillColour, strokeWidth: this.strokeWidth };
           break;
+        }
         case "genAI":
           this.currentShape = { type: "genAI", startX: this.startX, startY: this.startY, width, height, svgPath: '', strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
           break;

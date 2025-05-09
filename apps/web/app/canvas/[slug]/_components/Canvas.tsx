@@ -21,7 +21,7 @@ const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket
                 game.destroy();
             }
         }
-    }, [socket, roomMessages, userId, canvasRef.current])
+    }, [socket, roomMessages, userId])
 
     return (
         <div className="w-screen h-screen relative overflow-hidden" id="canvas-container">

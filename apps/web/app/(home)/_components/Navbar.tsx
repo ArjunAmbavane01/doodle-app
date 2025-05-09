@@ -19,7 +19,7 @@ const Navbar = ({ children }: { children: React.ReactNode }) => {
                     </div>
                     <div className="flex items-center justify-center gap-2 md:gap-3">
                         {children}
-                        <a href={'https://github.com/ArjunAmbavane01/doodle-app'} target="_blank" className="p-2 bg-white drop-shadow-lg shadow-sm shadow-blue-800 text-white rounded-full hover:bg-gray-100 transition-colors duration-300">
+                        <a href={'https://github.com/ArjunAmbavane01/doodle-app'} target="_blank" rel="noreferrer" className="p-2 bg-white drop-shadow-lg shadow-sm shadow-blue-800 text-white rounded-full hover:bg-gray-100 transition-colors duration-300">
                             <Image src={'/images/logos/github.png'} alt="github-logo" width={100} height={100} className="size-4 md:size-5" />
                         </a>
                     </div>
