@@ -1,4 +1,6 @@
 {
   "buildCommand": "pnpm turbo run build --filter=web",
-  "framework": null
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "rootDirectory": "apps/web"
 }
