@@ -56,10 +56,10 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     } catch (error) {
         console.error(error);
         let errorMessage = "We couldn't connect you to this drawing room. This might be due to a temporary issue.";
-        let statusCode = 500;
+        // let statusCode = 500;
 
         if (axios.isAxiosError(error)) {
-            statusCode = error.response?.status || 500;
+            // statusCode = error.response?.status || 500;
             if (error.response?.data?.message) errorMessage = error.response.data.message;
         }
 

@@ -1,5 +1,5 @@
 {
-  "rootDirectory": "apps/web",
-  "buildCommand": "pnpm install && turbo run build --filter=web",
-  "outputDirectory": ".next"
+  "buildCommand": "pnpm turbo run build --filter=web",
+  "outputDirectory": "apps/web/.next",
+  "framework": null
 }
