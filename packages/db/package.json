@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "exports":{
-    "./client":"./src/db.config.ts"
+    "./client":"./dist/db.config.js"
   },
   "scripts": {
     "build": "tsc -b"
