@@ -1,12 +1,14 @@
 {
   "name": "@workspace/db",
   "version": "1.0.0",
-  "main": "index.js",
-  "exports":{
-    "./client":"./dist/db.config.js"
+  "main": "dist/db.config.js",
+  "exports": {
+    "./client": "./dist/db.config.js"
   },
+  "types": "./dist/db.config.d.ts",
   "scripts": {
-    "build": "tsc -b"
+    "build": "tsc -b",  
+    "generate": "prisma generate"
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*"

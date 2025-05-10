@@ -1,10 +1,19 @@
 {
   "name": "@workspace/common",
   "version": "1.0.0",
-  "main": "index.js",
   "exports": {
-    "./messages": "./src/messages.ts",
-    "./shapes": "./src/shapes.ts"
+    "./messages": "./dist/messages.js",
+    "./shapes": "./dist/shapes.js"
+  },
+  "typesVersions": {
+    "*": {
+      "messages": [
+        "./dist/messages.d.ts"
+      ],
+      "shapes": [
+        "./dist/shapes.d.ts"
+      ]
+    }
   },
   "scripts": {
     "build": "tsc -b"
