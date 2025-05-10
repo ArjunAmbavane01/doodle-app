@@ -1,6 +1,6 @@
 "use client"
 import { createContext, useContext, useMemo, useState } from "react";
-import DoodleLoading from "@/app/(home)/_components/visuals/DoodleLoading";
+import DoodleLoading from "@/app/home/_components/visuals/DoodleLoading";
 
 const LoadingContext = createContext({
     isLoading: false,
