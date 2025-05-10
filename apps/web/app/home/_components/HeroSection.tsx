@@ -151,7 +151,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                         <DialogTrigger asChild>
                             <Button
                                 variant="outline"
-                                className="rounded-full p-5 md:p-6 border border-white text-white font-bold font-body text-base md:text-lg bg-black shadow-md shadow-blue-800 hover:bg-white/10"
+                                className="rounded-full p-5 md:p-6 border border-white text-white font-bold font-body text-base md:text-lg bg-black shadow-md shadow-blue-800 hover:bg-white/30 transition-colors duration-200"
                                 onClick={() => setModalopen(true)}
                             >
                                 Join Room
