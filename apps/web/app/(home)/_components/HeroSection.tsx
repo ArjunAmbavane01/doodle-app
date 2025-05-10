@@ -131,21 +131,16 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
 
 
                 <div ref={buttonsRef} className="flex flex-col md:flex-row gap-5">
-
-                    {/* <Button onClick={createRoom} className="p-5 md:p-6 rounded-full bg-blue-600 hover:bg-blue-800 text-white  focus:ring-blue-100 border border-white shadow-sm shadow-blue-200">
-                        <span className="flex items-center gap-2 font-semibold font-body text-base md:text-lg">{loadingRoom ? 'Doodling...' : 'Start Doodling'}
-                            <PencilLine className="size-3" />
-                        </span>
-                    </Button> */}
                     <div className="relative">
-
-                        <div className="absolute inset-y-0 left-0 bg-pink-400 w-[50%] opacity-90 blur-[10px] rounded-l-full" />
-                        <div className="absolute inset-y-0 right-0 bg-blue-500 w-[50%] opacity-90 blur-[10px] rounded-r-full" />
-                    <Button onClick={createRoom} className="p-5 md:p-6 rounded-full bg-white text-black border border-black relative">
-                        <span className="flex items-center gap-2 font-semibold font-body text-base md:text-lg">{loadingRoom ? 'Doodling...' : 'Start Doodling'}
-                            <PencilLine className="size-3" />
-                        </span>
-                    </Button>
+                        <div className="absolute inset-y-0 left-0 bg-pink-400 w-[100%] opacity-80 blur-[8px] rounded-full" />
+                        <Button onClick={createRoom} className="p-5 md:p-6 rounded-full bg-white text-black border border-black relative">
+                            <span className="flex items-center gap-2 font-semibold font-body text-base md:text-lg">
+                                <span className="inline-block w-32 text-center">
+                                    {loadingRoom ? 'Doodling...' : 'Start Doodling'}
+                                </span>
+                                <PencilLine className="size-3" />
+                            </span>
+                        </Button>
                     </div>
 
 
