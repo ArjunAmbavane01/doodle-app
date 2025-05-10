@@ -30,6 +30,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
             setLoadingRoom(true);
             if (!userToken) {
                 errorToast({ title: 'Please log in to create new room.' });
+                setLoadingRoom(false);
                 return;
             }
             const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
@@ -38,6 +39,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                 router.push(`/canvas/${data.data.slug}`);
             } else {
                 setIsLoading(false);
+                setLoadingRoom(false);
                 errorToast({ title: 'There was a problem creating your room. Please try again.' });
             }
             setLoadingRoom(false);
@@ -45,6 +47,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
         } catch (error: unknown) {
             setLoadingRoom(false);
             setIsLoading(false);
+            setLoadingRoom(false);
             if (axios.isAxiosError(error) && error.code === 'ERR_NETWORK') {
                 errorToast({ title: 'Could not reach the server. Please check your connection or try again later.' });
             } else {
