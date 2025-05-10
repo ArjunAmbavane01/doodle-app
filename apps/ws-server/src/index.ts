@@ -5,10 +5,6 @@ import prisma from "@workspace/db/client";
 import { messageSchema } from "@workspace/common/messages";
 import { shapeSchema } from "@workspace/common/shapes";
 
-// Auto-delete empty rooms
-// If all users leave a room, remove it from the WebSocket state.
-// Optionally, delete it from the DB after a timeout.
-
 interface IUser { userId: string; rooms: number[]; ws: WebSocket; }
 
 const users: IUser[] = [];

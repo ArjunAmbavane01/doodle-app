@@ -91,23 +91,6 @@ export function FloatingShapes() {
         };
 
         randomMovement();
-
-        shape.style.cursor = "pointer"
-        shape.addEventListener("mouseenter", () => {
-          gsap.to(shape, {
-            scale: 1.1,
-            filter: "brightness(1.3)",
-            duration: 0.3,
-          })
-        })
-
-        shape.addEventListener("mouseleave", () => {
-          gsap.to(shape, {
-            scale: 1,
-            filter: "brightness(1)",
-            duration: 0.3,
-          })
-        })
       })
     }, containerRef)
 
