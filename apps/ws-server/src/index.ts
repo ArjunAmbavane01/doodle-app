@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { WebSocketServer, WebSocket } from "ws";
 import { verify } from "jsonwebtoken";
 import { WS_JWT_SECRET } from "@workspace/backend-common/config";
@@ -9,7 +10,7 @@ interface IUser { userId: string; rooms: number[]; ws: WebSocket; }
 
 const users: IUser[] = [];
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: Number(process.env.PORT) || 8080 });
 
 const checkToken = (token: string | null) => {
   try {

@@ -16,7 +16,7 @@ const LogoutModal = ({ open, setOpen }: { open: boolean, setOpen: Dispatch<SetSt
       <AlertDialogContent className="rounded-lg bg-white font-body">
         <AlertDialogHeader>
           <AlertDialogTitle className="font-heading text-zinc-800">Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription className="text-zinc-600">
+          <AlertDialogDescription className="text-zinc-800">
             This action cannot be undone. This will permanently delete your session from your device.
           </AlertDialogDescription>
         </AlertDialogHeader>
