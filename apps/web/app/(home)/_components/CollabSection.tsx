@@ -17,7 +17,7 @@ const CollabSection = () => {
 
           <div className="aspect-[16/9] p-3 md:p-1 relative">
             <div className="flex items-center justify-center h-full rounded-lg relative overflow-hidden">
-              <Image src={"/images/appDemo.png"}
+              <Image src={"/images/demo.png"}
                 alt="Canvas App Demo"
                 className="rounded-lg transition-transform duration-700"
                 layout="fill"

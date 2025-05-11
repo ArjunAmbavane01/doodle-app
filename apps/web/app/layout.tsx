@@ -17,7 +17,7 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Doodle app",
+  title: "Doodle",
   description: "A collaborative drawing app that lets teams brainstorm, sketch, and share ideas in real time on an interactive canvas."
 }
 
@@ -29,6 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#0C0C0C" />
+        <meta name="keywords" content="collaborative, drawing app, sketch, team collaboration, brainstorming canvas" />
+        <meta name="author" content="Arjun Ambavane" />
+        <meta property="og:title" content="Doodle - Collaborative Drawing App" />
+        <meta property="og:description" content="Brainstorm, sketch, and share ideas in real time on an interactive canvas." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.doodle.codes" />
+        <link rel="icon" href="/favicon.ico" />
       </head>
       <SessionProvider>
         <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased bg-[#0C0C0C]`}>

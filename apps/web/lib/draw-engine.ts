@@ -671,6 +671,22 @@ class DrawingEngine {
     window.dispatchEvent(new CustomEvent("zoomLevelChange", { detail: { zoomLevel: Math.round(this.zoomScale * 100) }, }));
   };
 
+  private handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
+    this.handleMouseDown(e);
+  };
+  private handleTouchMove = (e: TouchEvent) => {
+    e.preventDefault();
+    this.handleMouseMove(e);
+  };
+  private handleTouchEnd = (e: TouchEvent) => {
+    this.handleMouseUp(e);
+  };
+  private handleTouchCancel = (e: TouchEvent) => {
+    this.handleMouseLeave();
+  };
+
+
   private initHandlers() {
     this.canvas.addEventListener("mousedown", this.handleMouseDown);
     this.canvas.addEventListener("mousemove", this.handleMouseMove);
@@ -689,10 +705,10 @@ class DrawingEngine {
     window.addEventListener("renderSvg", this.handleRenderSvg);
 
     // events for mobile
-    this.canvas.addEventListener('touchstart', this.handleMouseDown);
-    this.canvas.addEventListener('touchmove', this.handleMouseMove);
-    this.canvas.addEventListener('touchend', this.handleMouseUp);
-    this.canvas.addEventListener('touchcancel', this.handleMouseLeave);
+    this.canvas.addEventListener('touchstart', this.handleTouchStart, { passive: false });
+    this.canvas.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+    this.canvas.addEventListener('touchend', this.handleTouchEnd);
+    this.canvas.addEventListener('touchcancel', this.handleTouchCancel);
   }
 
   // Public Handlers
@@ -830,10 +846,10 @@ class DrawingEngine {
     window.removeEventListener("renderSvg", this.handleRenderSvg);
 
     // events for mobile
-    this.canvas.removeEventListener('touchstart', this.handleMouseDown);
-    this.canvas.removeEventListener('touchmove', this.handleMouseMove);
-    this.canvas.removeEventListener('touchend', this.handleMouseUp);
-    this.canvas.removeEventListener('touchcancel', this.handleMouseLeave);
+    this.canvas.removeEventListener('touchstart', this.handleTouchStart);
+    this.canvas.removeEventListener('touchmove', this.handleTouchMove);
+    this.canvas.removeEventListener('touchend', this.handleTouchEnd);
+    this.canvas.removeEventListener('touchcancel', this.handleTouchCancel);
   }
 }
 

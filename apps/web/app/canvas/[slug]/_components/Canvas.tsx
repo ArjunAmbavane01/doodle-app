@@ -21,11 +21,22 @@ const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket
                 game.destroy();
             }
         }
-    }, [socket, roomMessages, userId])
+    }, [socket, roomMessages, userId]);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (canvas) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = 5000 * dpr;
+            canvas.height = 5000 * dpr;
+            canvas.style.width = '5000px';
+            canvas.style.height = '5000px';
+        }
+    }, []);
 
     return (
         <div className="w-screen h-screen relative overflow-hidden" id="canvas-container">
-            <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000] absolute inset-0" />
+            <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000px] absolute inset-0 touch-none" />
             <div id="textarea-container" />
             {canvasGame && socket && <>
                 <MainToolbar selectTool={canvasGame.onToolSelect} />

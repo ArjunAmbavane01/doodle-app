@@ -76,7 +76,7 @@ const CanvasWrapper = ({ wsToken, roomMessages, userId, sessionId }: { wsToken: 
                         Go Home
                     </Link>
                 </Button>
-                <Button onClick={() => window.location.reload()}>
+                <Button className="shadow-sm shadow-blue-300" onClick={() => window.location.reload()}>
                     <RefreshCw className="size-4" />
                     Try Again
                 </Button>

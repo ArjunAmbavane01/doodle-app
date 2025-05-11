@@ -56,10 +56,8 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     } catch (error) {
         console.error(error);
         let errorMessage = "We couldn't connect you to this drawing room. This might be due to a temporary issue.";
-        // let statusCode = 500;
 
         if (axios.isAxiosError(error)) {
-            // statusCode = error.response?.status || 500;
             if (error.response?.data?.message) errorMessage = error.response.data.message;
         }
 
@@ -75,7 +73,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
                         Go Home
                     </Link>
                 </Button>
-                <Button onClick={() => window.location.reload()}>
+                <Button className="shadow-sm shadow-blue-300" onClick={() => window.location.reload()}>
                     <RefreshCw className="size-4" />
                     Try Again
                 </Button>

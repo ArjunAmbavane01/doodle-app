@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ReactNode } from "react";
 
 interface ErrorPageProps {
@@ -11,13 +10,13 @@ interface ErrorPageProps {
 const ErrorPage = ({ imageSrc, title, body, children }: ErrorPageProps) => {
     return (
         <div className="flex flex-col justify-center items-center h-screen bg-[#0C0C0C]">
-            <div className="flex flex-col items-center gap-3 max-w-md w-full p-8 bg-white rounded-xl shadow-sm">
-                <Image
+            <div className="flex flex-col items-center gap-3 max-w-[350px] sm:max-w-md w-full p-8 bg-white rounded-xl shadow-sm">
+                <img
                     src={imageSrc}
-                    alt="Login Illustration"
+                    alt="Error Image"
                     width={128}
                     height={128}
-                    className="size-56 "
+                    className="size-32 sm:size-56"
                 />
                 <div className="flex flex-col items-center gap-4">
                     <h1 className="text-2xl font-bold text-zinc-800 font-heading">{title}</h1>

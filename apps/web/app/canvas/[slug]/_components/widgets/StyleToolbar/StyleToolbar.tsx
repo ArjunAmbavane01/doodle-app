@@ -79,7 +79,7 @@ const StyleToolbar = ({ selectStrokeColour, selectFillColour, selectFontFamily, 
                 onClick={() => handleToolClick("color")}
                 aria-label="Open color menu"
               >
-                <Palette className="size-3 sm:size-4 text-white" />
+                <Palette className="size-4 text-white" />
               </motion.button>
 
               <motion.button
@@ -91,7 +91,7 @@ const StyleToolbar = ({ selectStrokeColour, selectFillColour, selectFontFamily, 
                 className="flex items-center justify-center size-6 sm:size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
                 aria-label="Open text menu"
               >
-                <Type className="size-3 sm:size-4 text-white" />
+                <Type className="size-4 text-white" />
               </motion.button>
 
               <motion.button
@@ -103,7 +103,7 @@ const StyleToolbar = ({ selectStrokeColour, selectFillColour, selectFontFamily, 
                 className="flex items-center justify-center size-6 sm:size-8 rounded bg-neutral-800 border border-neutral-700 shadow-lg hover:bg-neutral-700 transition-colors"
                 aria-label="Open pen menu"
               >
-                <Pen className="size-3 sm:size-4 text-white" />
+                <Pen className="size-4 text-white" />
               </motion.button>
             </>
           )}

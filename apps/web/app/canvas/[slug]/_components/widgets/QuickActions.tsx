@@ -30,7 +30,7 @@ const QuickActions = ({ handleZoomIn, handleZoomOut, handleZoomReset, handleUndo
     }, []);
 
     return (
-        <div className="flex gap-5 absolute bottom-6 left-3 sm:right-auto sm:left-5 text-zinc-800">
+        <div className="flex gap-5 fixed bottom-6 left-3 sm:right-auto sm:left-5 text-zinc-800">
             <div className="hidden sm:flex bg-white rounded-lg cursor-pointer">
                 <button className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-l-lg disabled:opacity-50"
                     disabled={zoomLevel <= 10}
