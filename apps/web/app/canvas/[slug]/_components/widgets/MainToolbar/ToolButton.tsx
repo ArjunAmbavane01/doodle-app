@@ -11,7 +11,7 @@ const ToolButton = ({ tool, activeTool, chooseTool }: ToolButtonProps) => {
   return (<div
     key={tool.type}
     onClick={() => chooseTool(tool.type)}
-    className={`relative rounded-lg p-1.5 sm:p-2 md:p-3 hover:bg-black/10 font-heading group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === tool.type ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/6"}`}
+    className={`relative rounded sm:rounded-lg p-1.5 sm:p-2 md:p-3 hover:bg-black/10 font-heading group transition-colors duration-300 hover:scale-110 hover:cursor-pointer ${activeTool === tool.type ? "bg-blue-100 text-blue-800 hover:bg-blue-100" : "hover:bg-black/6"}`}
   >
     <tool.icon className="size-3 sm:size-4 md:size-5 text-zinc-800" strokeWidth={1.5} />
     <span

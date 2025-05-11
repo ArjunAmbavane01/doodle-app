@@ -35,21 +35,21 @@ const ColorTab = ({ strokeColor, setStrokeColor, selectStrokeColour, selectFillC
   return (
     <>
       <div className="flex border-b text-white border-neutral-700">
-        <button className={`flex items-center justify-center flex-1 p-2 gap-2 ${colorSubTab === "stroke" ? "bg-neutral-700" : "hover:bg-neutral-700/50"}`}
+        <button className={`flex items-center justify-center flex-1 p-1 py-2 sm:p-2 gap-2 ${colorSubTab === "stroke" ? "bg-neutral-700" : "hover:bg-neutral-700/50"}`}
           onClick={() => setColorSubTab("stroke")}
         >
           <Paintbrush2 className="size-3" />
-          <span className="text-sm">Stroke</span>
+          <span className="text-xs sm:text-sm">Stroke</span>
         </button>
-        <button className={`flex items-center justify-center flex-1 p-2 gap-2 ${colorSubTab === "bg" ? "bg-neutral-700" : "hover:bg-neutral-700/50"}`}
+        <button className={`flex items-center justify-center flex-1 p-1 py-2 sm:p-2 gap-2 ${colorSubTab === "bg" ? "bg-neutral-700" : "hover:bg-neutral-700/50"}`}
           onClick={() => setColorSubTab("bg")}
         >
           <PaintBucket className="size-3" />
-          <span className="text-sm">Fill</span>
+          <span className="text-xs sm:text-sm">Fill</span>
         </button>
       </div>
 
-      <div className="flex flex-col gap-3 p-3 max-h-80 overflow-y-auto">
+      <div className="flex flex-col gap-3 p-2 sm:p-3 max-h-80 overflow-y-auto">
         {recentColors.length > 0 && (
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 text-neutral-200">
@@ -58,7 +58,7 @@ const ColorTab = ({ strokeColor, setStrokeColor, selectStrokeColour, selectFillC
             </div>
             <div className="grid grid-cols-8 gap-1">
               {recentColors.map((color) => (
-                <button key={color} className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75 ease-out"
+                <button key={color} className="grid place-items-center size-5 sm:size-6 rounded-sm hover:scale-110 transition-transform duration-75 ease-out"
                   style={{ backgroundColor: color }} onClick={() => handleColorClick(color)} aria-label={`Select color ${color}`}>
                   {((colorSubTab === "stroke" && strokeColor === color) || (colorSubTab === "bg" && fillColor === color)) &&
                       <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }}/>
@@ -75,7 +75,7 @@ const ColorTab = ({ strokeColor, setStrokeColor, selectStrokeColour, selectFillC
               <h4 className="text-xs text-neutral-200">{group.name}</h4>
               <div className="grid grid-cols-8 gap-1">
                 {group.colors.map((color) => (
-                  <motion.button key={color} className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75 ease-out"
+                  <motion.button key={color} className="grid place-items-center size-5 sm:size-6 rounded-sm hover:scale-110 transition-transform duration-75 ease-out"
                     style={{ backgroundColor: color }} onClick={() => handleColorClick(color)} whileTap={{ scale: 0.95 }} aria-label={`Select color ${color}`}>
                     {((colorSubTab === "stroke" && strokeColor === color) || (colorSubTab === "bg" && fillColor === color)) &&
                       <Check className="size-3 text-black stroke-2" style={{ filter: isLightColor(color) ? "none" : "invert(1)" }} />
@@ -97,15 +97,15 @@ const ColorTab = ({ strokeColor, setStrokeColor, selectStrokeColour, selectFillC
         )}
       </div>
 
-      <div className="flex items-center justify-around p-3 text-xs text-white border-t border-neutral-700">
+      <div className="flex items-center justify-around p-2 sm:p-3 text-xs text-white border-t border-neutral-700">
         <div className="flex items-center gap-3">
-          <div className="size-6 rounded-sm border border-white hover:cursor-pointer" 
+          <div className="size-5 sm:size-6 rounded-sm border border-white hover:cursor-pointer" 
           onClick={()=>setColorSubTab("stroke")}
           style={{ backgroundColor: strokeColor }} />
           Stroke
         </div>
         <div className="flex items-center gap-3">
-          <div className="size-6 rounded-sm border border-white hover:cursor-pointer"
+          <div className="size-5 sm:size-6 rounded-sm border border-white hover:cursor-pointer"
           onClick={()=>setColorSubTab("bg")}
             style={{
               backgroundColor: fillColor === "transparent" ? "transparent" : fillColor,

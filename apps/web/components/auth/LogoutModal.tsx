@@ -13,10 +13,10 @@ const LogoutModal = ({ open, setOpen }: { open: boolean, setOpen: Dispatch<SetSt
   }
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogContent className="rounded-lg bg-white font-body">
+      <AlertDialogContent className="rounded-lg bg-white font-body max-w-96 sm:max-w-[500px]">
         <AlertDialogHeader>
-          <AlertDialogTitle className="font-heading text-zinc-800">Are you absolutely sure?</AlertDialogTitle>
-          <AlertDialogDescription className="text-zinc-800">
+          <AlertDialogTitle className="font-heading text-zinc-800 text-base sm:text-lg">Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription className="text-zinc-800 text-sm sm:text-base">
             This action cannot be undone. This will permanently delete your session from your device.
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -161,7 +161,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                             <DialogHeader className="flex flex-col gap-3 md:gap-5">
                                 <DialogTitle className="text-lg text-left font-heading text-zinc-800">Join Room</DialogTitle>
                                 <DialogDescription asChild>
-                                    <div className="flex flex-col gap-3 md:gap-5 text-sm md:text-base">
+                                    <div className="flex flex-col gap-2 md:gap-5 text-sm md:text-base">
                                         <div className="flex rounded border border-blue-300">
                                             <span className="p-2 bg-blue-100 text-blue-800 border-r border-blue-300">
                                                 <Users className="size-3 md:size-4" />

@@ -54,7 +54,7 @@ const TextTab = ({ selectFontFamily, selectFontSize, selectTextColor, selectText
       <div className="flex flex-col gap-2">
         <label className="text-xs text-neutral-200 block">Font Family</label>
         <Select value={fontFamily} onValueChange={handleFontFamilyClick}>
-          <SelectTrigger className="p-2 rounded-sm text-sm w-full bg-neutral-700 border border-neutral-600 text-white focus:outline-none focus:ring-0" value={fontFamily}>
+          <SelectTrigger className="p-2 rounded-sm text-xs sm:text-sm w-full bg-neutral-700 border border-neutral-600 text-white focus:outline-none focus:ring-0" value={fontFamily}>
             <SelectValue placeholder="Select Font" />
           </SelectTrigger>
           <SelectContent>
@@ -74,7 +74,7 @@ const TextTab = ({ selectFontFamily, selectFontSize, selectTextColor, selectText
           >
             <Minus className="size-3" />
           </motion.button>
-          <div className="flex-1 h-full py-1 px-2 text-center text-white bg-neutral-700 border-t border-b border-neutral-600 ">
+          <div className="flex items-center justify-center w-full flex-1 h-full py-1 px-2 text-xs sm:text-base text-center text-white bg-neutral-700 border-t border-b border-neutral-600 ">
             {fontSize}px
           </div>
           <motion.button className="grid place-items-center h-full w-8 rounded-r-sm border bg-neutral-700 hover:bg-neutral-600 text-white border-neutral-600" whileTap={{ scale: 0.95 }} onClick={() => handleFontSizeClick("increase")}
@@ -89,11 +89,11 @@ const TextTab = ({ selectFontFamily, selectFontSize, selectTextColor, selectText
         <div className="flex border border-neutral-600 rounded-sm overflow-hidden text-white">
           <button className={`flex-1 p-2 flex justify-center ${textStyle.bold ? "bg-neutral-400/80" : "bg-neutral-700 hover:bg-neutral-600"}`} onClick={() => toggleTextStyle("bold")}
           >
-            <Bold className="size-4" />
+            <Bold className="size-3 sm:size-4" />
           </button>
           <button className={`flex-1 p-2 flex justify-center ${textStyle.italic ? "bg-neutral-400/80" : "bg-neutral-700 hover:bg-neutral-600"}`} onClick={() => toggleTextStyle("italic")}
           >
-            <Italic className="size-4" />
+            <Italic className="size-3 sm:size-4" />
           </button>
         </div>
       </div>
@@ -104,7 +104,7 @@ const TextTab = ({ selectFontFamily, selectFontSize, selectTextColor, selectText
           {[...((colorGroups[0] as IColourGroup).colors), ...((colorGroups[1] as IColourGroup).colors), ...((colorGroups[2] as IColourGroup).colors)].map((color) => (
             <motion.button
               key={`text-${color}`}
-              className="grid place-items-center size-6 rounded-sm hover:scale-110 transition-transform duration-75"
+              className="grid place-items-center size-5 sm:size-6 rounded-sm hover:scale-110 transition-transform duration-75"
               style={{ backgroundColor: color }}
               onClick={() => handleTextColorClick(color)}
               whileTap={{ scale: 0.95 }}

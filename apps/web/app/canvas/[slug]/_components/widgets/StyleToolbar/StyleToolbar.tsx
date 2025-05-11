@@ -112,18 +112,18 @@ const StyleToolbar = ({ selectStrokeColour, selectFillColour, selectFontFamily, 
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div className="absolute top-0 left-14 bg-neutral-800 rounded-lg border border-neutral-700 shadow-xl w-64 overflow-hidden"
+            <motion.div className="absolute bottom-0 sm:top-0 sm:bottom-auto left-14 origin-bottom sm:origin-top bg-neutral-800 rounded-lg border border-neutral-700 shadow-xl w-56 sm:w-64 overflow-hidden z-30"
             initial={{ opacity: 0, x: -20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
           >
-            <div className="flex justify-between items-center p-3 border-neutral-700">
-              <div className="flex items-center gap-3 text-white">
-                {activeTab === "color" && <Palette className="size-4" />}
-                {activeTab === "text" && <Type className="size-4" />}
-                {activeTab === "pen" && <Pen className="size-4" />}
-                <h3 className="font-sm">
+            <div className="flex justify-between items-center p-2 py-3 sm:p-3 border-neutral-700">
+              <div className="flex items-center gap-2 sm:gap-3 text-white">
+                {activeTab === "color" && <Palette className="size-3 sm:size-4" />}
+                {activeTab === "text" && <Type className="size-3 sm:size-4" />}
+                {activeTab === "pen" && <Pen className="size-3 sm:size-4" />}
+                <h3 className="text-sm sm:text-base">
                   {activeTab === "color" && "Color Palette"}
                   {activeTab === "text" && "Text Options"}
                   {activeTab === "pen" && "Pen Options"}

@@ -81,7 +81,7 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
   }, [])
 
   return (
-    <div className="flex items-center gap-1 sm:gap-1.5 mx-auto w-fit p-1 sm:p-1.5 px-1.5 sm:px-3 rounded-lg md:rounded-xl bg-white inset-x-0 sm:top-4 relative">
+    <div className="flex items-center gap-0 sm:gap-1.5 mx-auto w-fit p-1 px-1 sm:p-1.5 sm:px-3 rounded-lg md:rounded-xl bg-white inset-x-0 top-2 sm:top-4 relative">
       {tools.map((tool) => <ToolButton key={tool.type} tool={tool} activeTool={activeTool} chooseTool={chooseTool} />)}
 
       <div className="w-[0.5px] bg-blue-200 self-stretch" />

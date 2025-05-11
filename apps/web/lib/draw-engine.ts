@@ -223,6 +223,14 @@ class DrawingEngine {
   private handleMouseDown = (e: MouseEvent | TouchEvent) => {
     const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
     const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
+    if (e instanceof TouchEvent) {
+      console.log('clientX ', clientX)
+      console.log('clientY ', clientY)
+    } 
+    // else {
+    //   console.log(e.clientX)
+    //   console.log(e.clientY)
+    // }
     const { x, y } = this.getCanvasPoint(clientX, clientY);
     if (this.selectedTool === "pan") {
       this.isPanning = true;
@@ -337,18 +345,25 @@ class DrawingEngine {
     }
   };
 
-  private handleMouseMove = (e: MouseEvent) => {
-    const { x, y } = this.getCanvasPoint(e.clientX, e.clientY);
+  private handleMouseMove = (e: MouseEvent | TouchEvent) => {
+    const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
+    const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
+    if (e instanceof TouchEvent) {
+      console.log('clientX ', clientX)
+      console.log('clientY ', clientY)
+    } 
+
+    const { x, y } = this.getCanvasPoint(clientX, clientY);
     // sends user's position to other users
     this.socket.send(JSON.stringify({ type: 'user_pos', posX: x, posY: y }));
 
     if (this.isPanning) {
-      const deltaX = e.clientX - this.lastMouseX;
-      const deltaY = e.clientY - this.lastMouseY;
+      const deltaX = clientX - this.lastMouseX;
+      const deltaY = clientY - this.lastMouseY;
       this.panOffsetX += deltaX;
       this.panOffsetY += deltaY;
-      this.lastMouseX = e.clientX;
-      this.lastMouseY = e.clientY;
+      this.lastMouseX = clientX;
+      this.lastMouseY = clientY;
       this.render();
       return;
     }
@@ -428,7 +443,9 @@ class DrawingEngine {
     this.render();
   };
 
-  private handleMouseUp = (e: MouseEvent) => {
+  private handleMouseUp = (e: MouseEvent | TouchEvent) => {
+    const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
+    const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
     if (this.isPanning) {
       this.isPanning = false;
       this.canvas.style.cursor = "grab";
@@ -456,9 +473,8 @@ class DrawingEngine {
     } else if (this.isDrawing) {
       if (!this.hasMovedSinceMouseDown && this.selectedTool === "pen") {
         const rect = this.canvas.getBoundingClientRect();
-        const { x, y } = this.getCanvasPoint(e.clientX, e.clientY);
-        const currentX = x - rect.left;
-        const currentY = y - rect.top;
+        const { x, y } = this.getCanvasPoint(clientX, clientY);
+        const currentX = x - rect.left; const currentY = y - rect.top;
 
         this.strokePoints = [{ x: currentX, y: currentY }, { x: currentX + 1, y: currentY + 1 },];
         this.currentShape = { type: "pen", path: strokeToSVG(this.strokePoints), strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
@@ -686,6 +702,9 @@ class DrawingEngine {
 
     // events for mobile
     this.canvas.addEventListener('touchstart', this.handleMouseDown);
+    this.canvas.addEventListener('touchmove', this.handleMouseMove);
+    this.canvas.addEventListener('touchend', this.handleMouseUp);
+    this.canvas.addEventListener('touchcancel', this.handleMouseLeave);
   }
 
   // Public Handlers

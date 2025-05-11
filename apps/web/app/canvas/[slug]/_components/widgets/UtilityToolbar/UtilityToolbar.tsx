@@ -37,7 +37,7 @@ const UtilityToolbar = ({ sessionId, socket }: { sessionId: string, socket: WebS
                         onClick={() => setOpenCollaborators(true)}
                     >
 
-                        <Users className="size-4" />
+                        <Users className="size-3 sm:size-4" />
                         {animateJoin && (
                             <motion.span
                                 className="absolute -top-1 -right-1 size-3 bg-green-500 rounded-full"
@@ -61,12 +61,12 @@ const UtilityToolbar = ({ sessionId, socket }: { sessionId: string, socket: WebS
             </Popover>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="outline" className="p-2 rounded bg-red-500 text-white border-none hover:text-white hover:bg-red-600">Leave Room</Button>
+                    <Button variant="outline" className="p-2 text-xs sm:text-sm rounded bg-red-500 text-white border-none hover:text-white hover:bg-red-600">Leave Room</Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="bg-white">
+                <AlertDialogContent className="bg-white max-w-96 sm:max-w-[500px] rounded">
                     <AlertDialogHeader className="flex flex-col gap-">
-                        <AlertDialogTitle className="font-heading text-lg text-zinc-800">Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription className="font-body text-base text-zinc-800">
+                        <AlertDialogTitle className="font-heading text-base sm:text-lg text-zinc-800">Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="font-body text-sm sm:text-base text-zinc-800">
                             You will be disconnected from this session. You can rejoin later with the session link if it&apos;s still active.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
