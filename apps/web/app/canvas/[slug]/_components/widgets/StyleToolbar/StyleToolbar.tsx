@@ -61,8 +61,8 @@ const StyleToolbar = ({ selectStrokeColour, selectFillColour, selectFontFamily, 
   }
 
   return (
-    <div className="fixed bottom-7 sm:bottom-auto sm:top-5 left-5 z-10 font-heading">
-      <motion.div className="flex flex-col gap-3 p-1.5 sm:p-2 rounded-lg bg-white/15" initial={{ width: "auto" }} animate={{ width: "auto" }}>
+    <div className="fixed bottom-auto top-2 sm:top-5 left-2 sm:left-5 z-10 font-heading">
+      <motion.div className="flex flex-col gap-3 p-1 sm:p-2 rounded-md sm:rounded-lg bg-white/15" initial={{ width: "auto" }} animate={{ width: "auto" }}>
         <motion.button className="flex items-center justify-center size-6 sm:size-8 rounded bg-neutral-600 border border-neutral-700 shadow-lg hover:bg-neutral-600 transition-colors" aria-label="Open color menu" whileTap={{ scale: 0.95 }} onClick={toggleMenu}>
           <Menu className="size-3 sm:size-4 text-white" />
         </motion.button>
@@ -112,7 +112,7 @@ const StyleToolbar = ({ selectStrokeColour, selectFillColour, selectFontFamily, 
 
       <AnimatePresence>
         {isOpen && (
-            <motion.div className="absolute bottom-0 sm:top-0 sm:bottom-auto left-14 origin-bottom sm:origin-top bg-neutral-800 rounded-lg border border-neutral-700 shadow-xl w-56 sm:w-64 overflow-hidden z-30"
+            <motion.div className="absolute top-0 bottom-auto left-10 sm:left-14 origin-bottom sm:origin-top bg-neutral-800 rounded-md sm:rounded-lg border border-neutral-700 shadow-xl w-56 sm:w-64 overflow-hidden z-30"
             initial={{ opacity: 0, x: -20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}

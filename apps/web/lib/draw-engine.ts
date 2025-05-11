@@ -223,14 +223,6 @@ class DrawingEngine {
   private handleMouseDown = (e: MouseEvent | TouchEvent) => {
     const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
     const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
-    if (e instanceof TouchEvent) {
-      console.log('clientX ', clientX)
-      console.log('clientY ', clientY)
-    } 
-    // else {
-    //   console.log(e.clientX)
-    //   console.log(e.clientY)
-    // }
     const { x, y } = this.getCanvasPoint(clientX, clientY);
     if (this.selectedTool === "pan") {
       this.isPanning = true;
@@ -348,10 +340,6 @@ class DrawingEngine {
   private handleMouseMove = (e: MouseEvent | TouchEvent) => {
     const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
     const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
-    if (e instanceof TouchEvent) {
-      console.log('clientX ', clientX)
-      console.log('clientY ', clientY)
-    } 
 
     const { x, y } = this.getCanvasPoint(clientX, clientY);
     // sends user's position to other users
@@ -840,8 +828,13 @@ class DrawingEngine {
     window.removeEventListener("zoomOut", this.handleZoomOut);
     window.removeEventListener("zoomReset", this.handleZoomReset);
     window.removeEventListener("renderSvg", this.handleRenderSvg);
-  }
 
+    // events for mobile
+    this.canvas.removeEventListener('touchstart', this.handleMouseDown);
+    this.canvas.removeEventListener('touchmove', this.handleMouseMove);
+    this.canvas.removeEventListener('touchend', this.handleMouseUp);
+    this.canvas.removeEventListener('touchcancel', this.handleMouseLeave);
+  }
 }
 
 export default DrawingEngine;

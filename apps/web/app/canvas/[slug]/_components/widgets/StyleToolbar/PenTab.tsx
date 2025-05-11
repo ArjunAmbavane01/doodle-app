@@ -27,7 +27,7 @@ const PenTab = ({ strokeColor, setStrokeColor, selectStrokeColour, selectPenWidt
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3 max-h-80 overflow-y-auto">
+    <div className="flex flex-col gap-3 p-3 pt-0 max-h-80 overflow-y-auto">
       <div className="flex flex-col gap-2">
         <label className="text-xs text-neutral-200 block">Pen Width</label>
         <div className="flex items-center h-8">

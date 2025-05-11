@@ -50,7 +50,7 @@ const TextTab = ({ selectFontFamily, selectFontSize, selectTextColor, selectText
   }
 
   return (
-    <div className="flex flex-col gap-3 p-3 min-h-80">
+    <div className="flex flex-col gap-3 p-3 pt-0 min-h-80">
       <div className="flex flex-col gap-2">
         <label className="text-xs text-neutral-200 block">Font Family</label>
         <Select value={fontFamily} onValueChange={handleFontFamilyClick}>

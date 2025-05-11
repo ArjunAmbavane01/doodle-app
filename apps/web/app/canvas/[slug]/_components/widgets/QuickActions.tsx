@@ -30,32 +30,32 @@ const QuickActions = ({ handleZoomIn, handleZoomOut, handleZoomReset, handleUndo
     }, []);
 
     return (
-        <div className="flex gap-5 fixed bottom-7 right-8 sm:right-auto sm:left-5 text-zinc-800">
+        <div className="flex gap-5 absolute bottom-6 left-3 sm:right-auto sm:left-5 text-zinc-800">
             <div className="hidden sm:flex bg-white rounded-lg cursor-pointer">
                 <button className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-l-lg disabled:opacity-50"
                     disabled={zoomLevel <= 10}
                     onClick={() => { handleEvent("zoomOut") }}>
-                    <Minus className="size-4" />
+                    <Minus className="size-3 md:size-4" />
                 </button>
-                <div className="flex justify-center items-center px-1 text-sm font-medium tracking-tight group relative"
+                <div className="flex justify-center items-center px-1 text-xs sm:text-sm font-medium tracking-tight group relative"
                     onClick={() => { handleEvent("zoomReset") }}>
                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 -translate-y-3 px-2 py-1 text-xs opacity-0 font-medium text-black bg-white rounded whitespace-nowrap transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
                         Reset Zoom
                     </div>
                     {zoomLevel} %
                 </div>
-                <button className="flex justify-center items-center p-3 hover:bg-gray-200 rounded-r-lg disabled:opacity-50"
+                <button className="flex justify-center items-center p-1 sm:p-3 hover:bg-gray-200 rounded-r-lg disabled:opacity-50"
                     disabled={zoomLevel >= 1000}
                     onClick={() => { handleEvent("zoomIn") }}>
-                    <Plus className="size-4" />
+                    <Plus className="size-3 md:size-4" />
                 </button>
             </div>
-            <div className="flex bg-white rounded-lg">
+            <div className="flex bg-white rounded-md sm:rounded-lg">
                 <button onClick={() => handleEvent("undo")} className="flex justify-center items-center p-2.5 hover:bg-gray-200 rounded-l-lg">
-                    <Undo2 className="size-2.5 md:size-4" />
+                    <Undo2 className="size-3 md:size-4" />
                 </button>
                 <button onClick={() => handleEvent("redo")} className="flex justify-center items-center p-2.5 hover:bg-gray-200 rounded-r-lg">
-                    <Redo2 className="size-2.5 md:size-4" />
+                    <Redo2 className="size-3 md:size-4" />
                 </button>
             </div>
         </div>
