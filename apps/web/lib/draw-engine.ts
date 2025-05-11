@@ -672,7 +672,6 @@ class DrawingEngine {
   };
 
   private handleTouchStart = (e: TouchEvent) => {
-    e.preventDefault();
     this.handleMouseDown(e);
   };
   private handleTouchMove = (e: TouchEvent) => {
