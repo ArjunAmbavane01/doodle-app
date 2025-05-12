@@ -17,14 +17,13 @@ const corsOptions: CorsOptions = {
     optionsSuccessStatus: 200
 }
 
-app.use(cors(corsOptions));
 app.use(json());
 
-app.use("/api/v1", Routes);
+app.use("/api/v1", cors(corsOptions), Routes);
 
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
-});     
+});
 
 app.get("/", (req, res) => {
     res.send("Hello From Doodle's API !")

@@ -839,7 +839,6 @@ class DrawingEngine {
   };
 
   private handleTouchMove = (e: TouchEvent) => {
-    e.preventDefault();
     if (this.mouseMoveThrottle) return;
 
     this.mouseMoveThrottle = true;
@@ -887,7 +886,7 @@ class DrawingEngine {
 
     // events for mobile
     this.canvas.addEventListener('touchstart', this.handleTouchStart);
-    this.canvas.addEventListener('touchmove', this.handleTouchMove, { passive: false });
+    this.canvas.addEventListener('touchmove', this.handleTouchMove);
     this.canvas.addEventListener('touchend', this.handleTouchEnd);
     this.canvas.addEventListener('touchcancel', this.handleTouchCancel);
   }
