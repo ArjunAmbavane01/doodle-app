@@ -5,7 +5,6 @@ export const cleanupTextArea = () => {
 
 export const createTextArea = (e: MouseEvent | TouchEvent, canvasX: number, canvasY: number, fontSize: number, fontFamily:string, textColor:string, textStyle:{ bold: boolean, italic: boolean }) => {
 
-  
   const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
   const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
 

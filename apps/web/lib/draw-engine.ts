@@ -341,11 +341,21 @@ class DrawingEngine {
   };
 
   private handleMouseMove = (e: MouseEvent | TouchEvent) => {
-    if (e instanceof TouchEvent && this.mouseMoveThrottle) return;
     if (e instanceof TouchEvent) {
+      if (this.mouseMoveThrottle) return;
+
       this.mouseMoveThrottle = true;
+      const touch = e.touches[0];
+      if (!touch) return;
+
+      const touchData = {
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        timestamp: Date.now()
+      };
+
       requestAnimationFrame(() => {
-        this.processMouseMove(e);
+        this.processMouseMove(touchData);
         this.mouseMoveThrottle = false;
       });
     } else {
@@ -353,14 +363,15 @@ class DrawingEngine {
     }
   };
 
-  private processMouseMove = (e: MouseEvent | TouchEvent) => {
-    const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
-    const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
+  private processMouseMove = (e: MouseEvent | TouchEvent | { clientX: number, clientY: number, timestamp?: number }) => {
+
+    const clientX = 'touches' in e ? (e.touches[0]?.clientX as number) : e.clientX;
+    const clientY = 'touches' in e ? (e.touches[0]?.clientY as number) : e.clientY;
 
     const { x, y } = this.getCanvasPoint(clientX, clientY);
 
     const now = Date.now();
-    if (now - this.lastPositionUpdate > 50) {
+    if (now - this.lastPositionUpdate > 100) {
       this.socket.send(JSON.stringify({ type: 'user_pos', posX: x, posY: y }));
       this.lastPositionUpdate = now;
     }
@@ -379,6 +390,8 @@ class DrawingEngine {
     const currentX = x;
     const currentY = y;
 
+    if (!this.isDrawing && !this.isDragging) return;
+
     const width = currentX - this.startX;
     const height = currentY - this.startY;
 
@@ -391,13 +404,12 @@ class DrawingEngine {
     if (this.isDragging) {
       const deltaX = x - this.startX;
       const deltaY = y - this.startY;
-
       this.processDragShape(deltaX, deltaY);
-    } else if (this.isDrawing) {
-      this.processDrawShape(currentX, currentY, width, height);
-    }
+    } else if (this.isDrawing) this.processDrawShape(currentX, currentY, width, height);
 
-    this.render();
+    if (this.isDrawing || this.isDragging) {
+      this.render();
+    }
   };
 
   private processDragShape(deltaX: number, deltaY: number) {
@@ -555,24 +567,30 @@ class DrawingEngine {
     }
   }
 
-
   private processPenDrawing(currentX: number, currentY: number) {
-    if (this.strokePoints.length > 0) {
-      const lastPoint = this.strokePoints[this.strokePoints.length - 1];
-      if (lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
-        this.strokePoints.push({ x: currentX, y: currentY });
+    if (this.strokePoints.length === 0) {
+      this.strokePoints.push({ x: currentX, y: currentY });
+      return;
+    }
 
-        if (this.strokePoints.length > 1000) {
-          this.strokePoints = this.strokePoints.filter((_, i) => i % 2 === 0 || i === this.strokePoints.length - 1);
-        }
+    const lastPoint = this.strokePoints[this.strokePoints.length - 1];
+    if (!lastPoint) return;
 
-        this.currentShape = {
-          type: "pen",
-          path: strokeToSVG(this.strokePoints),
-          strokeColour: this.strokeColour,
-          strokeWidth: this.strokeWidth
-        };
+    const distanceSquared = (currentX - lastPoint.x) ** 2 + (currentY - lastPoint.y) ** 2;
+    if (distanceSquared > 9) {
+      this.strokePoints.push({ x: currentX, y: currentY });
+
+      if (this.strokePoints.length > 500) {
+        this.strokePoints = this.strokePoints.filter((_, i) =>
+          i % 3 === 0 || i === this.strokePoints.length - 1
+        );
       }
+      this.currentShape = {
+        type: "pen",
+        path: strokeToSVG(this.strokePoints),
+        strokeColour: this.strokeColour,
+        strokeWidth: this.strokeWidth
+      };
     }
   }
 
@@ -821,7 +839,24 @@ class DrawingEngine {
   };
 
   private handleTouchMove = (e: TouchEvent) => {
-    this.handleMouseMove(e);
+    e.preventDefault();
+    if (this.mouseMoveThrottle) return;
+
+    this.mouseMoveThrottle = true;
+
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    const touchData = {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      timestamp: Date.now()
+    };
+
+    requestAnimationFrame(() => {
+      this.processMouseMove(touchData);
+      this.mouseMoveThrottle = false;
+    });
   };
 
   private handleTouchEnd = (e: TouchEvent) => {
@@ -852,7 +887,7 @@ class DrawingEngine {
 
     // events for mobile
     this.canvas.addEventListener('touchstart', this.handleTouchStart);
-    this.canvas.addEventListener('touchmove', this.handleTouchMove);
+    this.canvas.addEventListener('touchmove', this.handleTouchMove, { passive: false });
     this.canvas.addEventListener('touchend', this.handleTouchEnd);
     this.canvas.addEventListener('touchcancel', this.handleTouchCancel);
   }
