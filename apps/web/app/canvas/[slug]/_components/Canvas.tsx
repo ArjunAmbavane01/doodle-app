@@ -24,16 +24,6 @@ const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket
     }, [socket, roomMessages, userId]);
 
     useEffect(() => {
-        const preventPullToRefresh = (e: TouchEvent) => {
-            if (e.touches.length === 1) {
-                e.preventDefault();
-            }
-        };
-        document.addEventListener('touchstart', preventPullToRefresh, { passive: false });
-        return () => { document.removeEventListener('touchstart', preventPullToRefresh) };
-    }, []);
-
-    useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
             const dpr = window.devicePixelRatio || 1;

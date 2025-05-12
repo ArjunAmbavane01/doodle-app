@@ -341,10 +341,7 @@ class DrawingEngine {
   };
 
   private handleMouseMove = (e: MouseEvent | TouchEvent) => {
-
-
     if (e instanceof TouchEvent && this.mouseMoveThrottle) return;
-
     if (e instanceof TouchEvent) {
       this.mouseMoveThrottle = true;
       requestAnimationFrame(() => {
@@ -363,7 +360,7 @@ class DrawingEngine {
     const { x, y } = this.getCanvasPoint(clientX, clientY);
 
     const now = Date.now();
-    if (now - this.lastPositionUpdate > 50) { 
+    if (now - this.lastPositionUpdate > 50) {
       this.socket.send(JSON.stringify({ type: 'user_pos', posX: x, posY: y }));
       this.lastPositionUpdate = now;
     }
@@ -820,29 +817,18 @@ class DrawingEngine {
   };
 
   private handleTouchStart = (e: TouchEvent) => {
-    e.preventDefault();
     this.handleMouseDown(e);
   };
 
   private handleTouchMove = (e: TouchEvent) => {
-    e.preventDefault();
-
-    if (this.touchMoveThrottle) return;
-
-    this.touchMoveThrottle = true;
-    requestAnimationFrame(() => {
-      this.handleMouseMove(e);
-      this.touchMoveThrottle = false;
-    });
+    this.handleMouseMove(e);
   };
 
   private handleTouchEnd = (e: TouchEvent) => {
-    e.preventDefault();
     this.handleMouseUp(e);
   };
 
   private handleTouchCancel = (e: TouchEvent) => {
-    e.preventDefault();
     this.handleMouseLeave();
   };
 
@@ -865,10 +851,10 @@ class DrawingEngine {
     window.addEventListener("renderSvg", this.handleRenderSvg);
 
     // events for mobile
-    this.canvas.addEventListener('touchstart', this.handleTouchStart, { passive: false });
-    this.canvas.addEventListener('touchmove', this.handleTouchMove, { passive: false });
-    this.canvas.addEventListener('touchend', this.handleTouchEnd, { passive: false });
-    this.canvas.addEventListener('touchcancel', this.handleTouchCancel, { passive: false });
+    this.canvas.addEventListener('touchstart', this.handleTouchStart);
+    this.canvas.addEventListener('touchmove', this.handleTouchMove);
+    this.canvas.addEventListener('touchend', this.handleTouchEnd);
+    this.canvas.addEventListener('touchcancel', this.handleTouchCancel);
   }
 
   // Public Handlers
