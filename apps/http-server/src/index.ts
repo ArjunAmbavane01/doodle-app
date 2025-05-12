@@ -3,7 +3,7 @@ import express, { Application, json } from "express";
 import cors, { CorsOptions } from "cors";
 import Routes from "./routes/index";
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000;
 
 const app: Application = express();
 
@@ -24,7 +24,6 @@ app.use("/api/v1", cors(corsOptions), Routes);
 app.get("/health", (req, res) => {
     res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
-
 app.get("/", (req, res) => {
     res.send("Hello From Doodle's API !")
 });

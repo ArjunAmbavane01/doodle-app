@@ -72,6 +72,8 @@ class DrawingEngine {
   private undoStack: IUserAction[] = [];
   private redoStack: IUserAction[] = [];
 
+  private renderQueued = false;
+
   private roomUsers = new Map<string, { username: string, displayName: string, posX: number, posY: number }>();
 
   constructor(canvas: HTMLCanvasElement, socket: WebSocket, userId: string, initialMessages: IRoomChat[]) {
@@ -94,6 +96,10 @@ class DrawingEngine {
 
     this.renderPersistentShapes();
     this.render();
+  }
+
+  private isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   private renderPersistentShapes = () => clearCanvas(this.roomShapes, this.offscreenCanvas, this.offscreenCtx);
@@ -130,6 +136,16 @@ class DrawingEngine {
     if (this.highlightPoints.length !== 0) drawHighlightPoints(this.highlightPoints, this.ctx, this.socket, this.userId);
     this.ctx.restore();
   };
+
+  private debouncedRender() {
+    if (this.renderQueued) return;
+    this.renderQueued = true;
+
+    requestAnimationFrame(() => {
+      this.render();
+      this.renderQueued = false;
+    });
+  }
 
   private getCanvasPoint = (clientX: number, clientY: number) => {
     const rect = this.canvas.getBoundingClientRect();
@@ -408,7 +424,8 @@ class DrawingEngine {
     } else if (this.isDrawing) this.processDrawShape(currentX, currentY, width, height);
 
     if (this.isDrawing || this.isDragging) {
-      this.render();
+      if (this.isMobileDevice()) this.debouncedRender();
+      else this.render();
     }
   };
 

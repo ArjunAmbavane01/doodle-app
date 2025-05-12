@@ -132,8 +132,7 @@ wss.on("connection", (ws: WebSocket, req) => {
         ws.send(JSON.stringify({ type: "error", message: "Error moving shape, please try again later.", }));
       }
     } else {
-        ws.send(JSON.stringify({ type: "error", message: "Invalid message type", }));
-
+      ws.send(JSON.stringify({ type: "error", message: "Invalid message type", }));
     }
   });
 });
