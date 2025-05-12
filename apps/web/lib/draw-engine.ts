@@ -48,13 +48,15 @@ class DrawingEngine {
   private isPanning: boolean = false;
   private isDragging: boolean = false;
   private hasMovedSinceMouseDown: boolean = false;
+  private mouseMoveThrottle: boolean = false;
+  private touchMoveThrottle: boolean = false;
 
   private startX: number = 0;
   private startY: number = 0;
   private lastMouseX: number = 0;
   private lastMouseY: number = 0;
-  private panOffsetX: number = -2500;
-  private panOffsetY: number = -2500;
+  private panOffsetX: number = -1500;
+  private panOffsetY: number = -1500;
   private zoomScale: number = 1;
   private zoomFactor: number = 1.01;
   private zoomOffsetX: number = 0;
@@ -63,6 +65,7 @@ class DrawingEngine {
   private shapeStartY = 0;
   private shapeEndX: number = 0;
   private shapeEndY: number = 0;
+  private lastPositionUpdate: number = 0;
 
   private strokePoints: Point[] = [];
   private highlightPoints: HighlightPoint[] = [];
@@ -338,12 +341,32 @@ class DrawingEngine {
   };
 
   private handleMouseMove = (e: MouseEvent | TouchEvent) => {
+
+
+    if (e instanceof TouchEvent && this.mouseMoveThrottle) return;
+
+    if (e instanceof TouchEvent) {
+      this.mouseMoveThrottle = true;
+      requestAnimationFrame(() => {
+        this.processMouseMove(e);
+        this.mouseMoveThrottle = false;
+      });
+    } else {
+      this.processMouseMove(e);
+    }
+  };
+
+  private processMouseMove = (e: MouseEvent | TouchEvent) => {
     const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
     const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
 
     const { x, y } = this.getCanvasPoint(clientX, clientY);
-    // sends user's position to other users
-    this.socket.send(JSON.stringify({ type: 'user_pos', posX: x, posY: y }));
+
+    const now = Date.now();
+    if (now - this.lastPositionUpdate > 50) { 
+      this.socket.send(JSON.stringify({ type: 'user_pos', posX: x, posY: y }));
+      this.lastPositionUpdate = now;
+    }
 
     if (this.isPanning) {
       const deltaX = clientX - this.lastMouseX;
@@ -362,74 +385,199 @@ class DrawingEngine {
     const width = currentX - this.startX;
     const height = currentY - this.startY;
 
-    if (!this.hasMovedSinceMouseDown && (Math.abs(currentX - this.startX) > 2 || Math.abs(currentY - this.startY) > 2)) this.hasMovedSinceMouseDown = true;
+    if (!this.hasMovedSinceMouseDown && (Math.abs(currentX - this.startX) > 2 || Math.abs(currentY - this.startY) > 2)) {
+      this.hasMovedSinceMouseDown = true;
+    }
+
     if (!this.hasMovedSinceMouseDown) return;
 
     if (this.isDragging) {
       const deltaX = x - this.startX;
       const deltaY = y - this.startY;
-      if (this.currentShape && this.currentShape.type === "rectangle") {
-        this.currentShape = { ...this.currentShape, startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY };
-      } else if (this.currentShape && this.currentShape.type === "circle") {
-        this.currentShape = { ...this.currentShape, centerX: this.shapeStartX + deltaX, centerY: this.shapeStartY + deltaY };
-      } else if (this.currentShape && this.currentShape.type === "triangle") {
-        this.currentShape = { ...this.currentShape, startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY };
-      }
-      else if (this.currentShape && this.currentShape.type === "line") {
-        this.currentShape = { type: "line", startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY, endX: this.shapeEndX + deltaX, endY: this.shapeEndY + deltaY, strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
-      }
-      else if (this.currentShape && this.currentShape.type === "arrow") {
-        this.currentShape = { type: "arrow", startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY, endX: this.shapeEndX + deltaX, endY: this.shapeEndY + deltaY, strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
-      }
-      else if (this.currentShape && this.currentShape.type === "text") {
-        this.currentShape = { ...this.currentShape, startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY };
-      }
-      else if (this.currentShape && this.currentShape.type === "pen") {
-        this.currentShape = { ...this.currentShape, path: translateSVGPath(this.originalShapePath as string, deltaX, deltaY) };
-      }
-      else if (this.currentShape && this.currentShape.type === "genAI") {
-        this.currentShape = { ...this.currentShape, startX: this.shapeStartX + deltaX, startY: this.shapeStartY + deltaY, svgPath: translateSVGPath(this.originalShapePath as string, deltaX, deltaY) };
-      }
+
+      this.processDragShape(deltaX, deltaY);
     } else if (this.isDrawing) {
-      switch (this.selectedTool) {
-        case "pen":
-          if (this.strokePoints.length > 0) {
-            const lastPoint = this.strokePoints[this.strokePoints.length - 1];
-            if (lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
-              this.strokePoints.push({ x: currentX, y: currentY });
-              this.currentShape = { type: "pen", path: strokeToSVG(this.strokePoints), strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
-            }
-          }
-          break;
-        case "highlighter":
-          this.highlightPoints.push({ x: currentX, y: currentY, timestamp: Date.now() });
-          break;
-        case "line":
-          this.currentShape = { type: "line", startX: this.startX, startY: this.startY, endX: currentX, endY: currentY, strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
-          break;
-        case "arrow":
-          this.currentShape = { type: "arrow", startX: this.startX, startY: this.startY, endX: currentX, endY: currentY, strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
-          break;
-        case "rectangle":
-          this.currentShape = { type: "rectangle", startX: this.startX, startY: this.startY, width, height, strokeColour: this.strokeColour, fillColour: this.fillColour, strokeWidth: this.strokeWidth };
-          break;
-        case "triangle":
-          this.currentShape = { type: "triangle", startX: this.startX, startY: this.startY, width, height, strokeColour: this.strokeColour, fillColour: this.fillColour, strokeWidth: this.strokeWidth };
-          break;
-        case "circle": {
-          const centerX = this.startX + width / 2;
-          const centerY = this.startY + height / 2;
-          const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
-          this.currentShape = { type: "circle", centerX, centerY, radius, strokeColour: this.strokeColour, fillColour: this.fillColour, strokeWidth: this.strokeWidth };
-          break;
-        }
-        case "genAI":
-          this.currentShape = { type: "genAI", startX: this.startX, startY: this.startY, width, height, svgPath: '', strokeColour: this.strokeColour, strokeWidth: this.strokeWidth };
-          break;
-      }
+      this.processDrawShape(currentX, currentY, width, height);
     }
+
     this.render();
   };
+
+  private processDragShape(deltaX: number, deltaY: number) {
+    if (!this.currentShape) return;
+
+    switch (this.currentShape.type) {
+      case "rectangle":
+        this.currentShape = {
+          ...this.currentShape,
+          startX: this.shapeStartX + deltaX,
+          startY: this.shapeStartY + deltaY
+        };
+        break;
+      case "circle":
+        this.currentShape = {
+          ...this.currentShape,
+          centerX: this.shapeStartX + deltaX,
+          centerY: this.shapeStartY + deltaY
+        };
+        break;
+      case "triangle":
+        this.currentShape = {
+          ...this.currentShape,
+          startX: this.shapeStartX + deltaX,
+          startY: this.shapeStartY + deltaY
+        };
+        break;
+      case "line":
+        this.currentShape = {
+          type: "line",
+          startX: this.shapeStartX + deltaX,
+          startY: this.shapeStartY + deltaY,
+          endX: this.shapeEndX + deltaX,
+          endY: this.shapeEndY + deltaY,
+          strokeColour: this.strokeColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+      case "arrow":
+        this.currentShape = {
+          type: "arrow",
+          startX: this.shapeStartX + deltaX,
+          startY: this.shapeStartY + deltaY,
+          endX: this.shapeEndX + deltaX,
+          endY: this.shapeEndY + deltaY,
+          strokeColour: this.strokeColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+      case "text":
+        this.currentShape = {
+          ...this.currentShape,
+          startX: this.shapeStartX + deltaX,
+          startY: this.shapeStartY + deltaY
+        };
+        break;
+      case "pen":
+        this.currentShape = {
+          ...this.currentShape,
+          path: translateSVGPath(this.originalShapePath as string, deltaX, deltaY)
+        };
+        break;
+      case "genAI":
+        this.currentShape = {
+          ...this.currentShape,
+          startX: this.shapeStartX + deltaX,
+          startY: this.shapeStartY + deltaY,
+          svgPath: translateSVGPath(this.originalShapePath as string, deltaX, deltaY)
+        };
+        break;
+    }
+  }
+
+  private processDrawShape(currentX: number, currentY: number, width: number, height: number) {
+    switch (this.selectedTool) {
+      case "pen":
+        this.processPenDrawing(currentX, currentY);
+        break;
+      case "highlighter":
+        this.highlightPoints.push({ x: currentX, y: currentY, timestamp: Date.now() });
+        break;
+      case "line":
+        this.currentShape = {
+          type: "line",
+          startX: this.startX,
+          startY: this.startY,
+          endX: currentX,
+          endY: currentY,
+          strokeColour: this.strokeColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+      case "arrow":
+        this.currentShape = {
+          type: "arrow",
+          startX: this.startX,
+          startY: this.startY,
+          endX: currentX,
+          endY: currentY,
+          strokeColour: this.strokeColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+      case "rectangle":
+        this.currentShape = {
+          type: "rectangle",
+          startX: this.startX,
+          startY: this.startY,
+          width,
+          height,
+          strokeColour: this.strokeColour,
+          fillColour: this.fillColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+      case "triangle":
+        this.currentShape = {
+          type: "triangle",
+          startX: this.startX,
+          startY: this.startY,
+          width,
+          height,
+          strokeColour: this.strokeColour,
+          fillColour: this.fillColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+      case "circle": {
+        const centerX = this.startX + width / 2;
+        const centerY = this.startY + height / 2;
+        const radius = Math.max(Math.abs(width), Math.abs(height)) / 2;
+        this.currentShape = {
+          type: "circle",
+          centerX,
+          centerY,
+          radius,
+          strokeColour: this.strokeColour,
+          fillColour: this.fillColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+      }
+      case "genAI":
+        this.currentShape = {
+          type: "genAI",
+          startX: this.startX,
+          startY: this.startY,
+          width,
+          height,
+          svgPath: '',
+          strokeColour: this.strokeColour,
+          strokeWidth: this.strokeWidth
+        };
+        break;
+    }
+  }
+
+
+  private processPenDrawing(currentX: number, currentY: number) {
+    if (this.strokePoints.length > 0) {
+      const lastPoint = this.strokePoints[this.strokePoints.length - 1];
+      if (lastPoint && (Math.abs(currentX - lastPoint.x) > 2 || Math.abs(currentY - lastPoint.y) > 2)) {
+        this.strokePoints.push({ x: currentX, y: currentY });
+
+        if (this.strokePoints.length > 1000) {
+          this.strokePoints = this.strokePoints.filter((_, i) => i % 2 === 0 || i === this.strokePoints.length - 1);
+        }
+
+        this.currentShape = {
+          type: "pen",
+          path: strokeToSVG(this.strokePoints),
+          strokeColour: this.strokeColour,
+          strokeWidth: this.strokeWidth
+        };
+      }
+    }
+  }
 
   private handleMouseUp = (e: MouseEvent | TouchEvent) => {
     const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
@@ -672,16 +820,29 @@ class DrawingEngine {
   };
 
   private handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault();
     this.handleMouseDown(e);
   };
+
   private handleTouchMove = (e: TouchEvent) => {
     e.preventDefault();
-    this.handleMouseMove(e);
+
+    if (this.touchMoveThrottle) return;
+
+    this.touchMoveThrottle = true;
+    requestAnimationFrame(() => {
+      this.handleMouseMove(e);
+      this.touchMoveThrottle = false;
+    });
   };
+
   private handleTouchEnd = (e: TouchEvent) => {
+    e.preventDefault();
     this.handleMouseUp(e);
   };
+
   private handleTouchCancel = (e: TouchEvent) => {
+    e.preventDefault();
     this.handleMouseLeave();
   };
 
@@ -706,8 +867,8 @@ class DrawingEngine {
     // events for mobile
     this.canvas.addEventListener('touchstart', this.handleTouchStart, { passive: false });
     this.canvas.addEventListener('touchmove', this.handleTouchMove, { passive: false });
-    this.canvas.addEventListener('touchend', this.handleTouchEnd);
-    this.canvas.addEventListener('touchcancel', this.handleTouchCancel);
+    this.canvas.addEventListener('touchend', this.handleTouchEnd, { passive: false });
+    this.canvas.addEventListener('touchcancel', this.handleTouchCancel, { passive: false });
   }
 
   // Public Handlers

@@ -24,40 +24,54 @@ const Canvas = ({ socket, roomMessages, userId, sessionId }: { socket: WebSocket
     }, [socket, roomMessages, userId]);
 
     useEffect(() => {
+        const preventPullToRefresh = (e: TouchEvent) => {
+            if (e.touches.length === 1) {
+                e.preventDefault();
+            }
+        };
+        document.addEventListener('touchstart', preventPullToRefresh, { passive: false });
+        return () => { document.removeEventListener('touchstart', preventPullToRefresh) };
+    }, []);
+
+    useEffect(() => {
         const canvas = canvasRef.current;
         if (canvas) {
             const dpr = window.devicePixelRatio || 1;
-            canvas.width = 5000 * dpr;
-            canvas.height = 5000 * dpr;
-            canvas.style.width = '5000px';
-            canvas.style.height = '5000px';
+            const canvasWidth = 3000;
+            const canvasHeight = 3000;
+            canvas.width = canvasWidth * dpr;
+            canvas.height = canvasHeight * dpr;
+            canvas.style.width = `${canvasWidth}px`;
+            canvas.style.height = `${canvasHeight}px`;
         }
     }, []);
 
     return (
-        <div className="w-screen h-screen relative overflow-hidden" id="canvas-container">
-            <canvas ref={canvasRef} width={5000} height={5000} className="size-[5000px] absolute inset-0 touch-none" />
+        <div className="w-screen h-screen relative overflow-hidden" id="canvas-container" onTouchMove={(e) => { if (e.touches.length === 1) e.preventDefault()}}>
+            <canvas ref={canvasRef} width={3000} height={3000} className="absolute inset-0 touch-none" />
             <div id="textarea-container" />
-            {canvasGame && socket && <>
-                <MainToolbar selectTool={canvasGame.onToolSelect} />
-                <StyleToolbar
-                    selectStrokeColour={canvasGame.selectStrokeColour}
-                    selectFillColour={canvasGame.selectFillColour}
-                    selectTextColor={canvasGame.selectTextColor}
-                    selectTextStyle={canvasGame.selectTextStyle}
-                    selectFontFamily={canvasGame.selectFontFamily}
-                    selectFontSize={canvasGame.selectFontSize}
-                    selectPenWidth={canvasGame.selectPenWidth} />
-                <QuickActions
-                    handleZoomIn={canvasGame.handleZoomIn}
-                    handleZoomOut={canvasGame.handleZoomOut}
-                    handleZoomReset={canvasGame.handleZoomReset}
-                    handleRedo={canvasGame.handleRedo}
-                    handleUndo={canvasGame.handleUndo}
-                />
-                <UtilityToolbar sessionId={sessionId} socket={socket} />
-            </>}
-
+            {
+                canvasGame && socket &&
+                <>
+                    <MainToolbar selectTool={canvasGame.onToolSelect} />
+                    <StyleToolbar
+                        selectStrokeColour={canvasGame.selectStrokeColour}
+                        selectFillColour={canvasGame.selectFillColour}
+                        selectTextColor={canvasGame.selectTextColor}
+                        selectTextStyle={canvasGame.selectTextStyle}
+                        selectFontFamily={canvasGame.selectFontFamily}
+                        selectFontSize={canvasGame.selectFontSize}
+                        selectPenWidth={canvasGame.selectPenWidth} />
+                    <QuickActions
+                        handleZoomIn={canvasGame.handleZoomIn}
+                        handleZoomOut={canvasGame.handleZoomOut}
+                        handleZoomReset={canvasGame.handleZoomReset}
+                        handleRedo={canvasGame.handleRedo}
+                        handleUndo={canvasGame.handleUndo}
+                    />
+                    <UtilityToolbar sessionId={sessionId} socket={socket} />
+                </>
+            }
         </div>
     );
 }
