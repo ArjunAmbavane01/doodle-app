@@ -81,7 +81,7 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
   }, [])
 
   return (
-    <div className="flex items-center gap-0 sm:gap-1.5 top-2 left-[14%] sm:top-4 sm:left-auto sm:mx-auto w-fit p-1 px-1 sm:p-1.5 sm:px-3 rounded-lg md:rounded-xl bg-white inset-x-0 relative">
+    <div className="flex items-center gap-0 sm:gap-0.5 md:gap-1.5 top-2 sm:top-4 mx-auto left-0 right-0 w-fit max-w-[90%] sm:max-w-none p-1 px-1 sm:p-1.5 sm:px-3 rounded-lg md:rounded-xl bg-white absolute sm:relative ">
       {tools.map((tool) => <ToolButton key={tool.type} tool={tool} activeTool={activeTool} chooseTool={chooseTool} />)}
 
       <div className="mx-[2px] w-[0.5px] bg-blue-200 self-stretch" />
@@ -93,7 +93,7 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
       >
         <Image src={"/images/chatbot.png"} alt="Chatbot" width={100} height={100} className="size-4 md:size-5" />
         <span
-          className={`hidden md:block absolute bottom-0.5 right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool === "genAI" ? "text-black" : "text-muted-foreground"}`}
+          className={`hidden md:block absolute -bottom-[1px] right-[3px] text-[10px] font-medium transition-colors group-hover:text-black ${activeTool === "genAI" ? "text-black" : "text-muted-foreground"}`}
         >
           D
         </span>

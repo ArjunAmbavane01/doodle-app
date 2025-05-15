@@ -34,16 +34,26 @@ export function FloatingShapes() {
 
       const shapes: HTMLDivElement[] = [];
 
+      const isSmallScreen = window.innerWidth < 640;
+
+      const cols = isSmallScreen ? 2 : 4;
+      const rows = isSmallScreen ? 3 : 4;
+
       for (let i = 0; i < totalShapes; i++) {
         const imageNumber = i % 9 + 1;
-        const cols = 4
-        const rows = 4
-        const col = i % cols
-        const row = Math.floor(i / cols)
-        const x = (col + Math.random() * 0.8 + 0.2) * (100 / cols)
-        const y = (row + Math.random() * 0.8 + 0.2) * (100 / rows)
-        shapes.push(createImageShape(imageNumber, 60 + Math.random() * 20, x, y))
-
+        let x, y;
+        if (isSmallScreen) {
+          const col = Math.floor(i / rows);
+          const row = i % rows;
+          x = (col + Math.random() * 0.6 + 0.2) * (100 / cols);
+          y = (row + Math.random() * 0.6 + 0.2) * (100 / rows);
+        } else {
+          const col = i % cols;
+          const row = Math.floor(i / cols);
+          x = (col + Math.random() * 0.8 + 0.2) * (100 / cols);
+          y = (row + Math.random() * 0.8 + 0.2) * (100 / rows);
+        }
+        shapes.push(createImageShape(imageNumber, 60 + Math.random() * 20, x, y));
       }
 
       shapes.forEach((shape) => {
@@ -58,8 +68,9 @@ export function FloatingShapes() {
 
         const duration = 3 + Math.random() * 10;
 
-        const moveRangeX = 2 + Math.random() * 4;
-        const moveRangeY = 2 + Math.random() * 4;
+        const moveRangeMultiplier = isSmallScreen ? 0.7 : 1;
+        const moveRangeX = (2 + Math.random() * 4) * moveRangeMultiplier;
+        const moveRangeY = (2 + Math.random() * 4) * moveRangeMultiplier;
 
         gsap.to(shape, {
           rotation: `+=${Math.random() > 0.5 ? 10 : -10}`,

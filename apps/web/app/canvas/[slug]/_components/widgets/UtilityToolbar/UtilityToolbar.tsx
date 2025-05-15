@@ -22,7 +22,7 @@ const UtilityToolbar = ({ sessionId, socket }: { sessionId: string, socket: WebS
     }
 
     return (
-        <div className="flex gap-2 fixed bottom-6 sm:bottom-auto sm:top-6 right-5 z-10 font-heading">
+        <div className="flex gap-2 fixed bottom-6 lg:bottom-auto lg:top-6 right-5 z-10 font-heading">
             <Popover open={openCollaborators} onOpenChange={setOpenCollaborators}>
                 <PopoverTrigger>
                     <motion.div
