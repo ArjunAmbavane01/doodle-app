@@ -50,7 +50,7 @@ const MainToolbar = ({ selectTool }: { selectTool: ((tool: SelectedToolType) => 
         const { svgPath } = res.data;
         window.dispatchEvent(new CustomEvent('renderSvg', { detail: svgPath }));
         setIsAIDrawingLoading((c) => !c);
-        promptRef.current.value = '';
+        if(promptRef.current) promptRef.current.value = '';
       } catch (e) {
         console.error(e);
       }

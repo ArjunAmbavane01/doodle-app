@@ -137,7 +137,7 @@ class DrawingEngine {
     this.ctx.restore();
   };
 
-  private debouncedRender() {
+  private debouncedRender = () => {
     if (this.renderQueued) return;
     this.renderQueued = true;
 
@@ -145,7 +145,7 @@ class DrawingEngine {
       this.render();
       this.renderQueued = false;
     });
-  }
+  };
 
   private getCanvasPoint = (clientX: number, clientY: number) => {
     const rect = this.canvas.getBoundingClientRect();
@@ -614,11 +614,13 @@ class DrawingEngine {
   private handleMouseUp = (e: MouseEvent | TouchEvent) => {
     const clientX = (e instanceof TouchEvent) ? e.touches[0]?.clientX as number : e.clientX;
     const clientY = (e instanceof TouchEvent) ? e.touches[0]?.clientY as number : e.clientY;
+    
     if (this.isPanning) {
       this.isPanning = false;
       this.canvas.style.cursor = "grab";
       return;
     }
+    
     if (this.isDragging && this.currentShape && this.movedShape) {
       const newRoomShape = { userId: this.movedShape.userId, shape: this.currentShape };
       this.roomShapes.push(newRoomShape);
@@ -840,7 +842,7 @@ class DrawingEngine {
         this.socket.send(JSON.stringify({ type: "chat", userId: roomShape.userId, message: JSON.stringify(roomShape.shape), }));
         this.undoStack.push({ type: "add", roomShape });
       }
-      this.roomShapes = this.roomShapes.filter(roomShape => roomShape.shape.type === "genAI" && roomShape.shape.svgPath !== "");
+      this.roomShapes = this.roomShapes.filter(roomShape => roomShape.shape.type !== "genAI" || roomShape.shape.svgPath !== "");
       this.currentAiGeneratedShape = null;
       this.renderPersistentShapes();
       this.render();
