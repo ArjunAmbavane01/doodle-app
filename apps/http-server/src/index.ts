@@ -22,7 +22,9 @@ app.use(json());
 app.use("/api/v1", cors(corsOptions), Routes);
 
 app.get("/health", (req, res) => {
-    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+    const timestamp = new Date().toISOString();
+    console.log(timestamp)
+    res.status(200).json({ status: "ok", timestamp });
 });
 app.get("/", (req, res) => {
     res.send("Hello From Doodle's API !")

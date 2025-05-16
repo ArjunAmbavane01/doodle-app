@@ -54,9 +54,6 @@ importers:
 
   apps/http-server:
     dependencies:
-      '@types/cors':
-        specifier: ^2.8.17
-        version: 2.8.17
       '@workspace/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -82,6 +79,9 @@ importers:
         specifier: ^11.0.5
         version: 11.0.5
     devDependencies:
+      '@types/cors':
+        specifier: ^2.8.17
+        version: 2.8.17
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.0
@@ -215,12 +215,6 @@ importers:
 
   apps/ws-server:
     dependencies:
-      '@types/jsonwebtoken':
-        specifier: ^9.0.8
-        version: 9.0.8
-      '@types/ws':
-        specifier: ^8.5.14
-        version: 8.5.14
       '@workspace/common':
         specifier: workspace:*
         version: link:../../packages/common
@@ -230,6 +224,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
+      express:
+        specifier: ^4.21.2
+        version: 4.21.2
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
@@ -237,6 +234,15 @@ importers:
         specifier: ^8.18.0
         version: 8.18.0
     devDependencies:
+      '@types/express':
+        specifier: ^5.0.0
+        version: 5.0.0
+      '@types/jsonwebtoken':
+        specifier: ^9.0.8
+        version: 9.0.8
+      '@types/ws':
+        specifier: ^8.5.14
+        version: 8.5.14
       '@workspace/backend-common':
         specifier: workspace:*
         version: link:../../packages/backend-common

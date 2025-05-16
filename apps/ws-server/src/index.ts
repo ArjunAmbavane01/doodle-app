@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { WebSocketServer, WebSocket } from "ws";
+import express, { Application } from "express";
 import { verify } from "jsonwebtoken";
 import { WS_JWT_SECRET } from "@workspace/backend-common/config";
 import prisma from "@workspace/db/client";
@@ -8,9 +9,22 @@ import { shapeSchema } from "@workspace/common/shapes";
 
 interface IUser { userId: string; rooms: number[]; ws: WebSocket; }
 
+const HTTP_PORT = Number(process.env.HTTP_PORT) || 8081;
+const WS_PORT = Number(process.env.WS_PORT) || 8080;
+
 const users: IUser[] = [];
 
-const wss = new WebSocketServer({ port: Number(process.env.PORT) || 8080 });
+const wss = new WebSocketServer({ port: WS_PORT });
+
+const app: Application = express();
+
+app.get("/health", (req, res) => {
+  const timestamp = new Date().toISOString();
+  console.log(timestamp)
+  res.status(200).json({ status: "ok", timestamp });
+});
+
+app.listen(HTTP_PORT, () => console.log(`Listening on port ${HTTP_PORT}`));
 
 const checkToken = (token: string | null) => {
   try {
