@@ -2,9 +2,8 @@
 
 *Unleash Creativity, Collaborate Seamlessly, Innovate Limitlessly*
 
-![Last Commit](https://img.shields.io/github/last-commit/username/doodle-app?style=flat-square)
+![Last Commit](https://img.shields.io/github/last-commit/ArjunAmbavane01/doodle-app?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-95%25-blue?style=flat-square)
-![Languages](https://img.shields.io/github/languages/count/username/doodle-app?style=flat-square)
 
 ## Built with the tools and technologies:
 
