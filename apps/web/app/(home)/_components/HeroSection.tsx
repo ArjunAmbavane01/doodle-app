@@ -10,7 +10,7 @@ import { FloatingShapes } from "./visuals/FloatingShapes";
 import { errorToast } from "@/components/ui/Toast";
 import { Button } from "@workspace/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
-import { Info, PencilLine, Users } from "lucide-react";
+import { AlertCircle, Info, PencilLine, Users } from "lucide-react";
 
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
@@ -24,13 +24,16 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
 
     const [modalOpen, setModalopen] = useState(false);
     const [loadingRoom, setLoadingRoom] = useState(false);
+    const [showLoginWarning, setShowLoginWarning] = useState(false);
 
     const createRoom = async () => {
         try {
             setLoadingRoom(true);
             if (!userToken) {
+                setShowLoginWarning(true);
                 errorToast({ title: 'Please log in to create new room.' });
                 setLoadingRoom(false);
+                setTimeout(() => setShowLoginWarning(false), 5000);
                 return;
             }
             const { data } = await axios.post(CREATE_ROOM_URL, {}, { headers: { 'Authorization': `Bearer ${userToken}` } });
@@ -60,8 +63,10 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
         try {
             const roomSlug = inputRef.current?.value.trim();
             if (!userToken) {
+                setShowLoginWarning(true);
                 errorToast({ title: 'Please log in to join a room.' });
-                setModalopen((c) => !c);
+                setModalopen(false);
+                setTimeout(() => setShowLoginWarning(false), 5000);
                 return;
             }
             if (!roomSlug) {
@@ -121,7 +126,6 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
             <div className="absolute inset-0 pointer-events-none">
                 <div className="triangle absolute -top-10 right-0 size-40 bg-pink-400 rotate-45 opacity-80"></div>
                 <div className="triangle absolute bottom-20 -left-20 size-40 bg-green-400 rotate-12"></div>
-
                 <FloatingShapes />
             </div>
 
@@ -132,64 +136,72 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                     Doodle
                 </h1>
 
-
-                <div ref={buttonsRef} className="flex flex-col md:flex-row gap-5">
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 bg-pink-400 w-[100%] opacity-80 blur-[8px] rounded-full" />
-                        <Button onClick={createRoom} className="p-5 md:p-6 rounded-full bg-white text-black border border-black relative">
-                            <span className="flex items-center gap-2 font-semibold font-body text-base md:text-lg">
-                                <span className="inline-block w-32 text-center">
-                                    {loadingRoom ? 'Doodling...' : 'Start Doodling'}
+                <div className="flex flex-col items-center gap-4">
+                    <div ref={buttonsRef} className="flex flex-col md:flex-row gap-5">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 bg-pink-400 w-[100%] opacity-80 blur-[8px] rounded-full" />
+                            <Button onClick={createRoom} className="p-5 md:p-6 rounded-full bg-white text-black border border-black relative">
+                                <span className="flex items-center gap-2 font-semibold font-body text-base md:text-lg">
+                                    <span className="inline-block w-32 text-center">
+                                        {loadingRoom ? 'Doodling...' : 'Start Doodling'}
+                                    </span>
+                                    <PencilLine className="size-3" />
                                 </span>
-                                <PencilLine className="size-3" />
-                            </span>
-                        </Button>
-                    </div>
-
-
-                    <Dialog open={modalOpen} onOpenChange={setModalopen}>
-                        <DialogTrigger asChild>
-                            <Button
-                                variant="outline"
-                                className="rounded-full p-5 md:p-6 border border-white text-white font-bold font-body text-base md:text-lg bg-black shadow-md shadow-blue-800 hover:bg-white/30 transition-colors duration-200"
-                                onClick={() => setModalopen(true)}
-                            >
-                                Join Room
                             </Button>
-                        </DialogTrigger>
-                        <DialogContent className="rounded-lg bg-white text-zinc-800 max-w-xs md:max-w-md lg:max-w-lg">
-                            <DialogHeader className="flex flex-col gap-3 md:gap-5">
-                                <DialogTitle className="text-lg text-left font-heading text-zinc-800">Join Room</DialogTitle>
-                                <DialogDescription asChild>
-                                    <div className="flex flex-col gap-2 md:gap-5 text-sm md:text-base">
-                                        <div className="flex rounded border border-blue-300">
-                                            <span className="p-2 bg-blue-100 text-blue-800 border-r border-blue-300">
-                                                <Users className="size-3 md:size-4" />
-                                            </span>
-                                            <input
-                                                ref={inputRef}
-                                                type="text"
-                                                name="roomCode"
-                                                placeholder="Enter Room Code"
-                                                className="bg-white text-zinc-800 pl-2 size-full outline-none"
-                                            />
-                                        </div>
-                                        <Button
-                                            className="flex items-center gap-3 p-3 md:p-5 text-sm md:text-base tracking-wide text-white [text-shadow:_0_2px_4px_rgb(23_37_84_/_0.9)] bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 shadow-sm shadow-blue-600 transition-colors duration-200 font-medium"
-                                            onClick={joinRoom}
-                                        >
-                                            Join Room
-                                        </Button>
-                                    </div>
-                                </DialogDescription>
+                        </div>
 
-                            </DialogHeader>
-                            <DialogFooter className="flex flex-row items-start gap-1 text-sm p-2 rounded bg-blue-50 border border-blue-200 text-zinc-800">
-                                <Info className="size-5 text-zinc-800" />
-                                <span className="text-xs md:text-sm">Don&apos;t have a room code? Ask your team member to share it with you or create a new room.</span>
-                            </DialogFooter>
-                        </DialogContent>
-                    </Dialog>
+                        <Dialog open={modalOpen} onOpenChange={setModalopen}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    className="rounded-full p-5 md:p-6 border border-white text-white font-bold font-body text-base md:text-lg bg-black shadow-md shadow-blue-800 hover:bg-white/30 transition-colors duration-200"
+                                    onClick={() => setModalopen(true)}
+                                >
+                                    Join Room
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="rounded-lg bg-white text-zinc-800 max-w-xs md:max-w-md lg:max-w-lg">
+                                <DialogHeader className="flex flex-col gap-3 md:gap-5">
+                                    <DialogTitle className="text-lg text-left font-heading text-zinc-800">Join Room</DialogTitle>
+                                    <DialogDescription asChild>
+                                        <div className="flex flex-col gap-2 md:gap-5 text-sm md:text-base">
+                                            <div className="flex rounded border border-blue-300">
+                                                <span className="p-2 bg-blue-100 text-blue-800 border-r border-blue-300">
+                                                    <Users className="size-3 md:size-4" />
+                                                </span>
+                                                <input
+                                                    ref={inputRef}
+                                                    type="text"
+                                                    name="roomCode"
+                                                    placeholder="Enter Room Code"
+                                                    className="bg-white text-zinc-800 pl-2 size-full outline-none"
+                                                />
+                                            </div>
+                                            <Button
+                                                className="flex items-center gap-3 p-3 md:p-5 text-sm md:text-base tracking-wide text-white [text-shadow:_0_2px_4px_rgb(23_37_84_/_0.9)] bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 shadow-sm shadow-blue-600 transition-colors duration-200 font-medium"
+                                                onClick={joinRoom}
+                                            >
+                                                Join Room
+                                            </Button>
+                                        </div>
+                                    </DialogDescription>
+
+                                </DialogHeader>
+                                <DialogFooter className="flex flex-row items-start gap-1 text-sm p-2 rounded bg-blue-50 border border-blue-200 text-zinc-800">
+                                    <Info className="size-5 text-zinc-800" />
+                                    <span className="text-xs md:text-sm">Don&apos;t have a room code? Ask your team member to share it with you or create a new room.</span>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                    {showLoginWarning && (
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-700/80 border border-amber-500/30 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <AlertCircle className="size-4 text-white" />
+                            <p className="text-sm text-white font-medium">
+                                Please log in to continue
+                            </p>
+                        </div>
+                    )}
                 </div>
             </div>
         </section>

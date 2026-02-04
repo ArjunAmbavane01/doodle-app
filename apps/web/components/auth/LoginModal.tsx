@@ -10,7 +10,7 @@ const LoginModal = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button className="bg-white text-black rounded-full text-xs md:text-sm p-1 px-3 md:p-5 hover:-translate-y-1 transition-all duration-200 ">
-          Get Started
+          Sign in
         </Button>
       </DialogTrigger>
       <DialogContent className="rounded-lg bg-white">
