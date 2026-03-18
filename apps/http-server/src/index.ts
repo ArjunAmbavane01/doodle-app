@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 8000;
 
 const app: Application = express();
 
-const allowList = ['https://www.doodle.codes', 'https://doodle-web-black.vercel.app']
+const allowList = ['https://doodle.arjunx.in', 'https://doodles-web.vercel.app', 'http://localhost:3000']
 
 const corsOptions: CorsOptions = {
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
