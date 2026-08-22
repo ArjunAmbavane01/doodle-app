@@ -29,7 +29,7 @@ Doodle is a collaborative online whiteboard where users can draw, sketch, and br
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/arjunbhavan-dev/doodle-app.git
+git clone https://github.com/arjunbhavan-dev/doodle.git
 cd doodle-app
 ```
 
