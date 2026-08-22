@@ -3,26 +3,27 @@
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 
-const getInitialShapes = (window: Window): number => (window.innerWidth >= 1024) ? 13 : (window.innerWidth < 1024 && window.innerWidth >= 640) ? 9 : 6;
+const getInitialShapes = (width: number): number =>
+  width >= 1024 ? 12 : width >= 640 ? 9 : 6;
 
 export function FloatingShapes() {
 
-  const [totalShapes, setTotalShapes] = useState<number>(getInitialShapes(window));
+  const [totalShapes, setTotalShapes] = useState<number>(0);
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) setTotalShapes(12);
-      else if (window.innerWidth < 1024 && window.innerWidth >= 640) setTotalShapes(9);
-      else if (window.innerWidth < 640) setTotalShapes(6);
-    }
-    window.addEventListener('resize', handleResize);
+      setTotalShapes(getInitialShapes(window.innerWidth));
+    };
 
-    return () => window.removeEventListener('resize', handleResize);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
   }, [])
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || totalShapes === 0) return;
 
     if (containerRef.current.children.length > 0) {
       while (containerRef.current.firstChild) {

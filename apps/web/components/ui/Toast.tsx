@@ -7,13 +7,14 @@ import { CheckCircle, XCircle } from 'lucide-react';
 export const ToastType = {
   SUCCESS: 'success',
   ERROR: 'error',
+  INFO: 'info',
 };
 
 interface ToastProps {
   id: string | number;
   title: string;
   description?: string;
-  type?: 'success' | 'error';
+  type?: 'success' | 'error' | 'info';
   button?: {
     label: string;
     onClick: () => void;
@@ -39,6 +40,14 @@ function Toast(props: ToastProps) {
       buttonText: 'text-red-600',
       buttonHover: 'hover:bg-red-100',
       icon: <XCircle className="size-5 text-white" />
+    },
+    info: {
+      bg: 'bg-blue-600',
+      text: 'text-white',
+      buttonBg: 'bg-blue-50',
+      buttonText: 'text-blue-600',
+      buttonHover: 'hover:bg-blue-100',
+      icon: <CheckCircle className="size-5 text-white" />
     }
   };
 
@@ -114,6 +123,23 @@ export function errorToast({
     title,
     description,
     type: 'error',
+    button
+  });
+}
+
+export function infoToast({ 
+  title, 
+  description, 
+  button 
+}: { 
+  title: string; 
+  description?: string; 
+  button?: { label: string; onClick: () => void } 
+}) {
+  return toast({
+    title,
+    description,
+    type: 'info',
     button
   });
 }

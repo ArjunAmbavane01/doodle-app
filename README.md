@@ -1,6 +1,6 @@
 # Doodle
 
-Doodle is a real-time collaborative drawing application. It provides a visual workspace for users to create diagrams and sketches together in real-time.
+Doodle is a collaborative online whiteboard where users can draw, sketch, and brainstorm together in real-time from anywhere.
 
 ## Features
 
@@ -43,7 +43,7 @@ pnpm install
 
 Review the `.env.example` file in the root directory. You will need to configure the required environment variables in their respective locations:
 
-- `apps/http-server/.env`: Requires `PORT`, `DATABASE_URL`, `JWT_SECRET`, and `OPENAI_API_KEY`.
+- `apps/http-server/.env`: Requires `PORT`, `DATABASE_URL`, `JWT_SECRET`, `WS_JWT_SECRET`, and `OPENAI_API_KEY`.
 - `apps/ws-server/.env`: Requires `PORT`, `DATABASE_URL`, `JWT_SECRET`, and `WS_JWT_SECRET`.
 - `packages/db/.env`: Requires `DATABASE_URL`.
 - `apps/web/.env.local`: Requires NextAuth and Google OAuth credentials, and backend API URLs.

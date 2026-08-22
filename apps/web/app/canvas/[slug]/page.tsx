@@ -7,6 +7,7 @@ import CanvasWrapper from "./_components/CanvasWrapper";
 import ErrorPage from "@/components/ErrorPage";
 import { ArrowLeft, RefreshCw, } from "lucide-react";
 import axios from "axios";
+import TryAgainButton from "@/components/ui/try-again-btn";
 
 const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
     try {
@@ -73,10 +74,7 @@ const page = async ({ params }: { params: Promise<{ slug: string }> }) => {
                         Go Home
                     </Link>
                 </Button>
-                <Button className="shadow-sm shadow-blue-300" onClick={() => window.location.reload()}>
-                    <RefreshCw className="size-4" />
-                    Try Again
-                </Button>
+                <TryAgainButton />
             </ErrorPage>
         )
     }

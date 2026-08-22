@@ -11,6 +11,7 @@ import { errorToast } from "@/components/ui/Toast";
 import { Button } from "@workspace/ui/components/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@workspace/ui/components/dialog"
 import { AlertCircle, Info, PencilLine, Users } from "lucide-react";
+import { Toast } from "@workspace/ui/components/toast";
 
 
 const HeroSection = ({ userToken }: { userToken: string | null | undefined }) => {
@@ -25,6 +26,7 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
     const [modalOpen, setModalopen] = useState(false);
     const [loadingRoom, setLoadingRoom] = useState(false);
     const [showLoginWarning, setShowLoginWarning] = useState(false);
+    const [showColdStartWarning, setShowColdStartWarning] = useState(false);
 
     const createRoom = async () => {
         try {
@@ -121,6 +123,18 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
         return () => ctx.revert()
     }, [])
 
+    useEffect(() => {
+        // Show cold start warning on initial load once per session
+        const hasSeenWarning = sessionStorage.getItem('hasSeenColdStartWarning');
+        if (!hasSeenWarning) {
+            setTimeout(() => {
+                setShowColdStartWarning(true);
+                sessionStorage.setItem('hasSeenColdStartWarning', 'true');
+                setTimeout(() => setShowColdStartWarning(false), 10000); // hide after 10 seconds
+            }, 1000);
+        }
+    }, [])
+
     return (
         <section className="flex items-center justify-center relative w-full h-[calc(100vh)] -mt-14 md:-mt-20 overflow-hidden bg-black">
             <div className="absolute inset-0 pointer-events-none">
@@ -199,6 +213,14 @@ const HeroSection = ({ userToken }: { userToken: string | null | undefined }) =>
                             <AlertCircle className="size-4 text-white" />
                             <p className="text-sm text-white font-medium">
                                 Please log in to continue
+                            </p>
+                        </div>
+                    )}
+                    {showColdStartWarning && (
+                        <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600/80 border border-blue-400/30 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Info className="size-4 text-white" />
+                            <p className="text-sm text-white font-medium max-w-sm text-center">
+                                Initial requests may take a bit longer (up to 50s) due to Render free-tier cold starts. Thanks for your patience!
                             </p>
                         </div>
                     )}
